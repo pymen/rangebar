@@ -1,0 +1,6 @@
+{
+    "app.window": "1440",
+    "bi.g_api_key": "ZUhs8BZRvPoB79YG3aFBqO0W73xoJ0vf82mmrLHBxshADjbXGJzEUpDwtMbXBZDr",
+    "bi.g_secret_key": "QbNNbtNerDNNN0M6ssNNoFOcETAbY1iVWM3CpK6A3hyoUeuILMkSomNSDfr69JzA",
+    "app.symbols_config": [{"symbol": "bnbusdt", "range": {"average_adr": "587.05", "ts": "2023-03-21 23:10:00"}}]
+}

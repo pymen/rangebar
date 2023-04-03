@@ -1,0 +1,8 @@
+**/**/__pycache__/
+**/__pycache__/
+.pytest_cache
+notebooks/dataset.csv
+rolling_window_trader.egg-info
+.vscode
+data/symbol_windows/**
+notebooks/data/**
