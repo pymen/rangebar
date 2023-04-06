@@ -5,4 +5,4 @@ notebooks/dataset.csv
 rolling_window_trader.egg-info
 .vscode
 data/symbol_windows/**
-notebooks/data/**
+notebooks/tmp-data/**
