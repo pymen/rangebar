@@ -1,4 +1,4 @@
-from src.stream_consumers.helpers.decorators import consumer_source
+from src.helpers.decorators import consumer_source
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.window.window import Window
 

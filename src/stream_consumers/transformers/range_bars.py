@@ -1,10 +1,10 @@
 from typing import Dict
 import pandas as pd
 from src.settings import get_settings
-from src.stream_consumers.helpers.decorators import consumer_source, derived_frame_trigger, config
+from src.helpers.decorators import consumer_source, derived_frame_trigger, config
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.window.window import Window
-from src.stream_consumers.helpers.range_bars import create_range_bar_df
+from src.helpers.range_bars import create_range_bar_df
 
 @consumer_source(name='kline', df_index=['timestamp', 'last_trade_id'])
 class RangeBar(StreamConsumer):

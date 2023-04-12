@@ -3,7 +3,7 @@ import pandas as pd
 import ta
 from rx.core import Subject
 
-from src.stream_consumers.helpers.dataclasses import Event
+from src.helpers.dataclasses import Event
 
 class SimpleStrategyIndicators:
     """
