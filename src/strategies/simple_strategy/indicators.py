@@ -1,7 +1,7 @@
 from typing import Tuple
 import pandas as pd
 import ta
-from rx.core import Subject
+from rx.subject import Subject
 
 from src.helpers.dataclasses import Event
 

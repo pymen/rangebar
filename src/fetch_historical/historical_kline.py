@@ -1,7 +1,7 @@
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.stream_consumers.transformers.kline import Kline
 from src.window.window import Window
-from rx.core import operators as op
+import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
@@ -12,6 +12,7 @@ class HistoricalKline:
 
     transformer: Kline
     def __init__(self, window: Window):
+         self.window = window
          self.transformer = Kline(window)
          window.historical.pipe(op.filter(lambda e: e.source == 'kline'), op.map(self.fetch_historical)).subscribe()
          self.um_futures_client = UMFutures()
@@ -67,7 +68,7 @@ class HistoricalKline:
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
         df.set_index('timestamp', inplace=True)
-        self.window.append_rows(e.symbol, df)
+        self.window.append_rows(e.symbol, 'kline', df)
         return df
 
     def get_unix_epoch_time_ms(self, datetime_str):

@@ -1,4 +1,4 @@
-from rx.core import Subject
+from rx.subject import Subject
 from src.strategies.utils import iterations_back_till_condition
 from src.helpers.dataclasses import Event
 from scipy.stats import linregress

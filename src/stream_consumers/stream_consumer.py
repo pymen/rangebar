@@ -25,7 +25,8 @@ class StreamConsumer(ABC):
         return snake_case.lstrip("_")    
         
     def subscribe(self, kwargs: dict):
-        for symbol in self.settings['symbols']:
+        for symbol_config in self.settings['symbols_config']:
+            symbol = symbol_config['symbol']
             print(f"base_stream_consumer: subscribe: symbol: {symbol}, stream_name: {self.df_name}")
             stream_id = random.randint(100, 999)
             kwargs['id'] = stream_id

@@ -2,7 +2,7 @@ from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.core import Subject
+from rx.subject import Subject
 import pandas as pd
 
 def test_fetch_historical():

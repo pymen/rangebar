@@ -4,7 +4,7 @@ from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.transformers.range_bars import RangeBar
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.core import Subject
+from rx.subject import Subject
 
 def consume() -> Window:
     """

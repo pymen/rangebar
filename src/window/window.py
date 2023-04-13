@@ -4,7 +4,7 @@ import datetime as dt
 import os
 from src.settings import get_settings
 from src.utility import get_file_path
-from rx.core import Subject
+from rx.subject import Subject
 from src.helpers.dataclasses import Event
 
 class Window:
