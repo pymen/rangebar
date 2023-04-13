@@ -15,4 +15,4 @@ def test_fetch_historical():
     # historical.next(e)
     df = target.fetch_historical(e)
     minutes = int((last_timestamp - datetime.datetime.now()).total_seconds() / 60)    
-    assert len(df) == minutes
+    assert len(df) == abs(minutes)
