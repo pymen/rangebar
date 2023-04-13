@@ -1,6 +1,8 @@
+from src.helpers.dataclasses import FetchHistoricalEvent
 from src.helpers.decorators import consumer_source
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.window.window import Window
+
 
 @consumer_source(name='kline')
 class Kline(StreamConsumer):
@@ -26,9 +28,12 @@ class Kline(StreamConsumer):
     def __init__(self, window: Window):
         super().__init__(window, self.col_mapping)
         super().subscribe({'interval': '1m'})
+       
 
+    
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["k"]["s"] = input_dict["s"]
-        return input_dict["k"]    
-                
+        return input_dict["k"]
+
+    
             

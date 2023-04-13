@@ -14,8 +14,9 @@ class Window:
     consumers: Dict[str, Dict[str, object]] = {}
     prune_started = False
     
-    def __init__(self, ws_client, calculate_indicators: Subject):
+    def __init__(self, ws_client, calculate_indicators: Subject, historical: Subject):
         self.calculate_indicators = calculate_indicators
+        self.historical = historical
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             df = self.load_symbol_window_data(symbols_config['symbol'])
