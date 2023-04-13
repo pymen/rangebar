@@ -137,6 +137,18 @@ class Window:
         # Increment the count for the current dataframe
         self.symbol_dict_df_dict_added_row_count[symbol][df_name] += 1
         self.eval_count_triggers()
+
+    # Define a function to append a historical df to the main df
+    def append_rows(self, symbol: str, df_name: str, df_section: pd.DataFrame):
+        # Check if pruning has started and start the timer if not
+        if not self.prune_started:
+            self.prune_started = True
+            # self.timer.start()
+        self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(df_name, pd.DataFrame())
+        self.symbol_dict_df_dict[symbol][df_name] = pd.concat([self.symbol_dict_df_dict[symbol][df_name], df_section])  
+        self.symbol_dict_df_dict_added_row_count.setdefault(symbol, {}).setdefault(df_name, 1)
+        self.symbol_dict_df_dict_added_row_count[symbol][df_name] += len(df_section)
+        self.eval_count_triggers()    
     
 
     def get_consumer_triggers(self, consumer):
