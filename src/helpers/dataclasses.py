@@ -11,5 +11,5 @@ class Event:
 class FetchHistoricalEvent:
     symbol: str
     source: str
-    last_timestamp: str
+    last_timestamp: pd.Timestamp
         
