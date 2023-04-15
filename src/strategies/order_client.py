@@ -9,6 +9,8 @@ class OrderClient:
     Conversely, if the take_profit_order is activated, the stop_loss_order needs to be cancelled
     The common suffix for the orders is the unix epoch time in milliseconds & meant to provide a link between the orders
     so that the appropriate order can be cancelled when the other is activated
+
+    Not a limit order is not guaranteed to be filled! If it isn't the other 2 in the group should also be canceled
     """
     trades = []
     def __init__(self):

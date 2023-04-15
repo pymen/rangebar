@@ -6,6 +6,9 @@ from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 
+# The REST baseurl for testnet is "https://testnet.binancefuture.com"
+# The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
+
 def consume() -> Window:
     """
     Event Subjects
@@ -16,7 +19,7 @@ def consume() -> Window:
     """
     Window
     """
-    ws_client = UMFuturesWebsocketClient()
+    ws_client = UMFuturesWebsocketClient(stream_url='wss://stream.binancefuture.com')
     window = Window(ws_client, calc_indicators, historical)
     # Transformers
     # DiffBookBidAskSum(window)
