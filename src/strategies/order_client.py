@@ -208,7 +208,4 @@ class OrderClient:
                 )
             )
 
-    def get_unix_epoch_time_ms(self, dt: datetime):
-        """Converts a datetime object to unix epoch time in milliseconds"""
-        unix_epoch_time_ms = int(dt.timestamp() * 1000)
-        return unix_epoch_time_ms
+    

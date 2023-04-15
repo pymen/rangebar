@@ -1,6 +1,6 @@
 {
     "timezone": "UTC",
-    "serverTime": 1681563902520,
+    "serverTime": 1681594441506,
     "futuresType": "U_MARGINED",
     "rateLimits": [
         {
@@ -861,8 +861,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.01360",
-                    "maxPrice": "22.77620",
+                    "minPrice": "0.01350",
+                    "maxPrice": "22.57840",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.00010"
                 },
@@ -1249,8 +1249,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.354",
-                    "maxPrice": "590.593",
+                    "minPrice": "0.368",
+                    "maxPrice": "613.628",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.001"
                 },
@@ -1947,7 +1947,7 @@
             "filters": [
                 {
                     "minPrice": "0.0068",
-                    "maxPrice": "11.4480",
+                    "maxPrice": "11.3941",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001"
                 },
@@ -4848,8 +4848,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "2.500",
-                    "maxPrice": "4178.910",
+                    "minPrice": "2.470",
+                    "maxPrice": "4128.970",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.010"
                 },
@@ -5943,7 +5943,7 @@
             "filters": [
                 {
                     "minPrice": "0.0168",
-                    "maxPrice": "28.2509",
+                    "maxPrice": "28.0513",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001"
                 },
@@ -6330,8 +6330,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.001080",
-                    "maxPrice": "1.812840",
+                    "minPrice": "0.001100",
+                    "maxPrice": "1.845380",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.000010"
                 },
@@ -7105,7 +7105,7 @@
             "filters": [
                 {
                     "minPrice": "0.052",
-                    "maxPrice": "86.915",
+                    "maxPrice": "87.039",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.001"
                 },
@@ -8028,8 +8028,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.000338",
-                    "maxPrice": "0.564845",
+                    "minPrice": "0.000339",
+                    "maxPrice": "0.566635",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.000001"
                 },
@@ -8574,8 +8574,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.01360",
-                    "maxPrice": "22.79070",
+                    "minPrice": "0.01350",
+                    "maxPrice": "22.58630",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.00010"
                 },
@@ -9038,8 +9038,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0052",
-                    "maxPrice": "8.7038",
+                    "minPrice": "0.0051",
+                    "maxPrice": "8.6522",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001"
                 },
@@ -9270,7 +9270,7 @@
             "filters": [
                 {
                     "minPrice": "0.00096",
-                    "maxPrice": "1.61187",
+                    "maxPrice": "1.60750",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.00001"
                 },
@@ -9500,8 +9500,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.264",
-                    "maxPrice": "441.455",
+                    "minPrice": "0.269",
+                    "maxPrice": "449.674",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.001"
                 },
@@ -9654,8 +9654,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.00132",
-                    "maxPrice": "2.20164",
+                    "minPrice": "0.00130",
+                    "maxPrice": "2.18290",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.00001"
                 },
@@ -10039,8 +10039,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.108",
-                    "maxPrice": "181.167",
+                    "minPrice": "0.106",
+                    "maxPrice": "176.881",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.001"
                 },
@@ -10424,8 +10424,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0510",
-                    "maxPrice": "85.1570",
+                    "minPrice": "0.0500",
+                    "maxPrice": "84.5110",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0010"
                 },
@@ -10580,8 +10580,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.1350",
-                    "maxPrice": "225.8260",
+                    "minPrice": "0.1360",
+                    "maxPrice": "226.9390",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0010"
                 },
@@ -11196,8 +11196,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.1350000",
-                    "maxPrice": "225.8880000",
+                    "minPrice": "0.1360000",
+                    "maxPrice": "227.0560000",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0010000"
                 },
@@ -11582,7 +11582,7 @@
             "filters": [
                 {
                     "minPrice": "0.0008600",
-                    "maxPrice": "1.4360400",
+                    "maxPrice": "1.4360200",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0000100"
                 },
@@ -11659,7 +11659,7 @@
             "filters": [
                 {
                     "minPrice": "0.0038000",
-                    "maxPrice": "6.3846000",
+                    "maxPrice": "6.3659000",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001000"
                 },
@@ -12736,8 +12736,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0003390",
-                    "maxPrice": "0.5650150",
+                    "minPrice": "0.0003400",
+                    "maxPrice": "0.5668620",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0000010"
                 },
@@ -13359,7 +13359,7 @@
             "filters": [
                 {
                     "minPrice": "0.0038000",
-                    "maxPrice": "6.3827000",
+                    "maxPrice": "6.3634000",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001000"
                 },
@@ -13897,8 +13897,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.38400",
-                    "maxPrice": "640.42500",
+                    "minPrice": "0.37900",
+                    "maxPrice": "633.03600",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.00100"
                 },
@@ -14051,8 +14051,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.38000",
-                    "maxPrice": "634.84400",
+                    "minPrice": "0.37900",
+                    "maxPrice": "633.20300",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.00100"
                 },
@@ -14207,8 +14207,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0133000",
-                    "maxPrice": "22.2780000",
+                    "minPrice": "0.0130000",
+                    "maxPrice": "21.8116000",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001000"
                 },
@@ -14823,8 +14823,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0020900",
-                    "maxPrice": "3.4850500",
+                    "minPrice": "0.0021800",
+                    "maxPrice": "3.6488100",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0000100"
                 },
@@ -14977,8 +14977,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0133000",
-                    "maxPrice": "22.2624000",
+                    "minPrice": "0.0130000",
+                    "maxPrice": "21.7994000",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0001000"
                 },
@@ -15516,8 +15516,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.0011800",
-                    "maxPrice": "1.9690600",
+                    "minPrice": "0.0011600",
+                    "maxPrice": "1.9479200",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0000100"
                 },
@@ -15978,8 +15978,8 @@
             "maxMoveOrderLimit": 10000,
             "filters": [
                 {
-                    "minPrice": "0.039900",
-                    "maxPrice": "66.592400",
+                    "minPrice": "0.050200",
+                    "maxPrice": "83.825200",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.000100"
                 },
@@ -16595,7 +16595,7 @@
             "filters": [
                 {
                     "minPrice": "0.0004400",
-                    "maxPrice": "0.7365400",
+                    "maxPrice": "0.7365700",
                     "filterType": "PRICE_FILTER",
                     "tickSize": "0.0000100"
                 },

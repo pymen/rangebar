@@ -1,4 +1,5 @@
 from src.helpers.dataclasses import FetchHistoricalEvent
+from src.helpers.util import get_unix_epoch_time_ms
 from src.stream_consumers.transformers.kline import Kline
 from src.window.window import Window
 import rx.operators as op
@@ -60,8 +61,8 @@ class HistoricalKline:
         for pair in pairs:
             count = count + 1
             dt_s, dt_e = pair
-            start = self.get_unix_epoch_time_ms(dt_s)
-            end = self.get_unix_epoch_time_ms(dt_e)
+            start = get_unix_epoch_time_ms(dt_s)
+            end = get_unix_epoch_time_ms(dt_e)
             logging.info(f'request: {count}, start: {start} end: {end}')
             resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000)
             logging.info(f'len: {len(resp)}')
@@ -87,9 +88,4 @@ class HistoricalKline:
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
         df.set_index('timestamp', inplace=True)
         return df
-        
-
-    def get_unix_epoch_time_ms(self, datetime: datetime):
-        unix_epoch_time_ms = int(datetime.timestamp() * 1000)
-        return unix_epoch_time_ms 
                      
