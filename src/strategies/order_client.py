@@ -4,6 +4,7 @@ from binance.error import ClientError
 from src.settings import get_settings
 import logging
 
+
 class OrderClient:
     """
     These are not OCO orders in the case of a stop_loss_order being activated, the take_profit_order needs to be cancelled.
@@ -14,98 +15,190 @@ class OrderClient:
     Not a limit order is not guaranteed to be filled! If it isn't the other 2 in the group should also be canceled
     """
     trades = []
+
     def __init__(self):
         self.settings = get_settings('bi')
-        self.client = Client(api_key=self.settings['key'], secret_key=self.settings['secret'])
-    
-       
-    def buy(self, symbol, quantity, stop_loss, take_profit, entry_price):
+        self.client = Client(
+            api_key=self.settings['key'], secret_key=self.settings['secret'])
+
+   
+    def buy(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str):
+        """
+        BTC 0.001 is called a millibitcoin or mBTC. It is one-thousandth of a bitcoin (BTC)
+        min quantity is 0.001
+
+        This would be equivalent, with BTC to a so called pip in forex trading
+        but likely different for other coins
+        """
         sl_tp_order_id_prefix = self.get_unix_epoch_time_ms(datetime.now())
         sl_id = f'{sl_tp_order_id_prefix}_b_sl'
         tp_id = f'{sl_tp_order_id_prefix}_b_tp'
         bo_id = f'{sl_tp_order_id_prefix}_b_bo'
-        try:
-            # Create a buy order with a stop loss and take profit
-            stop_loss_order = self.client.new_order_test(
-                symbol=symbol,
-                side='SELL',
-                type='STOP_MARKET',
-                quantity=quantity,
-                stopPrice=stop_loss,
-                closePosition=True,
-                timeInForce='GTC',
-                newClientOrderId=sl_id
-                
-            )
-            take_profit_order = self.client.new_order_test(
-                symbol=symbol,
-                side='SELL',
-                type='TAKE_PROFIT_MARKET',
-                quantity=quantity,
-                stopPrice=take_profit,
-                closePosition=True,
-                timeInForce='GTC',
-                newClientOrderId=tp_id
-            )
-            buy_order = self.client.new_order_test(
-                symbol=symbol,
-                side='BUY',
-                type='LIMIT',
-                quantity=quantity,
-                price=entry_price,
-                timeInForce='GTC',
-                newClientOrderId=bo_id
-            )
-            self.trades.append((sl_id, tp_id, bo_id))
-            logging.info(f"buy sl, tp: orders created: {stop_loss_order}, {take_profit_order}, {buy_order}")
-        except Exception as e:
-            logging.info(f"Error creating orders: {e}")
+        params = [
+            {
+                "strategySubId": 1,
+                "firstDrivenId": 0,
+                "secondDrivenId": 0,
+                "securityType": "USDT_FUTURES",
+                "reduceOnly": False,
 
-    def sell(self, symbol, stop_loss, take_profit, quantity, entry_price):
+                "side": "BUY",
+                "positionSide": "BOTH",
+                "symbol": symbol,
+                "quantity": quantity,
+                "price": entry_price,
+                "timeInForce": "GTC",
+                "newClientOrderId": bo_id,
+                "type": "LIMIT"
+                
+            },
+            {
+                "securityType": "USDT_FUTURES",
+                "firstTrigger": "PLACE_ORDER",
+                "firstDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "reduceOnly": True,
+                "strategySubId": 2,
+                "firstDrivenId": 1,
+                "secondDrivenId": 3,
+                "secondDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "secondTrigger": "CANCEL_ORDER",
+                "workingType": "MARK_PRICE",
+                "priceProtect": True,
+
+                "side": "SELL",
+                "positionSide": "BOTH",
+                "symbol": symbol,
+                "quantity": quantity,
+                "stopPrice": take_profit,
+                "timeInForce": "GTE_GTC",
+                "newClientOrderId": tp_id,
+                "type": "TAKE_PROFIT_MARKET"
+                
+            },
+            {
+                "securityType": "USDT_FUTURES",
+                "firstTrigger": "PLACE_ORDER",
+                "firstDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "reduceOnly": True,
+                "strategySubId": 3,
+                "firstDrivenId": 1,
+                "secondDrivenId": 2,
+                "secondDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "secondTrigger": "CANCEL_ORDER",
+                "workingType": "MARK_PRICE",
+                "priceProtect": True,
+
+                "side": "SELL",
+                "positionSide": "BOTH",
+                "symbol": symbol,
+                "quantity": quantity,
+                "stopPrice": stop_loss,
+                "timeInForce": "GTE_GTC",
+                "newClientOrderId": sl_id,
+                "type": "STOP_MARKET"
+                
+            }
+        ]
+        try:
+            response = self.client.new_batch_order(params)
+            self.trades.append((sl_id, tp_id, bo_id))
+            logging.info(response)
+        except ClientError as error:
+            logging.error(
+                "Found error. status: {}, error code: {}, error message: {}".format(
+                    error.status_code, error.error_code, error.error_message
+                )
+            )
+
+    def sell(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str):
+        """
+        BTC 0.001 is called a millibitcoin or mBTC. It is one-thousandth of a bitcoin (BTC)
+        min quantity is 0.001
+
+        This would be equivalent, with BTC to a so called pip in forex trading
+        but likely different for other coins
+        """
         sl_tp_order_id_prefix = self.get_unix_epoch_time_ms(datetime.now())
         sl_id = f'{sl_tp_order_id_prefix}_s_sl'
         tp_id = f'{sl_tp_order_id_prefix}_s_tp'
         bo_id = f'{sl_tp_order_id_prefix}_s_bo'
+        params = [
+            {
+                "strategySubId": 1,
+                "firstDrivenId": 0,
+                "secondDrivenId": 0,
+                "securityType": "USDT_FUTURES",
+                "reduceOnly": False,
+
+                "side": "SELL",
+                "positionSide": "BOTH",
+                "symbol": symbol,
+                "quantity": quantity,
+                "price": entry_price,
+                "timeInForce": "GTC",
+                "newClientOrderId": bo_id,
+                "type": "LIMIT"
+            },
+            {
+                "strategySubId": 2,
+                "firstDrivenId": 1,
+                "secondDrivenId": 3,
+                "secondDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "secondTrigger": "CANCEL_ORDER",
+                "securityType": "USDT_FUTURES",
+                "firstTrigger": "PLACE_ORDER",
+                "firstDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "workingType": "MARK_PRICE",
+                "priceProtect": True,
+                "reduceOnly": True,
+
+                "side": "BUY",
+                "positionSide": "BOTH",
+                "symbol": symbol,
+                "quantity": quantity,
+                "stopPrice": take_profit,
+                "timeInForce": "GTE_GTC",
+                "newClientOrderId": tp_id,
+                "type": "TAKE_PROFIT_MARKET",
+            },
+            {
+                "strategySubId": 3,
+                "firstDrivenId": 1,
+                "secondDrivenId": 2,
+                "secondDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "secondTrigger": "CANCEL_ORDER",
+                "workingType": "MARK_PRICE",
+                "priceProtect": True,
+                "securityType": "USDT_FUTURES",
+                "firstTrigger": "PLACE_ORDER",
+                "firstDrivenOn": "PARTIALLY_FILLED_OR_FILLED",
+                "reduceOnly": True,
+
+                "side": "BUY",
+                "positionSide": "BOTH",
+                "symbol": symbol,
+                "quantity": quantity,
+                "stopPrice": stop_loss,
+                "timeInForce": "GTE_GTC",
+                "newClientOrderId": sl_id,
+                "type": "STOP_MARKET"
+            }
+        ]
         try:
-            # Create a sell order with a stop loss and take profit - I'm assuming it's the opposite of buy
-            stop_loss_order = self.client.new_order_test(
-                symbol=symbol,
-                side='BUY',
-                type='STOP_MARKET',
-                quantity=quantity,
-                stopPrice=stop_loss,
-                closePosition=True,
-                timeInForce='GTC',
-                newClientOrderId=f'{sl_tp_order_id_prefix}_sl_s'
-            )
-            take_profit_order = self.client.new_order_test(
-                symbol=symbol,
-                side='BUY',
-                type='TAKE_PROFIT_MARKET',
-                quantity=quantity,
-                stopPrice=take_profit,
-                closePosition=True,
-                timeInForce='GTC',
-                newClientOrderId=f'{sl_tp_order_id_prefix}_tp_s'
-            )
-            buy_order = self.client.new_order_test(
-                symbol=symbol,
-                side='SELL',
-                type='LIMIT',
-                quantity=quantity,
-                price=entry_price,
-                timeInForce='GTC',
-                newClientOrderId=f'{sl_tp_order_id_prefix}_bo_s'
-            )
+            response = self.client.new_batch_order(params)
             self.trades.append((sl_id, tp_id, bo_id))
-            logging.info(f"sell sl, tp: orders created: {stop_loss_order}, {take_profit_order}, {buy_order}")
+            logging.info(response)
         except ClientError as error:
-            logging.info(f"Error creating sell sl, tp orders: {error}")  
+            logging.error(
+                "Found error. status: {}, error code: {}, error message: {}".format(
+                    error.status_code, error.error_code, error.error_message
+                )
+            )
 
     def cancel_order(self, symbol, order_id):
         try:
             response = self.client.cancel_order(
-                symbol=symbol, orderId= order_id, recvWindow=2000
+                symbol=symbol, orderId=order_id, recvWindow=5000
             )
             logging.info(f'Order cancelled: {response}')
         except ClientError as error:
@@ -113,11 +206,9 @@ class OrderClient:
                 "Found error. status: {}, error code: {}, error message: {}".format(
                     error.status_code, error.error_code, error.error_message
                 )
-            )        
+            )
 
     def get_unix_epoch_time_ms(self, dt: datetime):
         """Converts a datetime object to unix epoch time in milliseconds"""
         unix_epoch_time_ms = int(dt.timestamp() * 1000)
-        return unix_epoch_time_ms         
-
-
+        return unix_epoch_time_ms

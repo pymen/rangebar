@@ -44,7 +44,7 @@ class OrderStatus:
         while True:
             for symbols_config in self.app_settings['symbols_config']:
                 symbol = symbols_config['symbol']
-                resp = await self.client.get_all_orders(symbol=symbol)
+                resp = await self.client.get_all_orders(symbol=symbol, recvWindow=30000)
                 count += 1
                 logging.info(f'{count}. get_all_orders: {resp}')
                 self.order_status.on_next(OrderStatusEvent(symbol=symbol, payload_type='http', payload=resp))
