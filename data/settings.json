@@ -1,6 +1,6 @@
 {
     "app.window": "1440",
-    "bi.key": "ZUhs8BZRvPoB79YG3aFBqO0W73xoJ0vf82mmrLHBxshADjbXGJzEUpDwtMbXBZDr",
-    "bi.secret": "QbNNbtNerDNNN0M6ssNNoFOcETAbY1iVWM3CpK6A3hyoUeuILMkSomNSDfr69JzA",
+    "bi.key": "6ad9821f7ae6658cb02aa9bab4af574a90d8c9a7f88cd8018a7ea9b09f3446b5",
+    "bi.secret": "639fb2c889d374156b74e0890520279fc9b219e25a38d7f625ff819913683ce3",
     "app.symbols_config": [{"symbol": "BTCUSDT"}]
 }

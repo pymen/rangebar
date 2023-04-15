@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Callable, Dict, Tuple
 
-log_formatter = logging.Formatter('[%(asctime)s] %(message)s')
+
 
 def get_root_data_dir() -> Path:
     """
@@ -79,10 +79,12 @@ def _get_file_logger_handler(filename: str) -> logging.FileHandler:
     return handler
 
 
-def get_file_logger(filename: str) -> logging.Logger:
+
+def get_logger(filename: str) -> logging.Logger:
     """
     return a logger that writes records into a file.
     """
+    log_formatter = logging.Formatter('[%(asctime)s] %(message)s')
     logger = logging.getLogger(filename)
     handler = _get_file_logger_handler(filename)  # get singleton handler.
     handler.setFormatter(log_formatter)

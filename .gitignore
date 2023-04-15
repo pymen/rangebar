@@ -6,4 +6,3 @@ rolling_window_trader.egg-info
 .vscode
 data/symbol_windows/**
 notebooks/tmp-data/**
-tests/out/**
