@@ -1,8 +1,8 @@
 
-from src.main import consume
+from src.main import main
 import time
 
 def test_consume():
-    window = consume()
+    window = main()
     time.sleep(1800)
     window.stop()

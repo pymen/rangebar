@@ -6,19 +6,19 @@ from rx.subject import Subject
 import pandas as pd
 import datetime
 
-def gen_instance():
+def new_instance():
     historical = Subject()
     window = Window(UMFuturesWebsocketClient(), Subject(), historical)
     return HistoricalKline(window)
 
 def test_get_1000_minute_intervals():
-    target = gen_instance()
+    target = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     assert len(pairs) == 11
 
 def test_fetch_all_intervals():
-    target = gen_instance()
+    target = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     e = FetchHistoricalEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
@@ -30,7 +30,7 @@ def chunk_array(arr, chunk_size=10000):
 
 
 def test_build_df():
-    target = gen_instance()
+    target = new_instance()
     last_timestamp = pd.to_datetime('2022-04-14 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     e = FetchHistoricalEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
@@ -40,7 +40,7 @@ def test_build_df():
     print(f'df len: {len(df)}')
 
 def test_fetch_historical():
-    target = gen_instance()
+    target = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     e = FetchHistoricalEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp)    
 
