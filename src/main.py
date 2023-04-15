@@ -11,6 +11,8 @@ logging.basicConfig(filename=get_file_path('data/logs/debug.log'), encoding='utf
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
+stream_url='wss://stream.binancefuture.com'
+base_url='https://testnet.binancefuture.com'
 
 def main() -> Window:
     """
@@ -22,7 +24,7 @@ def main() -> Window:
     """
     Window
     """
-    ws_client = UMFuturesWebsocketClient(stream_url='wss://stream.binancefuture.com')
+    ws_client = UMFuturesWebsocketClient(stream_url=stream_url)
     window = Window(ws_client, calc_indicators, historical)
     # Transformers
     # DiffBookBidAskSum(window)

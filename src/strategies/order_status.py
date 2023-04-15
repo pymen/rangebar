@@ -5,6 +5,7 @@ from binance.um_futures import UMFutures as Client
 from rx.subject import Subject
 from src.window.window import Window
 import logging
+from src.main import base_url
 
 class OrderStatus:
     """
@@ -20,7 +21,7 @@ class OrderStatus:
         self.window = window
         self.order_status = order_status
         self.settings = get_settings('bi')
-        self.client = Client(api_key=self.settings['g_api_key'], secret_key=self.settings['g_secret_key'])
+        self.client = Client(key=self.settings['g_api_key'], secret=self.settings['g_secret_key'], base_url=base_url)
 
     def poll(self):
         """

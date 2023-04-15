@@ -5,10 +5,11 @@ from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClie
 from rx.subject import Subject
 import pandas as pd
 import datetime
+from src.main import stream_url
 
 def new_instance():
     historical = Subject()
-    window = Window(UMFuturesWebsocketClient(), Subject(), historical)
+    window = Window(UMFuturesWebsocketClient(stream_url=stream_url), Subject(), historical)
     return HistoricalKline(window)
 
 def test_get_1000_minute_intervals():
