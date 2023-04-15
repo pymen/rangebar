@@ -6,6 +6,7 @@ from src.settings import get_settings
 from src.utility import get_file_path
 from rx.subject import Subject
 from src.helpers.dataclasses import Event
+import logging
 
 class Window:
 
@@ -46,7 +47,7 @@ class Window:
                 # Convert last_window_end to a datetime object
                 last_window_end = df.index[-1] # dt.datetime.strptime(df.index[-1], "%Y-%m-%d %H:%M:%S.%f")
                 first_window_start = df.index[0] # dt.datetime.strptime(df.index[0], "%Y-%m-%d %H:%M:%S.%f")
-                print(f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
+                logging.info(f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
                 # Convert integer to timedelta object
                 window_timedelta = dt.timedelta(minutes=int(self.settings['window']))
                 # Subtract timedelta from datetime object
@@ -179,12 +180,12 @@ class Window:
                         try:
                             pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
                             derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol_config)
-                            print(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
-                            print(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
+                            logging.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
+                            logging.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
                             pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)
                             self.calculate_indicators.next(Event(f'{symbol}.{df_name}', derived_df))  
                         except Exception as e:
-                            print(f"eval_count_triggers ~ Exception: {e}")
+                            logging.info(f"eval_count_triggers ~ Exception: {e}")
                        
                         self.symbol_dict_df_dict_added_row_count[symbol][df_name] = 0
                    

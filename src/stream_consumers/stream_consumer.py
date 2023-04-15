@@ -27,7 +27,7 @@ class StreamConsumer(ABC):
     def subscribe(self, kwargs: dict):
         for symbol_config in self.settings['symbols_config']:
             symbol = symbol_config['symbol']
-            print(f"base_stream_consumer: subscribe: symbol: {symbol}, stream_name: {self.df_name}")
+            logging.info(f"base_stream_consumer: subscribe: symbol: {symbol}, stream_name: {self.df_name}")
             stream_id = random.randint(100, 999)
             kwargs['id'] = stream_id
             kwargs['symbol'] = symbol
@@ -36,11 +36,11 @@ class StreamConsumer(ABC):
             try:
                 func(**kwargs)
             except ValueError as ve:
-                print(f"A value error occurred: {ve}")
+                logging.info(f"A value error occurred: {ve}")
             except KeyError as ke:
-                print(f"A key error occurred: {ke}")
+                logging.info(f"A key error occurred: {ke}")
             except Exception as e:
-                print(f"An unknown error occurred: {e}")
+                logging.info(f"An unknown error occurred: {e}")
    
                 
     def message_handler(self, message):
@@ -49,13 +49,13 @@ class StreamConsumer(ABC):
                 symbol, df_name, series = self.create_series_from_dict(message)
                 self.window.append_row(symbol.lower(), df_name, series, self.index_cols)
             except Exception as e:
-                print("message_handler ~ e: ",str(e))
+                logging.info("message_handler ~ e: ",str(e))
                 pass    
         else:
-            print(f"connection message: {message}")
+            logging.info(f"connection message: {message}")
             
     def create_series_from_dict(self, input_dict) -> Tuple:
-        # print(f"base_stream_consumer: create_series_from_dict")
+        # logging.info(f"base_stream_consumer: create_series_from_dict")
         # Prepare the data
         input_dict = self.transform_message_dict(input_dict)
         try:
@@ -68,7 +68,7 @@ class StreamConsumer(ABC):
             output_series = pd.Series(output_dict)
             return (input_dict['s'].lower(), self.df_name, output_series)
         except KeyError as e:
-            print(f"create_series_from_dict: mapping: KeyError: {str(e)}")
+            logging.info(f"create_series_from_dict: mapping: KeyError: {str(e)}")
             raise e  
        
     def transform_message_dict(self, input_dict) -> dict:

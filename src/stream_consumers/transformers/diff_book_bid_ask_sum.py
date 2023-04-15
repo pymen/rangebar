@@ -38,7 +38,7 @@ class DiffBookBidAskSum(StreamConsumer):
         """
         df_copy = df.drop(columns=["event_type", 'event_timestamp', "first_update_id_event",
                 "final_update_id_event", "previous_final_update_id_event"]).copy()
-        print(f"diff_book_resample ~ resampled: df_copy.columns: {df_copy.columns}")
+        logging.info(f"diff_book_resample ~ resampled: df_copy.columns: {df_copy.columns}")
         resampled = df_copy.resample('30s').sum()
-        print("diff_book_resample ~ resampled", type(resampled))
+        logging.info("diff_book_resample ~ resampled", type(resampled))
         return resampled

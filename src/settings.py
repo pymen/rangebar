@@ -1,7 +1,7 @@
 """
 Global setting of Binance Grid Trader.
 """
-from logging import INFO
+from logging import DEBUG
 from typing import Dict, Any
 
 from .utility import load_json
@@ -10,7 +10,7 @@ SETTINGS: Dict[str, Any] = {
     "font.family": "Arial",
     "font.size": 12,
     "log.active": True,
-    "log.level": INFO,
+    "log.level": DEBUG,
     "log.console": True,
     "log.file": True
 }

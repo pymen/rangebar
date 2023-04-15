@@ -1,7 +1,7 @@
 from rx.subject import Subject
-from src.strategies.utils import iterations_back_till_condition
 from src.helpers.dataclasses import Event
 from scipy.stats import linregress
+import logging
 
 class SimpleStrategy:
     per_trade_risk = 0.1
@@ -43,13 +43,13 @@ class SimpleStrategy:
             upper_series = self.df.iloc[:index+1]['bb_upper']
             if len(upper_series) < 2:
                 return False
-            # print(f'upper_series:\n{str(upper_series)}')
+            # logging.info(f'upper_series:\n{str(upper_series)}')
             close = row['Close']
             since = self.iterations_back_till_condition(upper_series, lambda x: x >= close)
-            # print(f'bb_upper_near(upper_series >= close): index: {index}, close: {close}, since: {since}')
+            # logging.info(f'bb_upper_near(upper_series >= close): index: {index}, close: {close}, since: {since}')
             return since < 2
         except Exception as e:
-            print(f'bb_upper_near: exception: {e.__cause__}')
+            logging.info(f'bb_upper_near: exception: {e.__cause__}')
             raise e
         
 
@@ -58,13 +58,13 @@ class SimpleStrategy:
          lower_series = self.df.iloc[:index+1]['bb_lower']
          if len(lower_series) < 2:
                 return False
-        #  print(f'lower_series:\n{str(lower_series)}')
+        #  logging.info(f'lower_series:\n{str(lower_series)}')
          close = row['Close']
          since = self.iterations_back_till_condition(lower_series, lambda x: x <= close)
-        #  print(f'bb_lower_near(lower_series <= close): index: {index}, close: {close}, since: {since}')
+        #  logging.info(f'bb_lower_near(lower_series <= close): index: {index}, close: {close}, since: {since}')
          return since < 2
        except Exception as e:
-            print(f'bb_lower_near: exception: {e.__cause__}')
+            logging.info(f'bb_lower_near: exception: {e.__cause__}')
             raise e
        
     def iterations_back_till_condition(self, series, condition):
@@ -77,26 +77,26 @@ class SimpleStrategy:
        
     def bb_upper_pointing_up(self, index):
         bb_seg = self.df.iloc[index-3:index+1]['bb_upper']
-        # print(f'bb_seg: {len(bb_seg)}')
+        # logging.info(f'bb_seg: {len(bb_seg)}')
         if len(bb_seg) > 0:
             seg_len = len(bb_seg)
             try:
                 slope, _, _, _, _ = linregress(range(seg_len), bb_seg)
-                # print(f'bb_upper_pointing_up: seg_len: {seg_len}, slope: {slope}')
+                # logging.info(f'bb_upper_pointing_up: seg_len: {seg_len}, slope: {slope}')
                 return slope > 0
             except Exception as e:
-                print(f'bb_upper_pointing_up: exception: {str(e)}')
+                logging.info(f'bb_upper_pointing_up: exception: {str(e)}')
         return False
 
     def bb_lower_pointing_down(self, index):
         bb_seg = self.df.iloc[index-3:index+1]['bb_lower']
-        # print(f'bb_seg: {len(bb_seg)}')
+        # logging.info(f'bb_seg: {len(bb_seg)}')
         if len(bb_seg) > 0:
             seg_len = len(bb_seg)
             try:
                 slope, _, _, _, _ = linregress(range(seg_len), bb_seg)
-                # print(f'bb_lower_pointing_down: seg_len: {seg_len}, slope: {slope}')
+                # logging.info(f'bb_lower_pointing_down: seg_len: {seg_len}, slope: {slope}')
                 return slope < 0
             except Exception as e:
-                print(f'bb_lower_pointing_down: exception: {str(e)}')  
+                logging.info(f'bb_lower_pointing_down: exception: {str(e)}')  
         return False

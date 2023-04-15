@@ -2,14 +2,17 @@ from src.fetch_historical.historical_kline import HistoricalKline
 from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.transformers.range_bars import RangeBar
+from src.utility import get_file_path
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
+import logging
+logging.basicConfig(filename=get_file_path('data/logs/debug.log'), encoding='utf-8', level=logging.DEBUG)
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
 
-def consume() -> Window:
+def main() -> Window:
     """
     Event Subjects
     """

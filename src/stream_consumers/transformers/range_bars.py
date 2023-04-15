@@ -56,7 +56,7 @@ class RangeBar(Kline):
                 for i in range(num_bars):
                     current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'volume': row['volume'], 'average_adr': row['average_adr'], 'Open': current_low + range_size * (
                         i), 'High': current_low + range_size * (i + 1), 'Low': current_low + range_size * (i), 'Close': current_low + range_size * (i + 1)}
-                    # print(f'adjusted timestamp: {current_bar["timestamp"]}')
+                    # logging.info(f'adjusted timestamp: {current_bar["timestamp"]}')
                     filler_bars += 1
                     range_bars.append(current_bar)
 
@@ -73,7 +73,7 @@ class RangeBar(Kline):
                 for i in range(num_bars):
                     current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'volume': row['volume'], 'average_adr': average_adr, 'Open': current_high - range_size * (
                         i + 1), 'High': current_high - range_size * (i), 'Low': current_high - range_size * (i + 1), 'Close': current_high - range_size * (i + 1)}
-                    # print(f'adjusted timestamp: {current_bar["timestamp"]}')
+                    # logging.info(f'adjusted timestamp: {current_bar["timestamp"]}')
                     filler_bars += 1
                     range_bars.append(current_bar)
 

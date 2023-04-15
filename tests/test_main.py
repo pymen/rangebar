@@ -1,5 +1,5 @@
 
-from src.consume import consume
+from src.main import consume
 import time
 
 def test_consume():

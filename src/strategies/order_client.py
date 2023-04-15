@@ -2,6 +2,7 @@ from datetime import datetime
 from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
 from src.settings import get_settings
+import logging
 
 class OrderClient:
     """
@@ -56,9 +57,9 @@ class OrderClient:
                 newClientOrderId=bo_id
             )
             self.trades.append((sl_id, tp_id, bo_id))
-            print(f"buy sl, tp: orders created: {stop_loss_order}, {take_profit_order}, {buy_order}")
+            logging.info(f"buy sl, tp: orders created: {stop_loss_order}, {take_profit_order}, {buy_order}")
         except Exception as e:
-            print(f"Error creating orders: {e}")
+            logging.info(f"Error creating orders: {e}")
 
     def sell(self, symbol, stop_loss, take_profit, quantity, entry_price):
         sl_tp_order_id_prefix = self.get_unix_epoch_time_ms(datetime.now())
@@ -97,18 +98,18 @@ class OrderClient:
                 newClientOrderId=f'{sl_tp_order_id_prefix}_bo_s'
             )
             self.trades.append((sl_id, tp_id, bo_id))
-            print(f"sell sl, tp: orders created: {stop_loss_order}, {take_profit_order}, {buy_order}")
+            logging.info(f"sell sl, tp: orders created: {stop_loss_order}, {take_profit_order}, {buy_order}")
         except ClientError as error:
-            print(f"Error creating sell sl, tp orders: {error}")  
+            logging.info(f"Error creating sell sl, tp orders: {error}")  
 
     def cancel_order(self, symbol, order_id):
         try:
             response = self.client.cancel_order(
                 symbol=symbol, orderId= order_id, recvWindow=2000
             )
-            print(f'Order cancelled: {response}')
+            logging.info(f'Order cancelled: {response}')
         except ClientError as error:
-            print(
+            logging.info(
                 "Found error. status: {}, error code: {}, error message: {}".format(
                     error.status_code, error.error_code, error.error_message
                 )

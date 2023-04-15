@@ -5,7 +5,7 @@ import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
-
+import logging
 
 
 class HistoricalKline:
@@ -37,7 +37,7 @@ class HistoricalKline:
         """
         to_time_now = datetime.datetime.now() 
         minutes = int((to_time_now - last_timestamp).total_seconds() / 60)
-        print(f'minutes: {minutes}')
+        logging.info(f'minutes: {minutes}')
         intervals = int(minutes / 1000)
         remainder = minutes % 1000
         if remainder > 0:
@@ -48,9 +48,9 @@ class HistoricalKline:
             stamps.append(bound)
         stamps = stamps[::-1]
         pairs = [[stamps[i], stamps[i+1]] for i in range(0, len(stamps) - 1)]
-        print(f'pair.len: {len(pairs)}')
+        logging.info(f'pair.len: {len(pairs)}')
         for pair in pairs:
-            print(f'{pair[0]} - {pair[1]}')
+            logging.info(f'{pair[0]} - {pair[1]}')
         return pairs      
 
 
@@ -62,9 +62,9 @@ class HistoricalKline:
             dt_s, dt_e = pair
             start = self.get_unix_epoch_time_ms(dt_s)
             end = self.get_unix_epoch_time_ms(dt_e)
-            print(f'request: {count}, start: {start} end: {end}')
+            logging.info(f'request: {count}, start: {start} end: {end}')
             resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000)
-            print(f'len: {len(resp)}')
+            logging.info(f'len: {len(resp)}')
             resp_data.extend(resp)
         return resp_data
     
@@ -81,7 +81,7 @@ class HistoricalKline:
             # append the dictionary as a row to the dataframe
             df = pd.concat([df, pd.DataFrame(data, index=[timestamp])])
             if count % 1000 == 0:
-                print(f'progress count: {count}')
+                logging.info(f'progress count: {count}')
         # Set timestamp as the index
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')

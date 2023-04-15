@@ -4,7 +4,7 @@ from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
 from rx.subject import Subject
 from src.window.window import Window
-
+import logging
 
 class OrderStatus:
     """
@@ -29,3 +29,11 @@ class OrderStatus:
         for symbols_config in self.settings['symbols_config']:
             self.client.get_all_orders(symbol=symbols_config['symbol'])
         pass
+
+    def get_exchange_info(self):
+        """
+        Get the exchange info which includes rate limits
+        """
+        resp = self.client.exchange_info()
+        logging.info(f'exchange_info: {resp}')
+        return resp
