@@ -16,7 +16,7 @@ class OrderClient:
     trades = []
     def __init__(self):
         self.settings = get_settings('bi')
-        self.client = Client(api_key=self.settings['g_api_key'], secret_key=self.settings['g_secret_key'])
+        self.client = Client(api_key=self.settings['key'], secret_key=self.settings['secret'])
     
        
     def buy(self, symbol, quantity, stop_loss, take_profit, entry_price):

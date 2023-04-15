@@ -22,8 +22,9 @@ class OrderStatus:
     def __init__(self, window: Window, order_status: Subject):
         self.window = window
         self.order_status = order_status
-        self.settings = get_settings('bi')
-        self.client = Client(key=self.settings['g_api_key'], secret=self.settings['g_secret_key'], base_url=base_url)
+        self.bi_settings = get_settings('bi')
+        self.app_settings = get_settings('app')
+        self.client = Client(key=self.bi_settings['key'], secret=self.bi_settings['secret'], base_url=base_url)
 
  
 
@@ -41,7 +42,7 @@ class OrderStatus:
         """
         count = 0
         while True:
-            for symbols_config in self.settings['symbols_config']:
+            for symbols_config in self.app_settings['symbols_config']:
                 symbol = symbols_config['symbol']
                 resp = await self.client.get_all_orders(symbol=symbol)
                 count += 1
