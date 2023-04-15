@@ -12,4 +12,10 @@ class FetchHistoricalEvent:
     symbol: str
     source: str
     last_timestamp: pd.Timestamp
+
+@dataclass
+class OrderStatusEvent:
+    symbol: str
+    payload_type: str # 'http' or 'ws'
+    payload: dict
         
