@@ -8,6 +8,11 @@ class Event:
     window: int
 
 @dataclass
+class TickEvent:
+    symbol: str
+    df: pd.DataFrame  
+
+@dataclass
 class FetchHistoricalEvent:
     symbol: str
     source: str

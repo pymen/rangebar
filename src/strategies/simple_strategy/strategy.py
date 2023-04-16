@@ -1,26 +1,33 @@
 from rx.subject import Subject
-from src.helpers.dataclasses import Event
+from src.helpers.dataclasses import TickEvent
 from scipy.stats import linregress
 import logging
+from src.strategies.order_client import OrderClient
 
 class SimpleStrategy:
-    per_trade_risk = 0.1
+    per_trade_risk_perc_equity = 0.1
+    per_trade_amount_mbtc = 0.001
     rsi_upper_limit = 70
     rsi_lower_limit = 30
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
-    def __init__(self, client, next_bar: Subject):
+    def __init__(self, client: OrderClient, next_bar: Subject):
         self.client = client
         next_bar.pipe().subscribe(self.on_next_bar)
 
-    def on_next_bar(self, event: Event):
-        df = event.df
+    def on_next_bar(self, e: TickEvent):
+        df = e.df
         row = df.tail(1)
         current_close = row['Close']
         index = df.index[-1]
         numeric_index = self.df.index.get_loc(index)
         stop_loss_magnitude = row['average_adr'] * self.stop_loss_aadr_multiplier
         potential_profit_magnitude = row['average_adr'] * self.potential_profit_aadr_multiplier
+
+        sl_buy = current_close - stop_loss_magnitude
+        tp_buy = current_close + potential_profit_magnitude
+        sl_sell = current_close + stop_loss_magnitude
+        tp_sell = current_close - potential_profit_magnitude
         
         is_long_rsi = row['rsi'] > self.rsi_upper_limit
         is_long_macd = row['macd'] > row['macd_signal'] > 0
@@ -32,11 +39,11 @@ class SimpleStrategy:
         is_bb_lower_near = self.bb_lower_near(numeric_index, row)
         is_bb_lower_pointing_down = self.bb_lower_pointing_down(numeric_index)
         is_bb_dist_above = row['bb_distance'] > self.anti_squeeze_distance
-   
+
         if is_long_rsi and is_long_macd and is_bb_upper_near and is_bb_upper_pointing_up and is_bb_dist_above:  
-            self.client.buy(size=self.per_trade_risk, sl=current_close - stop_loss_magnitude, tp=current_close + potential_profit_magnitude)
+            self.client.buy(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_buy, take_profit=tp_buy, entry_price=None)
         elif is_short_rsi and is_short_macd and is_bb_lower_near and is_bb_lower_pointing_down and is_bb_dist_above:
-            self.client.sell(size=self.per_trade_risk, sl=current_close + stop_loss_magnitude, tp=current_close - potential_profit_magnitude)
+            self.client.sell(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_sell, take_profit=tp_sell, entry_price=None)
 
     def bb_upper_near(self, index, row):
         try:
