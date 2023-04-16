@@ -1,4 +1,4 @@
-from src.strategies.account_status import AccountStatus
+from src.account.account_data import AccountData
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
@@ -9,10 +9,10 @@ import pytest
 
 def new_instance():
     init_logging()
-    order_status_subject = Subject()
+    account_data_stream = Subject()
     window = Window(UMFuturesWebsocketClient(stream_url=stream_url), Subject(), Subject())
-    order_status = AccountStatus(window, order_status_subject)
-    return order_status, order_status_subject
+    order_status = AccountData(window, account_data_stream)
+    return order_status, account_data_stream
 
 
 def test_get_exchange_info():
@@ -25,8 +25,8 @@ def test_get_exchange_info():
 
 @pytest.mark.asyncio
 async def test_poll():
-    target, order_status_subject = new_instance()
-    order_status_subject.subscribe(lambda x: print(x))
+    target, account_data_stream = new_instance()
+    account_data_stream.subscribe(lambda x: print(x))
     try:
         await target.poll()
     except Exception as e:

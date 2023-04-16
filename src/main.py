@@ -1,4 +1,7 @@
+from src.account.account_data import AccountData
+from src.account.account_orchestration import AccountOrchestration
 from src.fetch_historical.historical_kline import HistoricalKline
+from src.strategies.order_client import OrderClient
 from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.transformers.range_bars import RangeBar
@@ -21,12 +24,15 @@ def main() -> Window:
     calc_indicators = Subject()
     next_bar = Subject()
     historical = Subject()
+    account_data_stream = Subject()
     """
     Window
     """
     ws_client = UMFuturesWebsocketClient(stream_url=stream_url)
     window = Window(ws_client, calc_indicators, historical)
-    # Transformers
+    """
+    Transformers
+    """
     # DiffBookBidAskSum(window)
     # Kline(window)
     RangeBar(window)
@@ -41,7 +47,14 @@ def main() -> Window:
     """
     Strategies
     """
-    SimpleStrategy(next_bar)
+    client: OrderClient = OrderClient()
+    SimpleStrategy(client, next_bar)
+    """
+    Account
+    """
+    AccountData(window, account_data_stream)
+    AccountOrchestration(client, account_data_stream)
+    """"""
     window.start()
     return window
          
