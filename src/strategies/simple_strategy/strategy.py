@@ -39,11 +39,12 @@ class SimpleStrategy:
         is_bb_lower_near = self.bb_lower_near(numeric_index, row)
         is_bb_lower_pointing_down = self.bb_lower_pointing_down(numeric_index)
         is_bb_dist_above = row['bb_distance'] > self.anti_squeeze_distance
+        is_volume_above_adv_limit = row['volume'] > row['adv']
 
         if is_long_rsi and is_long_macd and is_bb_upper_near and is_bb_upper_pointing_up and is_bb_dist_above:  
-            self.client.buy(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_buy, take_profit=tp_buy, entry_price=None)
-        elif is_short_rsi and is_short_macd and is_bb_lower_near and is_bb_lower_pointing_down and is_bb_dist_above:
-            self.client.sell(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_sell, take_profit=tp_sell, entry_price=None)
+            self.client.buy(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_buy, take_profit=tp_buy, entry_price=current_close)
+        elif is_short_rsi and is_short_macd and is_bb_lower_near and is_bb_lower_pointing_down and is_bb_dist_above and is_volume_above_adv_limit:
+            self.client.sell(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_sell, take_profit=tp_sell, entry_price=current_close)
 
     def bb_upper_near(self, index, row):
         try:
