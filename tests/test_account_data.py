@@ -1,8 +1,7 @@
-from src.account.account_data import AccountData
-from src.window.window import Window
+
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
-from src.main import stream_url
+from src.account.account_data import AccountData
 from tests.utils import init_logging, write_to_tests_out_file
 import asyncio
 import pytest
@@ -10,8 +9,8 @@ import pytest
 def new_instance():
     init_logging()
     account_data_stream = Subject()
-    window = Window(UMFuturesWebsocketClient(stream_url=stream_url), Subject(), Subject())
-    order_status = AccountData(window, account_data_stream)
+    order_status = AccountData(account_data_stream)
+    account_data_stream.subscribe(lambda x: print(x))
     return order_status, account_data_stream
 
 

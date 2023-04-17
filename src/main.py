@@ -1,6 +1,7 @@
 from src.account.account_data import AccountData
 from src.account.account_orchestration import AccountOrchestration
 from src.fetch_historical.historical_kline import HistoricalKline
+from src.settings import get_settings
 from src.strategies.order_client import OrderClient
 from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
@@ -14,10 +15,10 @@ logging.basicConfig(filename=get_file_path('data/logs/debug.log'), encoding='utf
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
-stream_url='wss://stream.binancefuture.com'
-base_url='https://testnet.binancefuture.com'
+
 
 def main() -> Window:
+    settings = get_settings('bi')
     """
     Event Subjects
     """
@@ -28,7 +29,7 @@ def main() -> Window:
     """
     Window
     """
-    ws_client = UMFuturesWebsocketClient(stream_url=stream_url)
+    ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
     window = Window(ws_client, calc_indicators, historical)
     """
     Transformers
@@ -52,7 +53,7 @@ def main() -> Window:
     """
     Account
     """
-    AccountData(window, account_data_stream)
+    AccountData(account_data_stream)
     AccountOrchestration(client, account_data_stream)
     """"""
     window.start()

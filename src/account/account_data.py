@@ -5,9 +5,7 @@ from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
 from rx.subject import Subject
-from src.window.window import Window
 import logging
-from src.main import base_url, stream_url
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
 
@@ -24,15 +22,14 @@ class AccountData:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
    
-    def __init__(self, window: Window, account_data_stream: Subject):
+    def __init__(self, account_data_stream: Subject):
         self.kill_polling = False
         self.kill_renew_listen_key = False
-        self.window = window
         self.account_data_stream = account_data_stream
         self.bi_settings = get_settings('bi')
         self.app_settings = get_settings('app')
         self.client = Client(
-            key=self.bi_settings['key'], secret=self.bi_settings['secret'], base_url=base_url)
+            key=self.bi_settings['key'], secret=self.bi_settings['secret'], base_url=self.bi_settings['base_url'])
         self.subscribe_to_user_stream()
 
     async def poll(self):
@@ -91,7 +88,7 @@ class AccountData:
         response = self.client.new_listen_key()
         logging.info("Listen key : {}".format(response["listenKey"]))
 
-        user_data_ws_client = CMFuturesWebsocketClient(stream_url=stream_url)
+        user_data_ws_client = CMFuturesWebsocketClient(stream_url=self.bi_settings['stream_url'])
         user_data_ws_client.start()
         self.listen_key=response["listenKey"]
         user_data_ws_client.user_data(

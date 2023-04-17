@@ -1,5 +1,6 @@
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import FetchHistoricalEvent
+from src.settings import get_settings
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
@@ -9,7 +10,8 @@ from src.main import stream_url
 
 def new_instance():
     historical = Subject()
-    window = Window(UMFuturesWebsocketClient(stream_url=stream_url), Subject(), historical)
+    settings = get_settings('bi')
+    window = Window(UMFuturesWebsocketClient(stream_url=settings['stream_url']), Subject(), historical)
     return HistoricalKline(window)
 
 def test_get_1000_minute_intervals():

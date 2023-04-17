@@ -1,15 +1,16 @@
 
+from src.settings import get_settings
 from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
 from src.stream_consumers.transformers.kline import Kline
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
-from src.main import stream_url
 
 def new_instance():
     calc_indicators = Subject()
     historical = Subject()
-    ws_client = UMFuturesWebsocketClient(stream_url=stream_url)
+    settings = get_settings('bi')
+    ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
     window = Window(ws_client, calc_indicators, historical)
     return window
 
