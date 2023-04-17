@@ -1,5 +1,5 @@
-from src.account.account_data import AccountData
-from src.account.account_orchestration import AccountOrchestration
+from src.account_admin.account_data import AccountData
+from src.account_admin.account_orchestration import AccountOrchestration
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.settings import get_settings
 from src.strategies.order_client import OrderClient

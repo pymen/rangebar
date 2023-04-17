@@ -30,7 +30,6 @@ class AccountData:
         self.app_settings = get_settings('app')
         self.client = Client(
             key=self.bi_settings['key'], secret=self.bi_settings['secret'], base_url=self.bi_settings['base_url'])
-        self.subscribe_to_user_stream()
 
     async def poll(self):
         """
@@ -80,10 +79,12 @@ class AccountData:
         """
         def message_handler(message):
             print(message)
-            # Update account_data_stream with OrderStatusEvent, default symbol to 'general' if None
-            symbol = message['s'] if message.get('s') is not None else 'general'
-            self.account_data_stream.on_next(OrderStatusEvent(
-                symbol=symbol, payload_type='ws', payload=message))
+            if 'result' not in message or message['result'] is not None:
+                
+                # Update account_data_stream with OrderStatusEvent, default symbol to 'general' if None
+                symbol = message['s'] if message.get('s') is not None else 'general'
+                self.account_data_stream.on_next(OrderStatusEvent(
+                    symbol=symbol, payload_type='ws', payload=message))
 
         response = self.client.new_listen_key()
         logging.info("Listen key : {}".format(response["listenKey"]))

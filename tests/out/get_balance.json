@@ -1,0 +1,68 @@
+[
+    {
+        "accountAlias": "FzmYmYFzuXfWAu",
+        "asset": "BTC",
+        "balance": "0.00000000",
+        "crossWalletBalance": "0.00000000",
+        "crossUnPnl": "0.00000000",
+        "availableBalance": "0.00000000",
+        "maxWithdrawAmount": "0.00000000",
+        "marginAvailable": true,
+        "updateTime": 0
+    },
+    {
+        "accountAlias": "FzmYmYFzuXfWAu",
+        "asset": "BNB",
+        "balance": "0.00000000",
+        "crossWalletBalance": "0.00000000",
+        "crossUnPnl": "0.00000000",
+        "availableBalance": "0.00000000",
+        "maxWithdrawAmount": "0.00000000",
+        "marginAvailable": true,
+        "updateTime": 0
+    },
+    {
+        "accountAlias": "FzmYmYFzuXfWAu",
+        "asset": "ETH",
+        "balance": "0.00000000",
+        "crossWalletBalance": "0.00000000",
+        "crossUnPnl": "0.00000000",
+        "availableBalance": "0.00000000",
+        "maxWithdrawAmount": "0.00000000",
+        "marginAvailable": true,
+        "updateTime": 0
+    },
+    {
+        "accountAlias": "FzmYmYFzuXfWAu",
+        "asset": "USDT",
+        "balance": "15003.72445411",
+        "crossWalletBalance": "15003.72445411",
+        "crossUnPnl": "0.00000000",
+        "availableBalance": "15003.72445411",
+        "maxWithdrawAmount": "15003.72445411",
+        "marginAvailable": true,
+        "updateTime": 1681595475025
+    },
+    {
+        "accountAlias": "FzmYmYFzuXfWAu",
+        "asset": "USDC",
+        "balance": "0.00000000",
+        "crossWalletBalance": "0.00000000",
+        "crossUnPnl": "0.00000000",
+        "availableBalance": "0.00000000",
+        "maxWithdrawAmount": "0.00000000",
+        "marginAvailable": true,
+        "updateTime": 0
+    },
+    {
+        "accountAlias": "FzmYmYFzuXfWAu",
+        "asset": "BUSD",
+        "balance": "0.00000000",
+        "crossWalletBalance": "0.00000000",
+        "crossUnPnl": "0.00000000",
+        "availableBalance": "0.00000000",
+        "maxWithdrawAmount": "0.00000000",
+        "marginAvailable": true,
+        "updateTime": 0
+    }
+]

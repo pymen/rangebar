@@ -6,7 +6,6 @@ from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClie
 from rx.subject import Subject
 import pandas as pd
 import datetime
-from src.main import stream_url
 
 def new_instance():
     historical = Subject()
