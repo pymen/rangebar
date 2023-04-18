@@ -2,6 +2,27 @@ import logging
 from rx.subject import Subject
 from rx.operators import operators as op
 from src.strategies.order_client import OrderClient
+from enum import Enum
+
+
+class AccountUpdateEventReasonType(Enum):
+    DEPOSIT = 'DEPOSIT'
+    WITHDRAW = 'WITHDRAW'
+    ORDER = 'ORDER'
+    FUNDING_FEE = 'FUNDING_FEE'
+    WITHDRAW_REJECT = 'WITHDRAW_REJECT'
+    ADJUSTMENT = 'ADJUSTMENT'
+    INSURANCE_CLEAR = 'INSURANCE_CLEAR'
+    ADMIN_DEPOSIT = 'ADMIN_DEPOSIT'
+    ADMIN_WITHDRAW = 'ADMIN_WITHDRAW'
+    MARGIN_TRANSFER = 'MARGIN_TRANSFER'
+    MARGIN_TYPE_CHANGE = 'MARGIN_TYPE_CHANGE'
+    ASSET_TRANSFER = 'ASSET_TRANSFER'
+    OPTIONS_PREMIUM_FEE = 'OPTIONS_PREMIUM_FEE'
+    OPTIONS_SETTLE_PROFIT = 'OPTIONS_SETTLE_PROFIT'
+    AUTO_EXCHANGE = 'AUTO_EXCHANGE'
+    COIN_SWAP_DEPOSIT = 'COIN_SWAP_DEPOSIT'
+    COIN_SWAP_WITHDRAW = 'COIN_SWAP_WITHDRAW'
 
 
 class AccountOrchestration:
@@ -17,14 +38,48 @@ class AccountOrchestration:
         self.account_data_stream = account_data_stream
 
     def subscribe(self):
-        self.account_data_stream.pipe(op.map(lambda o: o + 1)).subscribe()
+        self.account_data_stream.pipe(op.map(self.map_raw_payload)).subscribe()
 
     def map_raw_payload(self, e):
         event_type = e['e']
         if event_type == 'ACCOUNT_CONFIG_UPDATE':
-            pass
+            mapping = {
+                "e": "event_type",
+                "E": "event_time",
+                "T": "transaction_time",
+                "ac_s": "symbol",
+                "ac_l": "leverage",
+                "ai_j": "multi_assets_mode"
+            }
+            # there are no lists so flattening first makes sense for this one
+            flat = self.flatten_dict(e)
         elif event_type == 'ACCOUNT_UPDATE':
-            pass
+            mapping = {
+                "e": "event_type",
+                "E": "event_time",
+                "T": "transaction",
+                "a_m": "event_reason_type",
+                "a_B": "balances",
+                "a_P": "position"
+            }
+            positions_array_item = {
+                "s": "symbol",
+                "pa": "position_amount",
+                "ep": "entry_price",
+                "cr": "pre_fee_accumulated_realized",
+                "up": "unrealized_pn_l",
+                "mt": "margin_type",
+                "iw": "isolated_wallet",
+                "ps": "position_side"
+            }
+            balances_array_item = {
+                "a": "asset",
+                "wb": "wallet_balance",
+                "cw": "cross_wallet_balance",
+                "bc": "balance_change_except_pnl_and_commission"
+            }
+            # there are no lists so flattening first makes sense for this one
+            flat = self.flatten_dict(e)
         elif event_type == 'MARGIN_CALL':
             mapping = {
                 "e": "event_type",
@@ -39,7 +94,7 @@ class AccountOrchestration:
                 "mt": "margin_type",
                 "iw": "isolated_wallet",
                 "mp": "mark_price",
-                "up": "unrealized_pn_l",
+                "up": "unrealized_pnl",
                 "mm": "maintenance_margin_required"
             }
         elif event_type == 'ORDER_TRADE_UPDATE':
@@ -78,6 +133,7 @@ class AccountOrchestration:
                 "o_rp": "realized_profit"
             }
             # there are no lists so flattening first makes sense for this one
+            flat = self.flatten_dict(e)
 
     def flatten_dict(self, d, parent_key='', sep='_'):
         items = []

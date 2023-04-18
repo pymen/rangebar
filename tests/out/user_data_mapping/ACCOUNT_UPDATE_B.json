@@ -1,6 +1,0 @@
-{
-  "a":"USDT",                   // Asset
-  "wb":"122624.12345678",       // Wallet Balance
-  "cw":"100.12345678",          // Cross Wallet Balance
-  "bc":"50.12345678"            // Balance Change except PnL and Commission
-},
