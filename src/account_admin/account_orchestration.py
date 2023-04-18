@@ -1,6 +1,7 @@
 import logging
 from rx.subject import Subject
 from rx.operators import operators as op
+from src.helpers.util import flatten_dict
 from src.strategies.order_client import OrderClient
 from enum import Enum
 
@@ -34,11 +35,12 @@ class AccountOrchestration:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
 
-    def __init__(self, order_client: OrderClient, account_data_stream: Subject):
+    def __init__(self, account_data_stream: Subject):
         self.account_data_stream = account_data_stream
+        self.order_client = OrderClient()
 
-    def subscribe(self):
-        self.account_data_stream.pipe(op.map(self.map_raw_payload)).subscribe()
+    def get_user_data_stream(self):
+        return self.account_data_stream.pipe(op.map(self.map_raw_payload))
 
     def map_raw_payload(self, e):
         event_type = e['e']
@@ -52,7 +54,9 @@ class AccountOrchestration:
                 "ai_j": "multi_assets_mode"
             }
             # there are no lists so flattening first makes sense for this one
-            flat = self.flatten_dict(e)
+            flat = flatten_dict(e)
+            result = self.map_payload(mapping, flat)
+            return result
         elif event_type == 'ACCOUNT_UPDATE':
             mapping = {
                 "e": "event_type",
@@ -60,7 +64,7 @@ class AccountOrchestration:
                 "T": "transaction",
                 "a_m": "event_reason_type",
                 "a_B": "balances",
-                "a_P": "position"
+                "a_P": "positions"
             }
             positions_array_item = {
                 "s": "symbol",
@@ -79,7 +83,17 @@ class AccountOrchestration:
                 "bc": "balance_change_except_pnl_and_commission"
             }
             # there are no lists so flattening first makes sense for this one
-            flat = self.flatten_dict(e)
+            flat = flatten_dict(e)
+            result = self.map_payload(mapping, flat)
+            positions = []
+            for p in result['positions']:
+                positions.append(self.map_payload(positions_array_item, p))
+            result['positions'] = positions
+            balances = []
+            for b in result['balances']:
+                balances.append(self.map_payload(balances_array_item, b))
+            result['balances'] = balances
+            return result     
         elif event_type == 'MARGIN_CALL':
             mapping = {
                 "e": "event_type",
@@ -97,6 +111,12 @@ class AccountOrchestration:
                 "up": "unrealized_pnl",
                 "mm": "maintenance_margin_required"
             }
+            result = self.map_payload(mapping, e)
+            positions = []
+            for p in result['positions']:
+                positions.append(self.map_payload(positions_array_item, p))
+            result['positions'] = positions
+            return result    
         elif event_type == 'ORDER_TRADE_UPDATE':
             mapping = {
                 "e": "event_type",
@@ -133,14 +153,15 @@ class AccountOrchestration:
                 "o_rp": "realized_profit"
             }
             # there are no lists so flattening first makes sense for this one
-            flat = self.flatten_dict(e)
+            flat = flatten_dict(e)
+            result = self.map_payload(mapping, flat)
 
-    def flatten_dict(self, d, parent_key='', sep='_'):
-        items = []
-        for k, v in d.items():
-            new_key = parent_key + sep + k if parent_key else k
-            if isinstance(v, dict):
-                items.extend(self.flatten_dict(v, new_key, sep=sep).items())
-            else:
-                items.append((new_key, v))
-        return dict(items)
+
+    def map_payload(self, mapping, input_dict):
+        output_dict = {}
+        for key, value in input_dict.items():
+            if key in mapping:
+                output_dict[mapping[key]] = value
+        return output_dict        
+
+    
