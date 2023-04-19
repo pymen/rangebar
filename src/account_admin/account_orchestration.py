@@ -1,6 +1,6 @@
 import logging
 from rx.subject import Subject
-from rx.operators import operators as op
+from rx.operators import map as op_map
 from src.helpers.util import flatten_dict
 from src.strategies.order_client import OrderClient
 from enum import Enum
@@ -40,7 +40,7 @@ class AccountOrchestration:
         self.order_client = OrderClient()
 
     def get_user_data_stream(self):
-        return self.account_data_stream.pipe(op.map(self.map_raw_payload))
+        return self.account_data_stream.pipe(op_map.map(self.map_raw_payload))
 
     def map_raw_payload(self, e):
         event_type = e['e']

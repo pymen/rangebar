@@ -2,18 +2,23 @@ from typing import Dict
 import pandas as pd
 import numpy as np
 from src.helpers.dataclasses import FetchHistoricalEvent
-from src.helpers.decorators import derived_frame_trigger
+from src.helpers.decorators import consumer_source, derived_frame_trigger
+from src.stream_consumers.stream_consumer import StreamConsumer
 from src.stream_consumers.transformers.kline import Kline
 from src.window.window import Window
 
-class RangeBar(Kline):
+@consumer_source(name='kline')
+class RangeBar(StreamConsumer):
 
     def __init__(self, window: Window):
-        super().__init__(window)
+        super().__init__(window, Kline.col_mapping, 'kline')
+        super().subscribe({'interval': '1m'})
 
     # drop inter-min rows
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["k"]["s"] = input_dict["s"]
+        if input_dict["k"]["x"] == False:
+            return None
         return input_dict["k"]
 
     @derived_frame_trigger(df_name="range_bars", count=1)

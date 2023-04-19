@@ -21,4 +21,4 @@ def read_from_tests_out_json_to_dict(filename):
 
 def init_logging():
     import logging
-    logging.basicConfig(filename=get_file_path('logs/testing.log'), encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)

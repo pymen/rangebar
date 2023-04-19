@@ -155,8 +155,9 @@ class Window:
     def get_consumer_triggers(self, consumer):
         triggers = []
         for attr in dir(consumer):
-            if callable(getattr(consumer, attr)):
+            if callable(getattr(consumer, attr)) and not attr.startswith('__'):
                 func = getattr(consumer, attr)
+                func_attrs = dir(func)
                 if hasattr(func, 'is_derived_consumer_trigger'):
                     triggers.append(func)
         return triggers
@@ -170,6 +171,7 @@ class Window:
         for symbol, consumer_dict in self.consumers.items():
             symbol_config = self.get_symbol_config(symbol)
             for df_name, consumer in consumer_dict.items():
+                print(f'consumer: {consumer.__class__} df_name: {df_name}')
                 triggers = self.get_consumer_triggers(consumer)
                 for trigger in triggers:
                     count = getattr(trigger, 'count')

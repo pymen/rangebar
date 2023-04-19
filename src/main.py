@@ -11,8 +11,8 @@ from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 import logging
-logging.basicConfig(filename=get_file_path('data/logs/debug.log'), encoding='utf-8', level=logging.DEBUG)
-
+# logging.basicConfig(filename=get_file_path('data/logs/debug.log'), encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
 
