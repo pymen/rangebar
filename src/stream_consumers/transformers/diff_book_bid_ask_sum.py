@@ -2,6 +2,7 @@ from src.helpers.decorators import consumer_source, derived_frame_trigger
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.window.window import Window
 import pandas as pd
+import logging
 
 
 @consumer_source(name='diff_book_depth')

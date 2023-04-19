@@ -17,7 +17,7 @@ class Window:
     
     def __init__(self, ws_client, calculate_indicators: Subject, historical: Subject):
         self.calculate_indicators = calculate_indicators
-        self.historical = historical
+        self.historical = historical # handled in src/fetch_historical/historical_kline.py
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             df = self.load_symbol_window_data(symbols_config['symbol'])

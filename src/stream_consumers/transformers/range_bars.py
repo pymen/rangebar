@@ -26,11 +26,15 @@ class RangeBar(StreamConsumer):
         # access existing range_bar_df and check timestamp of last row
         symbol = symbol_config['symbol']
         range_bar_df = self.window.symbol_dict_df_dict[symbol]["range_bars"]
-        last_timestamp = range_bar_df.tail(1).index
+        if range_bar_df is not None:
+            last_timestamp = range_bar_df.tail(1).index
+        else:   
+            # Set last_timestamp to one month ago
+            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)   
         # Compare last_timestamp to current time and publish a fetch historical event if more than 1 minute has elapsed
         if (pd.Timestamp.now() - last_timestamp).seconds / 60 > 1:
             # this is for the purpose of pulling historical to fill a gap, created by app shutdown
-            self.window.historical.next(FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp))
+            self.window.historical.on_next(FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp))
             return None
         return self.create_range_bar_df(df)
     
