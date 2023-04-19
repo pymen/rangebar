@@ -2,7 +2,6 @@
 
 from src.settings import get_settings
 from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
-from src.stream_consumers.transformers.kline import Kline
 from src.stream_consumers.transformers.range_bars import RangeBar
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
@@ -37,6 +36,14 @@ def test_get_consumer_triggers():
         triggers = window.get_consumer_triggers(consumer)
         break
     assert len(triggers) > 0
+
+def test_consumer_derived_frame_trigger_decorator():
+    window = new_instance()
+    rbc = RangeBar(window)
+    triggers = window.get_consumer_triggers(rbc)
+    print(f'triggers: {len(triggers)}')
+    assert len(triggers) > 0
+      
     
 
     

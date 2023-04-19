@@ -50,31 +50,29 @@ class StreamConsumer(ABC):
     def message_handler(self, message):
         if 'result' not in message:
             try:
-                symbol, df_name, series = self.create_series_from_dict(message)
-                self.window.append_row(symbol.lower(), df_name, series, self.index_cols)
+                output_dict = self.transform_message_dict(message)
+                if output_dict is not None:
+                    symbol, df_name, series = self.create_series_from_dict(output_dict)
+                    self.window.append_row(symbol.lower(), df_name, series, self.index_cols)
             except Exception as e:
-                # FIXME error thrown
-                logging.info("message_handler ~ e: ",str(e))    
+                logging.error("message_handler: ",str(e))    
         else:
             logging.info(f"connection message: {message}")
             
     def create_series_from_dict(self, input_dict) -> Tuple:
         # logging.info(f"base_stream_consumer: create_series_from_dict")
-        # Prepare the data
-        input_dict = self.transform_message_dict(input_dict)
-        if input_dict is not None:
-            try:
-                # Map the dictionary keys to the desired column names using the col_mapping dictionary
-                output_dict = {}
-                for key, value in input_dict.items():
-                    if key in self.col_mapping:
-                        output_dict[self.col_mapping[key]] = value
-                # Create a pandas series using the updated dictionary
-                output_series = pd.Series(output_dict)
-                return (input_dict['s'].lower(), self.df_name, output_series)
-            except KeyError as e:
-                logging.info(f"create_series_from_dict: mapping: KeyError: {str(e)}")
-                raise e  
+        try:
+            # Map the dictionary keys to the desired column names using the col_mapping dictionary
+            output_dict = {}
+            for key, value in input_dict.items():
+                if key in self.col_mapping:
+                    output_dict[self.col_mapping[key]] = value
+            # Create a pandas series using the updated dictionary
+            output_series = pd.Series(output_dict)
+            return (input_dict['s'].lower(), self.df_name, output_series)
+        except KeyError as e:
+            logging.info(f"create_series_from_dict: mapping: KeyError: {str(e)}")
+            raise e
        
     def transform_message_dict(self, input_dict) -> dict:
         """

@@ -6,7 +6,7 @@
     "bi.base_url": "https://testnet.binancefuture.com",
     "app.symbols_config": [
         {
-            "symbol": "BTCUSDT"
+            "symbol": "btcusdt"
         }
     ]
 }

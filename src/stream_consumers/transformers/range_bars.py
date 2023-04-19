@@ -22,20 +22,24 @@ class RangeBar(StreamConsumer):
         return input_dict["k"]
 
     @derived_frame_trigger(df_name="range_bars", count=1)
-    def create_range_bar_df(self, df: pd.DataFrame, symbol_config: Dict[str, str] = None) -> pd.DataFrame:
+    def create_range_bars(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
         # access existing range_bar_df and check timestamp of last row
-        symbol = symbol_config['symbol']
         range_bar_df = self.window.symbol_dict_df_dict[symbol]["range_bars"]
-        if range_bar_df is not None:
+        kline_df = self.window.symbol_dict_df_dict[symbol]["kline"]
+        num_days = (kline_df.index[-1] - kline_df.index[0]).days + 1
+        if not range_bar_df.empty:
             last_timestamp = range_bar_df.tail(1).index
-        else:   
+            # Compare last_timestamp to current time and publish a fetch historical event if more than 1 minute has elapsed
+            if (pd.Timestamp.now() - last_timestamp).seconds / 60 > 1:
+                # this is for the purpose of pulling historical to fill a gap, created by app shutdown
+                self.window.historical.on_next(FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp))
+                return None
+        elif num_days < 30:
             # Set last_timestamp to one month ago
-            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)   
-        # Compare last_timestamp to current time and publish a fetch historical event if more than 1 minute has elapsed
-        if (pd.Timestamp.now() - last_timestamp).seconds / 60 > 1:
-            # this is for the purpose of pulling historical to fill a gap, created by app shutdown
+            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
             self.window.historical.on_next(FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp))
-            return None
+            return None   
+        
         return self.create_range_bar_df(df)
     
     def create_range_bar_df(self, df_window: pd.DataFrame) -> pd.DataFrame:

@@ -1,4 +1,5 @@
 
+from src.fetch_historical.historical_kline import HistoricalKline
 from src.settings import get_settings
 from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
 from src.stream_consumers.transformers.kline import Kline
@@ -51,9 +52,11 @@ def test_get_consumer_source3():
 
 def test_range_bars():
     window = new_instance()
-    con = RangeBar(window)
+    RangeBar(window)
+    HistoricalKline(window)
     window.start()
-    time.sleep(30)
+    time.sleep(240)
+    window.shutdown()
     
       
     

@@ -169,7 +169,6 @@ class Window:
 
     def eval_count_triggers(self):
         for symbol, consumer_dict in self.consumers.items():
-            symbol_config = self.get_symbol_config(symbol)
             for df_name, consumer in consumer_dict.items():
                 print(f'consumer: {consumer.__class__} df_name: {df_name}')
                 triggers = self.get_consumer_triggers(consumer)
@@ -181,7 +180,9 @@ class Window:
                         self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(derived_df_name, pd.DataFrame())
                         try:
                             pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
-                            derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol_config)
+                            derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol)
+                            if derived_df is None:
+                                continue
                             logging.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
                             logging.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
                             pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)
