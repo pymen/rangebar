@@ -28,6 +28,7 @@ class Kline(StreamConsumer):
     def __init__(self, window: Window):
         super().__init__(window, self.col_mapping)
         super().subscribe({'interval': '1m'})
+        # self.window.add_consumer(self) # seems to add itself to window even when not instantiated directly
        
 
     

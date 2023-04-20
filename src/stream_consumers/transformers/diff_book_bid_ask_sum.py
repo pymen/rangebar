@@ -25,6 +25,7 @@ class DiffBookBidAskSum(StreamConsumer):
     def __init__(self, window: Window):
         super().__init__(window, self.col_mapping)
         super().subscribe({'speed': '500'})
+        # self.window.add_consumer(self)
 
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["b"] = sum(float(x[1]) for x in input_dict["b"])

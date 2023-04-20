@@ -17,7 +17,7 @@ class StreamConsumer(ABC):
             self.df_name = primary_df_name
         else:    
             self.df_name = self.get_consumer_df_name()
-        self.window.add_consumer(self)
+        
 
     def get_consumer_df_name(self):
         snake_case = ""

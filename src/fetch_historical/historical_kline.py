@@ -15,10 +15,11 @@ class HistoricalKline:
     def __init__(self, window: Window):
          self.window = window
          self.transformer = Kline(window)
-         window.historical.pipe(op.filter(lambda e: e.source == 'kline'), op.map(self.fetch_historical)).subscribe()
+         window.historical.pipe(op.map(self.fetch_historical)).subscribe()
          self.um_futures_client = UMFutures()
 
     def fetch_historical(self, e: FetchHistoricalEvent):
+        print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
         """
         Fetches historical kline from the last_timestamp in the event and calls
         window.append_rows function which will eval_triggers eg: in the case where
