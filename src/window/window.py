@@ -4,7 +4,7 @@ import datetime as dt
 import os
 from src.settings import get_settings
 from src.utility import get_file_path
-from rx.subject import Subject
+from rx.subject import AsyncSubject
 from src.helpers.dataclasses import Event
 import logging
 
@@ -15,9 +15,8 @@ class Window:
     consumers: Dict[str, Dict[str, object]] = {}
     prune_started = False
     
-    def __init__(self, ws_client, calculate_indicators: Subject, historical: Subject):
+    def __init__(self, ws_client, calculate_indicators: AsyncSubject):
         self.calculate_indicators = calculate_indicators
-        self.historical = historical # handled in src/fetch_historical/historical_kline.py
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             df = self.load_symbol_window_data(symbols_config['symbol'])

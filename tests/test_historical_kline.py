@@ -3,14 +3,14 @@ from src.helpers.dataclasses import FetchHistoricalEvent
 from src.settings import get_settings
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import Subject
+from rx.subject import AsyncSubject
 import pandas as pd
 import datetime
 
 def new_instance():
-    historical = Subject()
+    historical = AsyncSubject()
     settings = get_settings('bi')
-    window = Window(UMFuturesWebsocketClient(stream_url=settings['stream_url']), Subject(), historical)
+    window = Window(UMFuturesWebsocketClient(stream_url=settings['stream_url']), AsyncSubject(), historical)
     return HistoricalKline(window)
 
 def test_get_1000_minute_intervals():

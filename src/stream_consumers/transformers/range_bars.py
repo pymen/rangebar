@@ -6,15 +6,17 @@ from src.helpers.decorators import consumer_source, derived_frame_trigger
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.stream_consumers.transformers.kline import Kline
 from src.window.window import Window
+from rx.subject import AsyncSubject
 import logging
 
 @consumer_source(name='kline')
 class RangeBar(StreamConsumer):
 
-    def __init__(self, window: Window):
+    def __init__(self, window: Window, historical: AsyncSubject):
         super().__init__(window, Kline.col_mapping, 'kline')
         super().subscribe({'interval': '1m'})
         self.window.add_consumer(self)
+        self.historical = historical # handled in src/fetch_historical/historical_kline.py
 
     # drop inter-min rows
     def transform_message_dict(self, input_dict) -> dict:
@@ -43,7 +45,7 @@ class RangeBar(StreamConsumer):
             last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
             event = FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp)
             logging.info(f"create_range_bars: event: {str(event)}")
-            self.window.historical.on_next(event)
+            self.historical.on_next(event)
             return None   
         
         return self.create_range_bar_df(df)

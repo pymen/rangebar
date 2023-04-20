@@ -6,17 +6,23 @@ from src.stream_consumers.transformers.kline import Kline
 from src.stream_consumers.transformers.range_bars import RangeBar
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import Subject
+from rx.subject import AsyncSubject, AsyncSubject
 import time
 from tests.utils import init_logging
+import asyncio
+import pytest
 
-def new_instance():
+def new_instance_with_subjects():
     init_logging()
-    calc_indicators = Subject()
-    historical = Subject()
+    calc_indicators = AsyncSubject()
+    historical = AsyncSubject()
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, calc_indicators, historical)
+    window = Window(ws_client, calc_indicators)
+    return window, historical, calc_indicators
+
+def new_instance():
+    window, _, _ = new_instance_with_subjects()
     return window
 
 def test_get_consumer_df_name1():
@@ -50,12 +56,13 @@ def test_get_consumer_source3():
     name = con.source_name
     assert name == 'kline'      
 
-def test_range_bars():
-    window = new_instance()
-    RangeBar(window)
-    HistoricalKline(window)
+@pytest.mark.asyncio
+async def test_range_bars():
+    window, historical, _ = new_instance_with_subjects()
+    RangeBar(window, historical)
+    HistoricalKline(window, historical)
     window.start()
-    time.sleep(240)
+    await asyncio.sleep(240)
     window.shutdown()
     
       

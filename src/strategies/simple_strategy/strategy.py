@@ -1,4 +1,4 @@
-from rx.subject import Subject
+from rx.subject import AsyncSubject
 from src.helpers.dataclasses import TickEvent
 from scipy.stats import linregress
 import logging
@@ -11,7 +11,7 @@ class SimpleStrategy:
     rsi_lower_limit = 30
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
-    def __init__(self, client: OrderClient, next_bar: Subject):
+    def __init__(self, client: OrderClient, next_bar: AsyncSubject):
         self.client = client
         next_bar.pipe().subscribe(self.on_next_bar)
 

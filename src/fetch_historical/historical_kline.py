@@ -7,15 +7,16 @@ from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
 import logging
+from rx.subject import AsyncSubject
 
 
 class HistoricalKline:
 
     transformer: Kline
-    def __init__(self, window: Window):
+    def __init__(self, window: Window, historical: AsyncSubject):
          self.window = window
          self.transformer = Kline(window)
-         window.historical.pipe(op.map(self.fetch_historical)).subscribe()
+         historical.pipe(op.map(self.fetch_historical)).subscribe()
          self.um_futures_client = UMFutures()
 
     def fetch_historical(self, e: FetchHistoricalEvent):

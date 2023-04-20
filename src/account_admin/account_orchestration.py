@@ -1,5 +1,5 @@
 import logging
-from rx.subject import Subject
+from rx.subject import AsyncSubject
 from rx.operators import map as op_map
 from src.helpers.util import flatten_dict
 from src.strategies.order_client import OrderClient
@@ -35,7 +35,7 @@ class AccountOrchestration:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
 
-    def __init__(self, account_data_stream: Subject):
+    def __init__(self, account_data_stream: AsyncSubject):
         self.account_data_stream = account_data_stream
         self.order_client = OrderClient()
 

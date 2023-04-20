@@ -1,4 +1,4 @@
-from rx.subject import Subject
+from rx.subject import AsyncSubject
 from src.account_admin.account_orchestration import AccountOrchestration
 from src.helpers.dataclasses import OrderStatusEvent
 from tests.utils import init_logging, read_from_tests_out_json_to_dict
@@ -8,7 +8,7 @@ import time
 
 def new_instance():
     init_logging()
-    account_data_stream = Subject()
+    account_data_stream = AsyncSubject()
     order_orchestration = AccountOrchestration(account_data_stream)
     return order_orchestration, account_data_stream
 

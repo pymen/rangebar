@@ -5,12 +5,12 @@ from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidA
 from src.stream_consumers.transformers.range_bars import RangeBar
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import Subject
+from rx.subject import AsyncSubject
 
 def new_instance():
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, Subject(), Subject())
+    window = Window(ws_client, AsyncSubject(), AsyncSubject())
     return window
 
 def test_window_start_init():
