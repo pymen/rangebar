@@ -6,9 +6,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Callable, Dict, Tuple
-
-
+from typing import Callable, Dict
 
 def get_root_data_dir() -> Path:
     """
@@ -78,14 +76,18 @@ def _get_file_logger_handler(filename: str) -> logging.FileHandler:
         file_handlers[filename] = handler  # Am i need a lock?
     return handler
 
+def to_snake_case(text: str) -> str:
+    import re
+    words = re.findall('[a-z]+|[A-Z][a-z]*', text)
+    return '_'.join(word.lower() for word in words)
 
-
-def get_logger(filename: str) -> logging.Logger:
+def get_logger(name: str) -> logging.Logger:
     """
     return a logger that writes records into a file.
     """
-    log_formatter = logging.Formatter('[%(asctime)s] %(message)s')
-    logger = logging.getLogger(filename)
+    filename = str(get_file_path(f'logs/{to_snake_case(name)}.log').absolute())
+    log_formatter = logging.Formatter('%(name)s:[%(threadName)s][%(asctime)s] %(message)s')
+    logger = logging.getLogger(name)
     handler = _get_file_logger_handler(filename)  # get singleton handler.
     handler.setFormatter(log_formatter)
     logger.addHandler(handler)  # each handler will be added only once.

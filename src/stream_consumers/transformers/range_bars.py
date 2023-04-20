@@ -5,6 +5,7 @@ from src.helpers.dataclasses import FetchHistoricalEvent
 from src.helpers.decorators import consumer_source, derived_frame_trigger
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.stream_consumers.transformers.kline import Kline
+from src.util import get_logger
 from src.window.window import Window
 from rx.subject import Subject
 import logging
@@ -15,6 +16,7 @@ class RangeBar(StreamConsumer):
     def __init__(self, window: Window, historical: Subject):
         super().__init__(window, Kline.col_mapping, 'kline')
         super().subscribe({'interval': '1m'})
+        self.logger = get_logger('RangeBar')
         self.window.add_consumer(self)
         self.historical = historical # handled in src/fetch_historical/historical_kline.py
 
@@ -37,14 +39,14 @@ class RangeBar(StreamConsumer):
             if (pd.Timestamp.now() - last_timestamp).seconds / 60 > 1:
                 # this is for the purpose of pulling historical to fill a gap, created by app shutdown
                 event = FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp)
-                logging.info(f"create_range_bars: event: {str(event)}")
+                self.logger.info(f"create_range_bars: event: {str(event)}")
                 self.window.historical.on_next(event)
                 return None
         elif num_days < 30:
             # Set last_timestamp to one month ago
             last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
             event = FetchHistoricalEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp)
-            logging.info(f"create_range_bars: event: {str(event)}")
+            self.logger.info(f"create_range_bars: event: {str(event)}")
             self.historical.on_next(event)
             return None   
         

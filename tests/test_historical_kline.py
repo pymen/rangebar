@@ -1,11 +1,14 @@
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.settings import get_settings
+from src.util import get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 import pandas as pd
 import datetime
+
+logging = get_logger('tests')
 
 def new_instance():
     historical = Subject()

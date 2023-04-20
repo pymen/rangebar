@@ -4,6 +4,7 @@ from src.settings import get_settings
 from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
 from src.stream_consumers.transformers.kline import Kline
 from src.stream_consumers.transformers.range_bars import RangeBar
+from src.util import get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
@@ -12,8 +13,9 @@ from tests.utils import init_logging
 import asyncio
 import pytest
 
+logging = get_logger('tests')
+
 def new_instance_with_subjects():
-    init_logging()
     calc_indicators = Subject()
     historical = Subject()
     settings = get_settings('bi')
@@ -56,13 +58,13 @@ def test_get_consumer_source3():
     name = con.source_name
     assert name == 'kline'      
 
-@pytest.mark.asyncio
-async def test_range_bars():
+
+def test_range_bars():
     window, historical, _ = new_instance_with_subjects()
     RangeBar(window, historical)
     HistoricalKline(window, historical)
     window.start()
-    await asyncio.sleep(240)
+    time.sleep(240)
     window.shutdown()
     
       

@@ -9,6 +9,8 @@ import logging
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
 
+from src.util import get_logger
+
 
 class AccountData:
     """
@@ -23,6 +25,7 @@ class AccountData:
     """
    
     def __init__(self, account_data_stream: Subject):
+        self.logger = get_logger('AccountData')
         self.kill_polling = False
         self.kill_renew_listen_key = False
         self.account_data_stream = account_data_stream
@@ -49,7 +52,7 @@ class AccountData:
                 symbol = symbols_config['symbol']
                 resp = await self.client.get_all_orders(symbol=symbol, timestamp=get_unix_epoch_time_ms())
                 count += 1
-                logging.info(f'{count}. get_all_orders: {resp}')
+                self.logger.info(f'{count}. get_all_orders: {resp}')
                 self.account_data_stream.on_next(OrderStatusEvent(
                     symbol=symbol, payload_type='http', payload=resp))
             if self.kill_polling:
@@ -62,7 +65,7 @@ class AccountData:
         Get the exchange info which includes rate limits
         """
         resp = self.client.exchange_info()
-        logging.info(f'exchange_info: {resp}')
+        self.logger.info(f'exchange_info: {resp}')
         return resp
 
     def get_balance(self):
@@ -70,7 +73,7 @@ class AccountData:
         Get the balance
         """
         resp = self.client.balance(timestamp=get_unix_epoch_time_ms())
-        logging.info(f'get_balance: {resp}')
+        self.logger.info(f'get_balance: {resp}')
         return resp
 
     async def subscribe_to_user_stream(self):
@@ -87,7 +90,7 @@ class AccountData:
                     symbol=symbol, payload_type='ws', payload=message))
 
         response = self.client.new_listen_key()
-        logging.info("Listen key : {}".format(response["listenKey"]))
+        self.logger.info("Listen key : {}".format(response["listenKey"]))
 
         user_data_ws_client = CMFuturesWebsocketClient(stream_url=self.bi_settings['stream_url'])
         user_data_ws_client.start()
@@ -102,7 +105,7 @@ class AccountData:
         while True:
             await asyncio.sleep(60 * 30)
             response = self.client.renew_listen_key(self.listen_key)
-            logging.info("renew_listen_key: response : {}".format(response))
+            self.logger.info("renew_listen_key: response : {}".format(response))
             if hasattr(self, 'kill_renew_listen_key') and self.kill_renew_listen_key:
                 break
            

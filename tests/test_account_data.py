@@ -2,13 +2,15 @@
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 from src.account_admin.account_data import AccountData
+from src.util import get_logger
 from tests.utils import init_logging, write_to_tests_out_file
 import asyncio
 import pytest
 import time
 
+logging = get_logger('tests')
+
 def new_instance():
-    init_logging()
     account_data_stream = Subject()
     order_status = AccountData(account_data_stream)
     return order_status, account_data_stream

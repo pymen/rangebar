@@ -3,6 +3,7 @@ from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
 from src.settings import get_settings
 import logging
+from src.util import get_logger
 
 
 class OrderClient:
@@ -17,6 +18,7 @@ class OrderClient:
     trades = []
 
     def __init__(self):
+        self.logger = get_logger('OrderClient')
         self.settings = get_settings('bi')
         self.client = Client(
             api_key=self.settings['key'], secret_key=self.settings['secret'])
@@ -102,9 +104,9 @@ class OrderClient:
         try:
             response = self.client.new_batch_order(params)
             self.trades.append((sl_id, tp_id, bo_id))
-            logging.info(response)
+            self.logger.info(response)
         except ClientError as error:
-            logging.error(
+            self.logger.error(
                 "Found error. status: {}, error code: {}, error message: {}".format(
                     error.status_code, error.error_code, error.error_message
                 )
@@ -187,9 +189,9 @@ class OrderClient:
         try:
             response = self.client.new_batch_order(params)
             self.trades.append((sl_id, tp_id, bo_id))
-            logging.info(response)
+            self.logger.info(response)
         except ClientError as error:
-            logging.error(
+            self.logger.error(
                 "Found error. status: {}, error code: {}, error message: {}".format(
                     error.status_code, error.error_code, error.error_message
                 )
@@ -200,9 +202,9 @@ class OrderClient:
             response = self.client.cancel_order(
                 symbol=symbol, orderId=order_id, recvWindow=5000
             )
-            logging.info(f'Order cancelled: {response}')
+            self.logger.info(f'Order cancelled: {response}')
         except ClientError as error:
-            logging.info(
+            self.logger.info(
                 "Found error. status: {}, error code: {}, error message: {}".format(
                     error.status_code, error.error_code, error.error_message
                 )

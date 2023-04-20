@@ -1,6 +1,8 @@
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.helpers.util import get_unix_epoch_time_ms
+from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.stream_consumers.transformers.kline import Kline
+from src.util import get_logger
 from src.window.window import Window
 import rx.operators as op
 from binance.um_futures import UMFutures
@@ -17,22 +19,27 @@ class HistoricalKline:
          self.window = window
          self.transformer = Kline(window)
          self.historical = historical
-         self.historical.pipe(op.map(self.fetch_historical)).subscribe()
+         self.processing = False
+         self.historical.pipe(observe_on_pool_scheduler(), op.map(self.fetch_historical)).subscribe()
          self.um_futures_client = UMFutures()
+         self.logger = get_logger('HistoricalKline')
 
     def fetch_historical(self, e: FetchHistoricalEvent):
         print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
-        """
-        Fetches historical kline from the last_timestamp in the event and calls
-        window.append_rows function which will eval_triggers eg: in the case where
-        a derived source such as range bars published the FetchHistoricalEvent the
-        missing source data will be there for it to continue. The time elapsed may 
-        need to be adjusted depending on how long this takes
-        """
-        pairs = self.get_1000_minute_intervals(e.last_timestamp)
-        resp_data = self.fetch_all_intervals(e.symbol, pairs)
-        df = self.build_df(resp_data)
-        self.window.append_rows(e.symbol, 'kline', df)     
+        if not self.processing:
+            self.processing = True
+            """
+            Fetches historical kline from the last_timestamp in the event and calls
+            window.append_rows function which will eval_triggers eg: in the case where
+            a derived source such as range bars published the FetchHistoricalEvent the
+            missing source data will be there for it to continue. The time elapsed may 
+            need to be adjusted depending on how long this takes
+            """
+            pairs = self.get_1000_minute_intervals(e.last_timestamp)
+            resp_data = self.fetch_all_intervals(e, pairs)
+            df = self.build_df(resp_data)
+            self.window.append_rows(e.symbol, 'kline', df)
+            self.processing = False     
 
 
     def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp):
@@ -41,7 +48,7 @@ class HistoricalKline:
         """
         to_time_now = datetime.datetime.now() 
         minutes = int((to_time_now - last_timestamp).total_seconds() / 60)
-        logging.info(f'minutes: {minutes}')
+        self.logger.info(f'minutes: {minutes}')
         intervals = int(minutes / 1000)
         remainder = minutes % 1000
         if remainder > 0:
@@ -52,9 +59,9 @@ class HistoricalKline:
             stamps.append(bound)
         stamps = stamps[::-1]
         pairs = [[stamps[i], stamps[i+1]] for i in range(0, len(stamps) - 1)]
-        logging.info(f'pair.len: {len(pairs)}')
+        self.logger.info(f'pair.len: {len(pairs)}')
         for pair in pairs:
-            logging.info(f'{pair[0]} - {pair[1]}')
+            self.logger.info(f'{pair[0]} - {pair[1]}')
         return pairs      
 
 
@@ -66,9 +73,9 @@ class HistoricalKline:
             dt_s, dt_e = pair
             start = get_unix_epoch_time_ms(dt_s)
             end = get_unix_epoch_time_ms(dt_e)
-            logging.info(f'request: {count}, start: {start} end: {end}')
+            self.logger.info(f'request: {count}, start: {start} end: {end}')
             resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000)
-            logging.info(f'len: {len(resp)}')
+            self.logger.info(f'len: {len(resp)}')
             resp_data.extend(resp)
         return resp_data
     
@@ -85,7 +92,7 @@ class HistoricalKline:
             # append the dictionary as a row to the dataframe
             df = pd.concat([df, pd.DataFrame(data, index=[timestamp])])
             if count % 1000 == 0:
-                logging.info(f'progress count: {count}')
+                self.logger.info(f'progress count: {count}')
         # Set timestamp as the index
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')

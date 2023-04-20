@@ -2,6 +2,7 @@ from abc import ABC
 import random
 from typing import Tuple
 from src.settings import get_settings
+from src.util import get_logger
 from src.window.window import Window
 import pandas as pd
 import logging
@@ -10,6 +11,7 @@ class StreamConsumer(ABC):
 
     def __init__(self, window: Window, col_mapping: dict, primary_df_name: str = None) -> None:
         super().__init__()
+        self.logger = get_logger('AbstractStreamConsumer')
         self.window = window
         self.settings = get_settings('app')
         self.col_mapping = col_mapping
@@ -31,7 +33,7 @@ class StreamConsumer(ABC):
     def subscribe(self, kwargs: dict):
         for symbol_config in self.settings['symbols_config']:
             symbol = symbol_config['symbol']
-            logging.info(f"base_stream_consumer: subscribe: symbol: {symbol}, stream_name: {self.source_name}")
+            self.logger.info(f"base_stream_consumer: subscribe: symbol: {symbol}, stream_name: {self.source_name}")
             stream_id = random.randint(100, 999)
             kwargs['id'] = stream_id
             kwargs['symbol'] = symbol
@@ -40,11 +42,11 @@ class StreamConsumer(ABC):
             try:
                 func(**kwargs)
             except ValueError as ve:
-                logging.info(f"A value error occurred: {ve}")
+                self.logger.info(f"A value error occurred: {ve}")
             except KeyError as ke:
-                logging.info(f"A key error occurred: {ke}")
+                self.logger.info(f"A key error occurred: {ke}")
             except Exception as e:
-                logging.info(f"An unknown error occurred: {e}")
+                self.logger.info(f"An unknown error occurred: {e}")
    
                 
     def message_handler(self, message):
@@ -55,12 +57,12 @@ class StreamConsumer(ABC):
                     symbol, df_name, series = self.create_series_from_dict(output_dict)
                     self.window.append_row(symbol.lower(), df_name, series, self.index_cols)
             except Exception as e:
-                logging.error("message_handler: ",str(e))    
+                self.logger.error("message_handler: ",str(e))    
         else:
-            logging.info(f"connection message: {message}")
+            self.logger.info(f"connection message: {message}")
             
     def create_series_from_dict(self, input_dict) -> Tuple:
-        # logging.info(f"base_stream_consumer: create_series_from_dict")
+        # self.logger.info(f"base_stream_consumer: create_series_from_dict")
         try:
             # Map the dictionary keys to the desired column names using the col_mapping dictionary
             output_dict = {}
@@ -71,7 +73,7 @@ class StreamConsumer(ABC):
             output_series = pd.Series(output_dict)
             return (input_dict['s'].lower(), self.df_name, output_series)
         except KeyError as e:
-            logging.info(f"create_series_from_dict: mapping: KeyError: {str(e)}")
+            self.logger.info(f"create_series_from_dict: mapping: KeyError: {str(e)}")
             raise e
        
     def transform_message_dict(self, input_dict) -> dict:

@@ -1,4 +1,5 @@
 import logging
+from multiprocessing import get_logger
 from rx.subject import Subject
 from rx.operators import map as op_map
 from src.helpers.util import flatten_dict
@@ -38,6 +39,7 @@ class AccountOrchestration:
     def __init__(self, account_data_stream: Subject):
         self.account_data_stream = account_data_stream
         self.order_client = OrderClient()
+        self.logger = get_logger('AccountOrchestration')
 
     def get_user_data_stream(self):
         return self.account_data_stream.pipe(op_map.map(self.map_raw_payload))

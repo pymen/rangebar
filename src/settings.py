@@ -4,7 +4,7 @@ Global setting of Binance Grid Trader.
 from logging import DEBUG
 from typing import Dict, Any
 
-from .utility import load_json
+from .util import load_json
 
 SETTINGS: Dict[str, Any] = {
     "font.family": "Arial",

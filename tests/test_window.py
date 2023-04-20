@@ -3,9 +3,12 @@
 from src.settings import get_settings
 from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
 from src.stream_consumers.transformers.range_bars import RangeBar
+from src.util import get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
+
+logging = get_logger('tests')
 
 def new_instance():
     settings = get_settings('bi')

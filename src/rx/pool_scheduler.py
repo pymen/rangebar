@@ -8,23 +8,7 @@ from rx.core import Observable
 optimal_thread_count = multiprocessing.cpu_count()
 pool_scheduler = ThreadPoolScheduler(optimal_thread_count)
 
-def new_subscribe_on_pool_scheduler() -> Callable[[Observable], Observable]:
-    """
-    From: ops.observe_on documentation
-    Subscribe on the specified scheduler.
-
-    Wrap the source sequence in order to run its subscription and
-    unsubscription logic on the specified scheduler. This operation is
-    not commonly used; see the remarks section for more information on
-    the distinction between subscribe_on and observe_on.
-
-    This only performs the side-effects of subscription and
-    unsubscription on the specified scheduler. In order to invoke
-    observer callbacks on a scheduler, use observe_on.
-    """
-    return ops.subscribe_on(pool_scheduler)
-
-def new_observe_on_pool_scheduler() -> Callable[[Observable], Observable]:
+def observe_on_pool_scheduler() -> Callable[[Observable], Observable]:
     """
     From: ops.observe_on documentation
     Wraps the source sequence in order to run its observer callbacks

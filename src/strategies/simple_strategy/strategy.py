@@ -3,6 +3,7 @@ from src.helpers.dataclasses import TickEvent
 from scipy.stats import linregress
 import logging
 from src.strategies.order_client import OrderClient
+from src.util import get_logger
 
 class SimpleStrategy:
     per_trade_risk_perc_equity = 0.1
@@ -12,6 +13,7 @@ class SimpleStrategy:
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
     def __init__(self, client: OrderClient, next_bar: Subject):
+        self.logger = get_logger('SimpleStrategy')
         self.client = client
         next_bar.pipe().subscribe(self.on_next_bar)
 
@@ -51,13 +53,13 @@ class SimpleStrategy:
             upper_series = self.df.iloc[:index+1]['bb_upper']
             if len(upper_series) < 2:
                 return False
-            # logging.info(f'upper_series:\n{str(upper_series)}')
+            # self.logger.info(f'upper_series:\n{str(upper_series)}')
             close = row['Close']
             since = self.iterations_back_till_condition(upper_series, lambda x: x >= close)
-            # logging.info(f'bb_upper_near(upper_series >= close): index: {index}, close: {close}, since: {since}')
+            # self.logger.info(f'bb_upper_near(upper_series >= close): index: {index}, close: {close}, since: {since}')
             return since < 2
         except Exception as e:
-            logging.info(f'bb_upper_near: exception: {e.__cause__}')
+            self.logger.info(f'bb_upper_near: exception: {e.__cause__}')
             raise e
         
 
@@ -66,13 +68,13 @@ class SimpleStrategy:
          lower_series = self.df.iloc[:index+1]['bb_lower']
          if len(lower_series) < 2:
                 return False
-        #  logging.info(f'lower_series:\n{str(lower_series)}')
+        #  self.logger.info(f'lower_series:\n{str(lower_series)}')
          close = row['Close']
          since = self.iterations_back_till_condition(lower_series, lambda x: x <= close)
-        #  logging.info(f'bb_lower_near(lower_series <= close): index: {index}, close: {close}, since: {since}')
+        #  self.logger.info(f'bb_lower_near(lower_series <= close): index: {index}, close: {close}, since: {since}')
          return since < 2
        except Exception as e:
-            logging.info(f'bb_lower_near: exception: {e.__cause__}')
+            self.logger.info(f'bb_lower_near: exception: {e.__cause__}')
             raise e
        
     def iterations_back_till_condition(self, series, condition):
@@ -85,26 +87,26 @@ class SimpleStrategy:
        
     def bb_upper_pointing_up(self, index):
         bb_seg = self.df.iloc[index-3:index+1]['bb_upper']
-        # logging.info(f'bb_seg: {len(bb_seg)}')
+        # self.logger.info(f'bb_seg: {len(bb_seg)}')
         if len(bb_seg) > 0:
             seg_len = len(bb_seg)
             try:
                 slope, _, _, _, _ = linregress(range(seg_len), bb_seg)
-                # logging.info(f'bb_upper_pointing_up: seg_len: {seg_len}, slope: {slope}')
+                # self.logger.info(f'bb_upper_pointing_up: seg_len: {seg_len}, slope: {slope}')
                 return slope > 0
             except Exception as e:
-                logging.info(f'bb_upper_pointing_up: exception: {str(e)}')
+                self.logger.info(f'bb_upper_pointing_up: exception: {str(e)}')
         return False
 
     def bb_lower_pointing_down(self, index):
         bb_seg = self.df.iloc[index-3:index+1]['bb_lower']
-        # logging.info(f'bb_seg: {len(bb_seg)}')
+        # self.logger.info(f'bb_seg: {len(bb_seg)}')
         if len(bb_seg) > 0:
             seg_len = len(bb_seg)
             try:
                 slope, _, _, _, _ = linregress(range(seg_len), bb_seg)
-                # logging.info(f'bb_lower_pointing_down: seg_len: {seg_len}, slope: {slope}')
+                # self.logger.info(f'bb_lower_pointing_down: seg_len: {seg_len}, slope: {slope}')
                 return slope < 0
             except Exception as e:
-                logging.info(f'bb_lower_pointing_down: exception: {str(e)}')  
+                self.logger.info(f'bb_lower_pointing_down: exception: {str(e)}')  
         return False

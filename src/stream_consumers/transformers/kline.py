@@ -1,6 +1,7 @@
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.helpers.decorators import consumer_source
 from src.stream_consumers.stream_consumer import StreamConsumer
+from src.util import get_logger
 from src.window.window import Window
 
 
@@ -29,6 +30,7 @@ class Kline(StreamConsumer):
         super().__init__(window, self.col_mapping)
         super().subscribe({'interval': '1m'})
         # self.window.add_consumer(self) # seems to add itself to window even when not instantiated directly
+        self.logger = get_logger('Kline')
        
 
     

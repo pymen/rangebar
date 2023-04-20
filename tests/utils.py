@@ -1,6 +1,8 @@
 
 from pathlib import Path
-from src.utility import get_file_path
+from src.util import get_logger
+
+logging = get_logger('tests')
 
 def write_to_tests_out_file(content, filename):
     cwd = Path.cwd()
@@ -19,6 +21,5 @@ def read_from_tests_out_json_to_dict(filename):
     return data
 
 
-def init_logging():
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+
+    

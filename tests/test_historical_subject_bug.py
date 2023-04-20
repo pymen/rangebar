@@ -1,17 +1,21 @@
 import pandas as pd
 from rx.subject import Subject, Subject
 from src.helpers.dataclasses import FetchHistoricalEvent
+from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.util import get_logger
 from tests.utils import init_logging
 import asyncio
 import pytest
 import time
 import rx.operators as op
 
+logging = get_logger('tests')
+
 class Test1:
 
     def __init__(self, historical: Subject) -> None:
          self.historical = historical
-         self.historical.pipe(op.map(self.test_fetch_historical)).subscribe()
+         self.historical.pipe(observe_on_pool_scheduler(), op.map(self.test_fetch_historical)).subscribe()
 
     def test_fetch_historical(self, e: FetchHistoricalEvent):
         print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')     

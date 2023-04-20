@@ -1,9 +1,9 @@
 from src.helpers.decorators import consumer_source, derived_frame_trigger
 from src.stream_consumers.stream_consumer import StreamConsumer
+from src.util import get_logger
 from src.window.window import Window
 import pandas as pd
 import logging
-
 
 @consumer_source(name='diff_book_depth')
 class DiffBookBidAskSum(StreamConsumer):
@@ -23,6 +23,7 @@ class DiffBookBidAskSum(StreamConsumer):
     }
 
     def __init__(self, window: Window):
+        self.logger = get_logger('DiffBookBidAskSum')
         super().__init__(window, self.col_mapping)
         super().subscribe({'speed': '500'})
         # self.window.add_consumer(self)
@@ -40,7 +41,7 @@ class DiffBookBidAskSum(StreamConsumer):
         """
         df_copy = df.drop(columns=["event_type", 'event_timestamp', "first_update_id_event",
                 "final_update_id_event", "previous_final_update_id_event"]).copy()
-        logging.info(f"diff_book_resample ~ resampled: df_copy.columns: {df_copy.columns}")
+        self.logger.info(f"diff_book_resample ~ resampled: df_copy.columns: {df_copy.columns}")
         resampled = df_copy.resample('30s').sum()
-        logging.info("diff_book_resample ~ resampled", type(resampled))
+        self.logger.info("diff_book_resample ~ resampled", type(resampled))
         return resampled
