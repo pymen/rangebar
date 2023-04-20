@@ -1,7 +1,6 @@
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.rx.pool_scheduler import observe_on_pool_scheduler
-from src.stream_consumers.transformers.kline import Kline
 from src.util import get_logger
 from src.window.window import Window
 import rx.operators as op
@@ -14,10 +13,9 @@ from rx.subject import Subject
 
 class HistoricalKline:
 
-    transformer: Kline
+   
     def __init__(self, window: Window, historical: Subject):
          self.window = window
-         self.transformer = Kline(window)
          self.historical = historical
          self.processing = False
          self.historical.pipe(observe_on_pool_scheduler(), op.map(self.fetch_historical)).subscribe()
