@@ -1,5 +1,5 @@
 import pandas as pd
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 
 import rx.operators as op
 import asyncio
@@ -16,7 +16,7 @@ def test_fetch_historical(e: FetchHistoricalEvent):
 
 @pytest.mark.asyncio
 async def test_rx_subject():
-    sub1 = AsyncSubject()
+    sub1 = Subject()
     sub1.pipe(op.map(op_map_append_str)).subscribe(lambda x: print(f'received event: {x}'))
     for i in range(50):
         sub1.on_next(i)
@@ -24,7 +24,7 @@ async def test_rx_subject():
 
 @pytest.mark.asyncio
 async def test_map_object():
-    sub1 = AsyncSubject()
+    sub1 = Subject()
     sub1.pipe(op.map(test_fetch_historical)).subscribe()
     for _ in range(5):
         await asyncio.sleep(3)

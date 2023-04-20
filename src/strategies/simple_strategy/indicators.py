@@ -1,7 +1,7 @@
 from typing import Tuple
 import pandas as pd
 import ta
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 from src.helpers.dataclasses import Event
 import logging
 
@@ -13,7 +13,7 @@ class SimpleStrategyIndicators:
     Depending on the indicator windows needed for this strategy, we can also determine the size of the window
     """
 
-    def __init__(self, calculate_indicators: AsyncSubject, next_bar: AsyncSubject):
+    def __init__(self, calculate_indicators: Subject, next_bar: Subject):
         calculate_indicators.pipe().subscribe(self.apply)
         self.next_bar = next_bar
        

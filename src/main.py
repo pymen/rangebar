@@ -9,7 +9,7 @@ from src.stream_consumers.transformers.range_bars import RangeBar
 from src.utility import get_file_path
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 import logging
 # logging.basicConfig(filename=get_file_path('data/logs/debug.log'), encoding='utf-8', level=logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
@@ -22,10 +22,10 @@ def main() -> Window:
     """
     Event Subjects
     """
-    calc_indicators = AsyncSubject()
-    next_bar = AsyncSubject()
-    historical = AsyncSubject()
-    account_data_stream = AsyncSubject()
+    calc_indicators = Subject()
+    next_bar = Subject()
+    historical = Subject()
+    account_data_stream = Subject()
     """
     Window
     """

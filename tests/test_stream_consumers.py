@@ -6,7 +6,7 @@ from src.stream_consumers.transformers.kline import Kline
 from src.stream_consumers.transformers.range_bars import RangeBar
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 import time
 from tests.utils import init_logging
 import asyncio
@@ -14,8 +14,8 @@ import pytest
 
 def new_instance_with_subjects():
     init_logging()
-    calc_indicators = AsyncSubject()
-    historical = AsyncSubject()
+    calc_indicators = Subject()
+    historical = Subject()
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
     window = Window(ws_client, calc_indicators)

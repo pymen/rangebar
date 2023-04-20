@@ -4,7 +4,7 @@ from src.helpers.dataclasses import OrderStatusEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 import logging
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
@@ -14,7 +14,7 @@ class AccountData:
     """
     Since stop_loss_order or take_profit_order needs to be cancelled if the other is filled, we need a stream of the status
     none is provided via the websocket. This class will be responsible for checking the status of the orders, publishing events 
-    on a AsyncSubject
+    on a Subject
     Since rate limits are changed dynamically, the poll interval needs to be adjusted in line with rate limit info from exchangeInfo
     A websocket user stream will be kept open to listen for order updates, this is the primary source of order status, but since disconnects
     could result in missing information polling is required to ensure any missing information is retrieved 
@@ -22,7 +22,7 @@ class AccountData:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
    
-    def __init__(self, account_data_stream: AsyncSubject):
+    def __init__(self, account_data_stream: Subject):
         self.kill_polling = False
         self.kill_renew_listen_key = False
         self.account_data_stream = account_data_stream

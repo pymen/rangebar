@@ -1,14 +1,15 @@
 import pandas as pd
-from rx.subject import AsyncSubject
+from rx.subject import Subject, Subject
 from src.helpers.dataclasses import FetchHistoricalEvent
 from tests.utils import init_logging
 import asyncio
 import pytest
+import time
 import rx.operators as op
 
 class Test1:
 
-    def __init__(self, historical: AsyncSubject) -> None:
+    def __init__(self, historical: Subject) -> None:
          self.historical = historical
          self.historical.pipe(op.map(self.test_fetch_historical)).subscribe()
 
@@ -17,7 +18,7 @@ class Test1:
 
 class Test2:
 
-    def __init__(self, historical: AsyncSubject) -> None:
+    def __init__(self, historical: Subject) -> None:
          self.historical = historical
          
     def test_next(self):
@@ -27,12 +28,12 @@ class Test2:
 
 
 
-@pytest.mark.asyncio
-async def test_bug_case():
+
+def test_bug_case():
     init_logging()
-    historical = AsyncSubject()
+    historical = Subject()
     t1 = Test1(historical)
     t2 = Test2(historical)
     for _ in range(5):
-        await asyncio.sleep(3)
+        time.sleep(3)
         t2.test_next()

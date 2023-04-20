@@ -6,13 +6,13 @@ from src.helpers.decorators import consumer_source, derived_frame_trigger
 from src.stream_consumers.stream_consumer import StreamConsumer
 from src.stream_consumers.transformers.kline import Kline
 from src.window.window import Window
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 import logging
 
 @consumer_source(name='kline')
 class RangeBar(StreamConsumer):
 
-    def __init__(self, window: Window, historical: AsyncSubject):
+    def __init__(self, window: Window, historical: Subject):
         super().__init__(window, Kline.col_mapping, 'kline')
         super().subscribe({'interval': '1m'})
         self.window.add_consumer(self)

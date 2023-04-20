@@ -4,7 +4,7 @@ import datetime as dt
 import os
 from src.settings import get_settings
 from src.utility import get_file_path
-from rx.subject import AsyncSubject
+from rx.subject import Subject
 from src.helpers.dataclasses import Event
 import logging
 
@@ -15,7 +15,7 @@ class Window:
     consumers: Dict[str, Dict[str, object]] = {}
     prune_started = False
     
-    def __init__(self, ws_client, calculate_indicators: AsyncSubject):
+    def __init__(self, ws_client, calculate_indicators: Subject):
         self.calculate_indicators = calculate_indicators
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
