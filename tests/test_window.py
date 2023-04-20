@@ -16,6 +16,11 @@ def new_instance():
     window = Window(ws_client, Subject(), Subject())
     return window
 
+def test_window_logging():
+    window = new_instance()
+    for i in range(0, 10):
+        window.logger.info(f'logging test: {i}')
+
 def test_window_start_init():
     window = new_instance()
     assert window is not None

@@ -1,10 +1,9 @@
-
-from multiprocessing import get_logger
 from rx.subject import Subject
 from rx.operators import map as op_map
 from src.helpers.util import flatten_dict
 from src.strategies.order_client import OrderClient
 from enum import Enum
+from src.util import get_logger
 
 
 class AccountUpdateEventReasonType(Enum):

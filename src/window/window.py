@@ -180,9 +180,9 @@ class Window:
                         try:
                             pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
                             derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol)
-                            self.logger.debug(f"eval_count_triggers ~ derived_df: {len(derived_df)}")
                             if derived_df is None:
                                 continue
+                            self.logger.debug(f"eval_count_triggers ~ derived_df: {len(derived_df)}")
                             self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
                             self.logger.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
                             pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)

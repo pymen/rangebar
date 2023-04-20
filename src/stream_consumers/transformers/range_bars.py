@@ -27,7 +27,7 @@ class RangeBar(StreamConsumer):
             return input_dict["k"]
         return None
 
-    @derived_frame_trigger(df_name="range_bars", count=100)
+    @derived_frame_trigger(df_name="range_bars", count=1)
     def create_range_bars(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
         # access existing range_bar_df and check timestamp of last row
         range_bar_df = self.window.symbol_dict_df_dict[symbol]["range_bars"]
