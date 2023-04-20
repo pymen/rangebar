@@ -16,7 +16,8 @@ class HistoricalKline:
     def __init__(self, window: Window, historical: AsyncSubject):
          self.window = window
          self.transformer = Kline(window)
-         historical.pipe(op.map(self.fetch_historical)).subscribe()
+         self.historical = historical
+         self.historical.pipe(op.map(self.fetch_historical)).subscribe()
          self.um_futures_client = UMFutures()
 
     def fetch_historical(self, e: FetchHistoricalEvent):

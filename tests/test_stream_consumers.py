@@ -6,7 +6,7 @@ from src.stream_consumers.transformers.kline import Kline
 from src.stream_consumers.transformers.range_bars import RangeBar
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import AsyncSubject, AsyncSubject
+from rx.subject import AsyncSubject
 import time
 from tests.utils import init_logging
 import asyncio

@@ -28,7 +28,7 @@ async def test_map_object():
     sub1.pipe(op.map(test_fetch_historical)).subscribe()
     for _ in range(5):
         await asyncio.sleep(3)
-        e =  FetchHistoricalEvent('BTCUSDT', 'kline', pd.Timestamp.now())
+        e =  FetchHistoricalEvent('class', 'type', pd.Timestamp.now())
         sub1.on_next(e)
 
 
