@@ -5,7 +5,7 @@ from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
 from rx.subject import Subject
-import logging
+
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
 

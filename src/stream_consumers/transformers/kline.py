@@ -36,7 +36,9 @@ class Kline(StreamConsumer):
     
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["k"]["s"] = input_dict["s"]
-        return input_dict["k"]
+        if input_dict["k"]["x"] == True:
+            return input_dict["k"]
+        return None
 
     
             

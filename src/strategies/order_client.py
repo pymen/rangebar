@@ -2,7 +2,7 @@ from datetime import datetime
 from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
 from src.settings import get_settings
-import logging
+
 from src.util import get_logger
 
 

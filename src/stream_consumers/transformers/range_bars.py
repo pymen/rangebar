@@ -8,7 +8,7 @@ from src.stream_consumers.transformers.kline import Kline
 from src.util import get_logger
 from src.window.window import Window
 from rx.subject import Subject
-import logging
+
 
 @consumer_source(name='kline')
 class RangeBar(StreamConsumer):
@@ -23,11 +23,11 @@ class RangeBar(StreamConsumer):
     # drop inter-min rows
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["k"]["s"] = input_dict["s"]
-        if input_dict["k"]["x"] == False:
-            return None
-        return input_dict["k"]
+        if input_dict["k"]["x"] == True:
+            return input_dict["k"]
+        return None
 
-    @derived_frame_trigger(df_name="range_bars", count=1)
+    @derived_frame_trigger(df_name="range_bars", count=100)
     def create_range_bars(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
         # access existing range_bar_df and check timestamp of last row
         range_bar_df = self.window.symbol_dict_df_dict[symbol]["range_bars"]

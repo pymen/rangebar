@@ -1,7 +1,7 @@
 from rx.subject import Subject
 from src.helpers.dataclasses import TickEvent
 from scipy.stats import linregress
-import logging
+
 from src.strategies.order_client import OrderClient
 from src.util import get_logger
 

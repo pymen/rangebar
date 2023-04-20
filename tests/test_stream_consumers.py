@@ -63,7 +63,7 @@ def test_range_bars():
     RangeBar(window, historical)
     HistoricalKline(window, historical)
     window.start()
-    time.sleep(240)
+    time.sleep(120)
     window.shutdown()
     
       

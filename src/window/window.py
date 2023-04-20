@@ -3,10 +3,9 @@ import pandas as pd
 import datetime as dt
 import os
 from src.settings import get_settings
-from src.util import get_file_path
+from src.util import get_file_path, get_logger
 from rx.subject import Subject
 from src.helpers.dataclasses import Event
-import logging
 
 class Window:
 
@@ -16,6 +15,7 @@ class Window:
     prune_started = False
     
     def __init__(self, ws_client, calculate_indicators: Subject):
+        self.logger = get_logger('Window')
         self.calculate_indicators = calculate_indicators
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
@@ -169,7 +169,7 @@ class Window:
     def eval_count_triggers(self):
         for symbol, consumer_dict in self.consumers.items():
             for df_name, consumer in consumer_dict.items():
-                print(f'consumer: {consumer.__class__} df_name: {df_name}')
+                self.logger.debug(f'consumer: {consumer.__class__} df_name: {df_name}')
                 triggers = self.get_consumer_triggers(consumer)
                 for trigger in triggers:
                     count = getattr(trigger, 'count')
@@ -180,6 +180,7 @@ class Window:
                         try:
                             pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
                             derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol)
+                            self.logger.debug(f"eval_count_triggers ~ derived_df: {len(derived_df)}")
                             if derived_df is None:
                                 continue
                             self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")

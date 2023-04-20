@@ -1,4 +1,4 @@
-import logging
+
 
 def iterations_back_till_condition(series, condition):
     count = 0

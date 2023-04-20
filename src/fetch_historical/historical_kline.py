@@ -8,7 +8,7 @@ import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
-import logging
+
 from rx.subject import Subject
 
 

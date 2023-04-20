@@ -3,7 +3,7 @@ import pandas as pd
 import ta
 from rx.subject import Subject
 from src.helpers.dataclasses import Event
-import logging
+
 
 class SimpleStrategyIndicators:
     """

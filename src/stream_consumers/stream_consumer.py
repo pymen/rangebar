@@ -5,7 +5,7 @@ from src.settings import get_settings
 from src.util import get_logger
 from src.window.window import Window
 import pandas as pd
-import logging
+
 
 class StreamConsumer(ABC):
 
