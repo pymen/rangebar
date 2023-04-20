@@ -2,7 +2,7 @@ from rx.subject import Subject
 from src.account_admin.account_orchestration import AccountOrchestration
 from src.helpers.dataclasses import OrderStatusEvent
 from src.util import get_logger
-from tests.utils import init_logging, read_from_tests_out_json_to_dict
+from tests.utils import read_from_tests_out_json_to_dict
 import asyncio
 import pytest
 import time

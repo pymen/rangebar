@@ -9,7 +9,6 @@ from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 import time
-from tests.utils import init_logging
 import asyncio
 import pytest
 

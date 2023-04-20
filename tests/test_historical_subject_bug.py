@@ -3,7 +3,6 @@ from rx.subject import Subject, Subject
 from src.helpers.dataclasses import FetchHistoricalEvent
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
-from tests.utils import init_logging
 import asyncio
 import pytest
 import time
@@ -34,7 +33,6 @@ class Test2:
 
 
 def test_bug_case():
-    init_logging()
     historical = Subject()
     t1 = Test1(historical)
     t2 = Test2(historical)
