@@ -33,7 +33,7 @@ class Window:
     def init_subscriptions(self):
         self.main.pipe(observe_on_pool_scheduler(), 
                        op.filter(lambda o: isinstance(o, WindowCommandEvent)), 
-                       op.map(lambda e: self[e.method](**e.kwargs))
+                       op.map(lambda e: getattr(self, e.method)(**e.kwargs))
                        ).subscribe()      
         
     def start(self):
@@ -125,7 +125,7 @@ class Window:
         return groups
 
     # Define a function to append a row to a dataframe
-    def append_row(self, symbol: str, df_name: str, row: pd.Series, index: List[str] = None):
+    def append_row(self, symbol: str = None, df_name: str = None, row: pd.Series = None, index: List[str] = None):
         # Check if pruning has started and start the timer if not
         if not self.prune_started:
             self.prune_started = True
@@ -155,6 +155,8 @@ class Window:
             # self.timer.start()
         self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(df_name, pd.DataFrame())
         self.symbol_dict_df_dict[symbol][df_name] = pd.concat([self.symbol_dict_df_dict[symbol][df_name], df_section]) 
+        self.symbol_dict_df_dict[symbol][df_name].sort_values('timestamp', inplace=True)
+        self.symbol_dict_df_dict[symbol][df_name].set_index('timestamp', inplace=True)
         self.save_symbol_window_data() 
         self.symbol_dict_df_dict_added_row_count.setdefault(symbol, {}).setdefault(df_name, 1)
         self.symbol_dict_df_dict_added_row_count[symbol][df_name] += len(df_section)

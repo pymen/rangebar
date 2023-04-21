@@ -68,8 +68,8 @@ class StreamConsumer(ABC):
         else:
             self.logger.info(f"connection message: {message}")
             
-    def create_series_from_dict(self, input_dict) -> Tuple:
-        # self.logger.info(f"base_stream_consumer: create_series_from_dict")
+    def create_series_from_dict(self, input_dict: dict) -> Tuple:
+        self.logger.info(f"create_series_from_dict: {str(input_dict)}")
         try:
             # Map the dictionary keys to the desired column names using the col_mapping dictionary
             output_dict = {}

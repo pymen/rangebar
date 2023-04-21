@@ -17,22 +17,24 @@ class SimpleStrategyIndicators:
 
     def __init__(self, main: Subject):
         self.main = main
-        
+
     def init_subscriptions(self):
         self.main.pipe(
-                observe_on_pool_scheduler(),
-                op.filter(lambda o: isinstance(o, IndicatorTickEvent)),
-                op.map(self.apply)
-                ).subscribe()     
-        
+            observe_on_pool_scheduler(),
+            op.filter(lambda o: isinstance(o, IndicatorTickEvent)),
+            op.map(self.apply)
+        ).subscribe()
+
     def macd(self):
-        macd = ta.trend.MACD(self.df['close'], window_slow=26, window_fast=12, window_sign=9)
+        macd = ta.trend.MACD(
+            self.df['close'], window_slow=26, window_fast=12, window_sign=9)
         self.df['macd'] = macd.macd()
         self.df['macd_signal'] = macd.macd_signal()
         self.df['macd_histogram'] = macd.macd_diff()
 
     def bb(self):
-        bb = ta.volatility.BollingerBands(self.df['close'], window=12, window_dev=2)
+        bb = ta.volatility.BollingerBands(
+            self.df['close'], window=12, window_dev=2)
         self.df['bb_upper'] = bb.bollinger_hband()
         self.df['bb_lower'] = bb.bollinger_lband()
 
@@ -45,4 +47,4 @@ class SimpleStrategyIndicators:
         self.macd()
         self.bb()
         self.rsi()
-        self.main.on_next(StrategyTickEvent(event.symbol, self.df))         
+        self.main.on_next(StrategyTickEvent(event.symbol, self.df))

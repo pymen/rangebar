@@ -18,7 +18,7 @@ class RangeBar(StreamConsumer):
     """
 
     def __init__(self, window: Window, main: Subject):
-        super().__init__(window, Kline.col_mapping, 'kline')
+        super().__init__(window, main, Kline.col_mapping, 'kline')
         super().subscribe({'interval': '1m'})
         self.logger = get_logger('RangeBar')
         self.window.add_consumer(self)

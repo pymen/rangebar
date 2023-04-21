@@ -36,7 +36,7 @@ class HistoricalKline:
             pairs = self.get_1000_minute_intervals(e.last_timestamp)
             resp_data = self.fetch_all_intervals(e, pairs)
             df = self.build_df(resp_data, e.symbol)
-            self.main.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'source': 'kline', 'df': df}))
+            self.main.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
             self.processing = False     
 
 
@@ -126,6 +126,7 @@ class HistoricalKline:
         # Set timestamp as the index
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        df.set_index('timestamp', inplace=True)
+       
+       
         return df
                      

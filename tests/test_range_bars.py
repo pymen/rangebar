@@ -19,7 +19,7 @@ def new_instance():
 
 def test_range_bars():
     clear_logs()
-    clear_symbol_windows()
+    # clear_symbol_windows()
     window, main = new_instance()
     RangeBar(window, main)
     HistoricalKline(main)
