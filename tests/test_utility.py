@@ -1,4 +1,4 @@
-from src.util import clear_logs, get_file_path, get_logger
+from src.util import clear_logs, clear_symbol_windows, get_file_path, get_logger
 
 def test_get_file_path():
     settings = get_file_path('settings.json')
@@ -10,4 +10,7 @@ def test_logging():
         logger.info(f'logging test: {i}')  
 
 def test_clear_logs():
-    clear_logs()        
+    clear_logs()
+
+def test_clear_symbol_windows():
+    clear_symbol_windows()          

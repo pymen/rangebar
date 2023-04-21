@@ -141,6 +141,7 @@ class RangeBar(StreamConsumer):
         result.fillna(0, inplace=True)
         df['adv'] = result
         return df
+
         
         
 

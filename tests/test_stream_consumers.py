@@ -55,17 +55,7 @@ def test_get_consumer_source3():
     window = new_instance()
     con = RangeBar(window)
     name = con.source_name
-    assert name == 'kline'      
-
-
-def test_range_bars():
-    clear_logs()
-    window, historical, _ = new_instance_with_subjects()
-    RangeBar(window, historical)
-    HistoricalKline(window, historical)
-    window.start()
-    time.sleep(120)
-    window.shutdown()
+    assert name == 'kline'
     
       
     

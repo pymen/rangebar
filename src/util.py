@@ -75,7 +75,7 @@ def clear_logs():
 
 def clear_symbol_windows():
     directory = str(get_file_path('symbol_windows').absolute())
-    csv_files = glob.glob(directory + '/*.scv')
+    csv_files = glob.glob(directory + '/*.csv')
     for csv_file in csv_files:
         os.remove(csv_file)        
 
@@ -98,7 +98,7 @@ def get_logger(name: str) -> logging.Logger:
     return a logger that writes records into a file.
     """
     filename = str(get_file_path(f'logs/{to_snake_case(name)}.log').absolute())
-    log_formatter = logging.Formatter('[%(asctime)s][%(threadName)s](%(levelname)s)%(name)s: %(message)s')
+    log_formatter = logging.Formatter('[%(asctime)s][%(threadName)s](%(levelname)s) %(name)s: %(message)s')
     logger = logging.getLogger(name)
     handler = _get_file_logger_handler(filename)  # get singleton handler.
     handler.setFormatter(log_formatter)
