@@ -5,3 +5,5 @@ https://binance-docs.github.io/apidocs/futures/en/
 * fix logging to file it's not working
 * somehow transformers are being instantiated, even in tests which exclude those objects (was because there was an inst somewhere now removed, but retest) 
 * can figure out what is missing from requirements.txt by changing the folder name, this seems to disconnect libraries from the project somehow, weird
+* issue with a loop where historical is called multiple times due to src/stream_consumers/transformers/range_bars.py#L45
+* problem with misalignment of historical and stream data maybe due to mapping, but they are using the same ? see notebooks/historical_misaligned_with_stream.ipynb
