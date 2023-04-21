@@ -20,6 +20,12 @@ def read_from_tests_out_json_to_dict(filename):
         data = json.load(f)
     return data
 
+def get_test_out_absolute_path(filename):
+    cwd = Path.cwd()
+    dir_path = cwd.joinpath('tests/out')
+    path = dir_path.joinpath(filename).absolute()
+    return str(path)
+
 
 
     
