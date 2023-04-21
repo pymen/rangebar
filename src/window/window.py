@@ -199,6 +199,7 @@ class Window:
                             self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
                             self.logger.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
                             pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)
+                            self.save_symbol_window_data()
                             self.main.on_next(IndicatorTickEvent(symbol, derived_df))  
                         except Exception as e:
                             self.logger.info(f"eval_count_triggers ~ Exception: {e}")
