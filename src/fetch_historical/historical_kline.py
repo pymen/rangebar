@@ -35,7 +35,7 @@ class HistoricalKline:
             """
             pairs = self.get_1000_minute_intervals(e.last_timestamp)
             resp_data = self.fetch_all_intervals(e, pairs)
-            df = self.build_df(resp_data)
+            df = self.build_df(resp_data, e.symbol)
             self.window.append_rows(e.symbol, 'kline', df)
             self.processing = False     
 
@@ -77,16 +77,48 @@ class HistoricalKline:
             resp_data.extend(resp)
         return resp_data
     
-    def build_df(self, resp_data):
+    def build_df(self, resp_data, symbol: str):
+        """
+        https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        [
+            [
+                1499040000000,      // Open time
+                "0.01634790",       // Open
+                "0.80000000",       // High
+                "0.01575800",       // Low
+                "0.01577100",       // Close
+                "148976.11427815",  // Volume
+                1499644799999,      // Close time
+                "2434.19055334",    // Quote asset volume
+                308,                // Number of trades
+                "1756.87402397",    // Taker buy base asset volume
+                "28.46694368",      // Taker buy quote asset volume
+                "17928899.62484339" // Ignore.
+            ]
+        ]
+        """
         # Create an empty dataframe
-        df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_asset_volume', 'num_of_trades', 'taker_buy_base', 'taker_buy_quote'])
+        df = pd.DataFrame(columns=['symbol', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_asset_volume', 'number_of_trades', 'taker_buy_asset_volume', 'taker_buy_quote_asset_volume'])
         # Loop through each item in resp and append to the dataframe
         count = 0
         for item in resp_data:
             count = count + 1
             timestamp, oopen, high, low, close, volume, close_time, quote_asset_volume, num_of_trades, taker_buy_base, taker_buy_quote, ignore = item
             # create a dictionary of the values
-            data = {'timestamp': timestamp, 'open': oopen, 'high': high, 'low': low, 'close': close, 'volume': volume, 'close_time': close_time, 'quote_asset_volume': quote_asset_volume, 'num_of_trades': num_of_trades, 'taker_buy_base': taker_buy_base, 'taker_buy_quote': taker_buy_quote}
+            data = {
+                    'symbol': symbol,
+                    'timestamp': timestamp, 
+                    'open': oopen, 
+                    'high': high, 
+                    'low': low, 
+                    'close': close, 
+                    'volume': volume, 
+                    'close_time': close_time, 
+                    'quote_asset_volume': quote_asset_volume, 
+                    'number_of_trades': num_of_trades, 
+                    'taker_buy_asset_volume': taker_buy_base, 
+                    'taker_buy_quote_asset_volume': taker_buy_quote
+                    }
             # append the dictionary as a row to the dataframe
             df = pd.concat([df, pd.DataFrame(data, index=[timestamp])])
             if count % 1000 == 0:
