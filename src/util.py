@@ -13,7 +13,7 @@ def get_root_data_dir() -> Path:
     Get path where trader is running in.
     """
     cwd = Path.cwd()
-    return cwd.joinpath('data')
+    return cwd.joinpath('resources')
 
 sys.path.append(str(Path.cwd()))
 
@@ -68,6 +68,16 @@ def virtual(func: Callable) -> Callable:
 
 file_handlers: Dict[str, logging.FileHandler] = {}
 logging.basicConfig(level=logging.DEBUG, force=True)
+
+def clear_logs():
+    import os
+    import glob
+    directory = str(get_file_path('logs').absolute())
+    log_files = glob.glob(directory + '/*.log')
+    for log_file in log_files:
+        os.remove(log_file)
+
+
 
 def _get_file_logger_handler(filename: str) -> logging.FileHandler:
     handler = file_handlers.get(filename, None)
