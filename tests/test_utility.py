@@ -5,11 +5,6 @@ def test_get_file_path():
     print("test_get_file_path ~ settings", str(settings))
 
 def test_logging():
-    test_log_path = str(get_file_path('logs/debug.log').absolute())
-    print(f'test_log_path: {test_log_path}')
     logger = get_logger('JustinRobinsonNutter')
-    logger.info("test_logging ~ info")
-    logger.debug("test_logging ~ debug")
-    logger.warning("test_logging ~ warning")
-    logger.error("test_logging ~ error")
-    logger.critical("test_logging ~ critical")    
+    for i in range(0, 10):
+        logger.info(f'logging test: {i}')  

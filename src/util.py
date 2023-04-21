@@ -67,7 +67,7 @@ def virtual(func: Callable) -> Callable:
 
 
 file_handlers: Dict[str, logging.FileHandler] = {}
-
+logging.basicConfig(level=logging.DEBUG, force=True)
 
 def _get_file_logger_handler(filename: str) -> logging.FileHandler:
     handler = file_handlers.get(filename, None)
@@ -86,7 +86,7 @@ def get_logger(name: str) -> logging.Logger:
     return a logger that writes records into a file.
     """
     filename = str(get_file_path(f'logs/{to_snake_case(name)}.log').absolute())
-    log_formatter = logging.Formatter('%(name)s:[%(threadName)s][%(asctime)s] %(message)s')
+    log_formatter = logging.Formatter('[%(asctime)s][%(threadName)s](%(levelname)s)%(name)s: %(message)s')
     logger = logging.getLogger(name)
     handler = _get_file_logger_handler(filename)  # get singleton handler.
     handler.setFormatter(log_formatter)

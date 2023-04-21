@@ -13,7 +13,7 @@ logging = get_logger('tests')
 def new_instance():
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, Subject(), Subject())
+    window = Window(ws_client, Subject())
     return window
 
 def test_window_logging():

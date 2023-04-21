@@ -13,7 +13,7 @@ class Window:
     symbol_dict_df_dict_added_row_count: Dict[str, Dict[str, int]] = {}
     consumers: Dict[str, Dict[str, object]] = {}
     prune_started = False
-    
+
     def __init__(self, ws_client, calculate_indicators: Subject):
         self.logger = get_logger('Window')
         self.calculate_indicators = calculate_indicators
@@ -180,6 +180,7 @@ class Window:
                         try:
                             pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
                             derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol)
+
                             if derived_df is None:
                                 continue
                             self.logger.debug(f"eval_count_triggers ~ derived_df: {len(derived_df)}")
