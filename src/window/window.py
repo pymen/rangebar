@@ -145,7 +145,8 @@ class Window:
             self.prune_started = True
             # self.timer.start()
         self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(df_name, pd.DataFrame())
-        self.symbol_dict_df_dict[symbol][df_name] = pd.concat([self.symbol_dict_df_dict[symbol][df_name], df_section])  
+        self.symbol_dict_df_dict[symbol][df_name] = pd.concat([self.symbol_dict_df_dict[symbol][df_name], df_section]) 
+        self.save_symbol_window_data() 
         self.symbol_dict_df_dict_added_row_count.setdefault(symbol, {}).setdefault(df_name, 1)
         self.symbol_dict_df_dict_added_row_count[symbol][df_name] += len(df_section)
         self.eval_count_triggers()    

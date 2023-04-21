@@ -1,12 +1,10 @@
-"""
-General utility functions.
-"""
-
 import json
 import logging
 import sys
 from pathlib import Path
 from typing import Callable, Dict
+import os
+import glob
 
 def get_root_data_dir() -> Path:
     """
@@ -70,12 +68,16 @@ file_handlers: Dict[str, logging.FileHandler] = {}
 logging.basicConfig(level=logging.DEBUG, force=True)
 
 def clear_logs():
-    import os
-    import glob
     directory = str(get_file_path('logs').absolute())
     log_files = glob.glob(directory + '/*.log')
     for log_file in log_files:
         os.remove(log_file)
+
+def clear_symbol_windows():
+    directory = str(get_file_path('symbol_windows').absolute())
+    csv_files = glob.glob(directory + '/*.scv')
+    for csv_file in csv_files:
+        os.remove(csv_file)        
 
 
 
