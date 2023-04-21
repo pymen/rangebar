@@ -54,8 +54,12 @@ class SimpleStrategy:
 
         if is_long_rsi and is_long_macd and is_bb_upper_near and is_bb_upper_pointing_up and is_bb_dist_above:  
             self.client.buy(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_buy, take_profit=tp_buy, entry_price=current_close)
+            row['trade'] = 1
         elif is_short_rsi and is_short_macd and is_bb_lower_near and is_bb_lower_pointing_down and is_bb_dist_above and is_volume_above_adv_limit:
             self.client.sell(symbol=e.symbol, quantity=self.per_trade_amount_mbtc, stop_loss=sl_sell, take_profit=tp_sell, entry_price=current_close)
+            row['trade'] = -1
+        else:
+            row['trade'] = 0    
 
     def bb_upper_near(self, index, row):
         try:
