@@ -5,14 +5,21 @@ from src.settings import get_settings
 from src.util import get_logger
 from src.window.window import Window
 import pandas as pd
+from rx.subject import Subject
+import rx.operators as op
 
 
 class StreamConsumer(ABC):
+    """
+    Abstract class for stream consumers.
+    Need a reference to the window to access the data frames
+    """
 
-    def __init__(self, window: Window, col_mapping: dict, primary_df_name: str = None) -> None:
+    def __init__(self, window: Window, main: Subject, col_mapping: dict, primary_df_name: str = None) -> None:
         super().__init__()
         self.logger = get_logger('AbstractStreamConsumer')
         self.window = window
+        self.main = main
         self.settings = get_settings('app')
         self.col_mapping = col_mapping
         if primary_df_name is not None:

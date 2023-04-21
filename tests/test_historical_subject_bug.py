@@ -1,6 +1,6 @@
 import pandas as pd
 from rx.subject import Subject, Subject
-from src.helpers.dataclasses import FetchHistoricalEvent
+from src.helpers.dataclasses import HistoricalKlineEvent
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
 import asyncio
@@ -16,7 +16,7 @@ class Test1:
          self.historical = historical
          self.historical.pipe(observe_on_pool_scheduler(), op.map(self.test_fetch_historical)).subscribe()
 
-    def test_fetch_historical(self, e: FetchHistoricalEvent):
+    def test_fetch_historical(self, e: HistoricalKlineEvent):
         print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')     
 
 class Test2:
@@ -25,7 +25,7 @@ class Test2:
          self.historical = historical
          
     def test_next(self):
-        event =  FetchHistoricalEvent('class', 'type', pd.Timestamp.now())
+        event =  HistoricalKlineEvent('class', 'type', pd.Timestamp.now())
         print('subject on next')
         self.historical.on_next(event)      
 

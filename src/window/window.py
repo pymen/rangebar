@@ -2,10 +2,12 @@ from typing import Dict, List
 import pandas as pd
 import datetime as dt
 import os
+from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject
-from src.helpers.dataclasses import Event
+import rx.operators as op
+from src.helpers.dataclasses import Event, WindowCommandEvent
 
 class Window:
 
@@ -14,9 +16,9 @@ class Window:
     consumers: Dict[str, Dict[str, object]] = {}
     prune_started = False
 
-    def __init__(self, ws_client, calculate_indicators: Subject):
+    def __init__(self, ws_client, main: Subject):
         self.logger = get_logger('Window')
-        self.calculate_indicators = calculate_indicators
+        self.main = main
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             df = self.load_symbol_window_data(symbols_config['symbol'])
@@ -25,7 +27,14 @@ class Window:
             else:
                 self.symbol_dict_df_dict[symbols_config['symbol']] = {}    
         self.ws_client = ws_client
-        # self.timer = threading.Timer(60, self.prune_windows)
+        self.init_subscriptions()
+        
+
+    def init_subscriptions(self):
+        self.main.pipe(observe_on_pool_scheduler(), 
+                       op.filter(lambda o: isinstance(o, WindowCommandEvent)), 
+                       op.map(lambda e: self[e.method](**e.kwargs))
+                       ).subscribe()      
         
     def start(self):
         self.ws_client.start()
@@ -188,7 +197,7 @@ class Window:
                             self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
                             self.logger.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
                             pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)
-                            self.calculate_indicators.next(Event(f'{symbol}.{df_name}', derived_df))  
+                            self.main.next(Event(f'{symbol}.{df_name}', derived_df))  
                         except Exception as e:
                             self.logger.info(f"eval_count_triggers ~ Exception: {e}")
                        

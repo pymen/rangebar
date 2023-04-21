@@ -1,6 +1,8 @@
 from rx.subject import Subject
-from rx.operators import map as op_map
+import rx.operators as op
+from src.helpers.dataclasses import OrderStatusEvent
 from src.helpers.util import flatten_dict
+from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.strategies.order_client import OrderClient
 from enum import Enum
 from src.util import get_logger
@@ -35,13 +37,21 @@ class AccountOrchestration:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
 
-    def __init__(self, account_data_stream: Subject):
-        self.account_data_stream = account_data_stream
+    def __init__(self, main: Subject):
+        self.main = main
         self.order_client = OrderClient()
         self.logger = get_logger('AccountOrchestration')
+        # self.init_subscriptions()
+
+    def init_subscriptions(self):
+        self.get_user_data_stream().subscribe()  
 
     def get_user_data_stream(self):
-        return self.account_data_stream.pipe(op_map.map(self.map_raw_payload))
+        return self.main.pipe(
+            observe_on_pool_scheduler(),
+            op.filter(lambda o: isinstance(o, OrderStatusEvent)),
+            op.map(self.map_raw_payload)
+            )
 
     def map_raw_payload(self, e):
         event_type = e['e']

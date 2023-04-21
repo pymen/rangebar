@@ -1,33 +1,33 @@
-from src.helpers.dataclasses import FetchHistoricalEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, WindowCommandEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
-from src.window.window import Window
 import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
-
 from rx.subject import Subject
 
 
 class HistoricalKline:
-
-   
-    def __init__(self, window: Window, historical: Subject):
-         self.window = window
-         self.historical = historical
+    def __init__(self, main: Subject):
+         self.main = main
          self.processing = False
-         self.historical.pipe(observe_on_pool_scheduler(), op.map(self.fetch_historical)).subscribe()
          self.um_futures_client = UMFutures()
          self.logger = get_logger('HistoricalKline')
+         self.main.pipe(
+                observe_on_pool_scheduler(),
+                op.filter(lambda o: isinstance(o, HistoricalKlineEvent)),
+                op.skip_while(lambda _: self.processing),
+                op.map(self.fetch_historical)
+             ).subscribe()
 
-    def fetch_historical(self, e: FetchHistoricalEvent):
+    def fetch_historical(self, e: HistoricalKlineEvent):
         print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
         if not self.processing:
             self.processing = True
             """
-            Fetches historical kline from the last_timestamp in the event and calls
+            Fetches main kline from the last_timestamp in the event and calls
             window.append_rows function which will eval_triggers eg: in the case where
             a derived source such as range bars published the FetchHistoricalEvent the
             missing source data will be there for it to continue. The time elapsed may 
@@ -36,7 +36,7 @@ class HistoricalKline:
             pairs = self.get_1000_minute_intervals(e.last_timestamp)
             resp_data = self.fetch_all_intervals(e, pairs)
             df = self.build_df(resp_data, e.symbol)
-            self.window.append_rows(e.symbol, 'kline', df)
+            self.main.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'source': 'kline', 'df': df}))
             self.processing = False     
 
 
@@ -63,7 +63,7 @@ class HistoricalKline:
         return pairs      
 
 
-    def fetch_all_intervals(self, e: FetchHistoricalEvent, pairs: list([datetime, datetime])):
+    def fetch_all_intervals(self, e: HistoricalKlineEvent, pairs: list([datetime, datetime])):
         resp_data = []
         count = 0
         for pair in pairs:

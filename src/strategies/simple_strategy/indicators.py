@@ -2,7 +2,9 @@ from typing import Tuple
 import pandas as pd
 import ta
 from rx.subject import Subject
-from src.helpers.dataclasses import Event
+import rx.operators as op
+from src.helpers.dataclasses import Event, IndicatorTickEvent, StrategyTickEvent
+from src.rx.pool_scheduler import observe_on_pool_scheduler
 
 
 class SimpleStrategyIndicators:
@@ -13,11 +15,16 @@ class SimpleStrategyIndicators:
     Depending on the indicator windows needed for this strategy, we can also determine the size of the window
     """
 
-    def __init__(self, calculate_indicators: Subject, next_bar: Subject):
-        calculate_indicators.pipe().subscribe(self.apply)
-        self.next_bar = next_bar
-       
-    
+    def __init__(self, main: Subject):
+        self.main = main
+        
+    def init_subscriptions(self):
+        self.main.pipe(
+                observe_on_pool_scheduler(),
+                op.filter(lambda o: isinstance(o, IndicatorTickEvent)),
+                op.map(self.apply)
+                ).subscribe()     
+        
     def macd(self):
         macd = ta.trend.MACD(self.df['close'], window_slow=26, window_fast=12, window_sign=9)
         self.df['macd'] = macd.macd()
@@ -33,9 +40,9 @@ class SimpleStrategyIndicators:
         rsi = ta.momentum.RSIIndicator(self.df['close'], window=14)
         self.df['rsi'] = rsi.rsi()
 
-    def apply(self, event: Event) -> Tuple[pd.DataFrame, int]:
+    def apply(self, event: IndicatorTickEvent) -> Tuple[pd.DataFrame, int]:
         self.df = event.df.copy()
         self.macd()
         self.bb()
         self.rsi()
-        self.next_bar.next(Event(event.path, self.df, 26))         
+        self.main.on_next(StrategyTickEvent(event.symbol, self.df))         

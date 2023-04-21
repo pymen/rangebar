@@ -5,10 +5,8 @@ from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
 from rx.subject import Subject
-
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
-
 from src.util import get_logger
 
 
@@ -24,11 +22,11 @@ class AccountData:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
    
-    def __init__(self, account_data_stream: Subject):
+    def __init__(self, main: Subject):
         self.logger = get_logger('AccountData')
         self.kill_polling = False
         self.kill_renew_listen_key = False
-        self.account_data_stream = account_data_stream
+        self.main = main
         self.bi_settings = get_settings('bi')
         self.app_settings = get_settings('app')
         self.client = Client(
@@ -53,7 +51,7 @@ class AccountData:
                 resp = await self.client.get_all_orders(symbol=symbol, timestamp=get_unix_epoch_time_ms())
                 count += 1
                 self.logger.info(f'{count}. get_all_orders: {resp}')
-                self.account_data_stream.on_next(OrderStatusEvent(
+                self.main.on_next(OrderStatusEvent(
                     symbol=symbol, payload_type='http', payload=resp))
             if self.kill_polling:
                 break
@@ -84,9 +82,9 @@ class AccountData:
             print(message)
             if 'result' not in message or message['result'] is not None:
                 
-                # Update account_data_stream with OrderStatusEvent, default symbol to 'general' if None
+                # Update main with OrderStatusEvent, default symbol to 'general' if None
                 symbol = message['s'] if message.get('s') is not None else 'general'
-                self.account_data_stream.on_next(OrderStatusEvent(
+                self.main.on_next(OrderStatusEvent(
                     symbol=symbol, payload_type='ws', payload=message))
 
         response = self.client.new_listen_key()

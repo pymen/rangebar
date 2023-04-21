@@ -1,5 +1,5 @@
 from src.fetch_historical.historical_kline import HistoricalKline
-from src.helpers.dataclasses import FetchHistoricalEvent
+from src.helpers.dataclasses import HistoricalKlineEvent
 from src.settings import get_settings
 from src.util import get_logger
 from src.window.window import Window
@@ -26,7 +26,7 @@ def test_fetch_all_intervals():
     target = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
-    e = FetchHistoricalEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
+    e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
     resp_data = target.fetch_all_intervals(e, pairs)
     logging.debug(f'resp_data.len: {len(resp_data)}')
 
@@ -38,7 +38,7 @@ def test_build_df():
     target = new_instance()
     last_timestamp = pd.to_datetime('2023-04-20 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
-    e = FetchHistoricalEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
+    e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
     resp_data = target.fetch_all_intervals(e, pairs)
     logging.debug(f'resp_data.len: {str(resp_data)}')
     # df = target.build_df(resp_data)
@@ -47,7 +47,7 @@ def test_build_df():
 def test_fetch_historical():
     target = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
-    e = FetchHistoricalEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp)    
+    e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp)    
 
 
 def test_timedelta():

@@ -3,7 +3,7 @@ from rx.subject import Subject
 import rx.operators as op
 import asyncio
 import pytest
-from src.helpers.dataclasses import FetchHistoricalEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, OrderStatusEvent
 from src.util import get_logger
 
 logging = get_logger('tests')
@@ -11,9 +11,25 @@ logging = get_logger('tests')
 def op_map_append_str(e):
     return ','.join([str(e), 'appended'])
 
-def test_fetch_historical(e: FetchHistoricalEvent):
-    print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
+def test_fetch_historical(e: HistoricalKlineEvent):
+    return e
 
+def test_event_map(e: OrderStatusEvent):
+    return e
+
+def test_rx_subject_filter_on_event_instance():
+    print('started')
+    sub1 = Subject()
+    sub1.pipe(op.filter(lambda o: isinstance(o, HistoricalKlineEvent)), op.map(test_fetch_historical)).subscribe(lambda x: print(f'received (expect: FetchHistoricalEvent): {type(x)}'))
+    sub1.pipe(op.filter(lambda o: isinstance(o, OrderStatusEvent)), op.map(test_event_map)).subscribe(lambda x: print(f'received (expect: OrderStatusEvent): {type(x)}'))
+    for i in range(50):
+        if i % 2 == 0:
+            e = HistoricalKlineEvent('class', 'type', pd.Timestamp.now())
+            sub1.on_next(e)
+        else:
+            e = OrderStatusEvent('class', 'type', {'a': 1})
+            sub1.on_next(e)    
+    
 
 @pytest.mark.asyncio
 async def test_rx_subject():
@@ -29,7 +45,7 @@ async def test_map_object():
     sub1.pipe(op.map(test_fetch_historical)).subscribe()
     for _ in range(5):
         await asyncio.sleep(3)
-        e =  FetchHistoricalEvent('class', 'type', pd.Timestamp.now())
+        e =  HistoricalKlineEvent('class', 'type', pd.Timestamp.now())
         sub1.on_next(e)
 
 

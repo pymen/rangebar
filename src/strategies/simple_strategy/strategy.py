@@ -1,6 +1,8 @@
 from rx.subject import Subject
-from src.helpers.dataclasses import TickEvent
+import rx.operators as op
+from src.helpers.dataclasses import StrategyTickEvent, TickEvent
 from scipy.stats import linregress
+from src.rx.pool_scheduler import observe_on_pool_scheduler
 
 from src.strategies.order_client import OrderClient
 from src.util import get_logger
@@ -12,12 +14,19 @@ class SimpleStrategy:
     rsi_lower_limit = 30
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
-    def __init__(self, client: OrderClient, next_bar: Subject):
+    def __init__(self, client: OrderClient, main: Subject):
         self.logger = get_logger('SimpleStrategy')
         self.client = client
-        next_bar.pipe().subscribe(self.on_next_bar)
+        main.pipe().subscribe(self.on_next_bar)
 
-    def on_next_bar(self, e: TickEvent):
+    def init_subscriptions(self):
+        self.main.pipe(
+                observe_on_pool_scheduler(),
+                op.filter(lambda o: isinstance(o, StrategyTickEvent)),
+                op.map(self.next)
+                ).subscribe()      
+
+    def next(self, e: StrategyTickEvent):
         df = e.df
         row = df.tail(1)
         current_close = row['Close']

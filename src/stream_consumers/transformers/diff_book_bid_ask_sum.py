@@ -3,11 +3,14 @@ from src.stream_consumers.stream_consumer import StreamConsumer
 from src.util import get_logger
 from src.window.window import Window
 import pandas as pd
+from rx.subject import Subject
+import rx.operators as op
 
 
 @consumer_source(name='diff_book_depth')
 class DiffBookBidAskSum(StreamConsumer):
     """
+     Need a reference to the window to access the data frames
      https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
     """
     col_mapping = {
@@ -22,11 +25,11 @@ class DiffBookBidAskSum(StreamConsumer):
         'a': 'total_ask_quantity'  # originally Asks to be updated
     }
 
-    def __init__(self, window: Window):
-        self.logger = get_logger('DiffBookBidAskSum')
-        super().__init__(window, self.col_mapping)
+    def __init__(self, window: Window, main: Subject):
+        super().__init__(window, main, self.col_mapping)
         super().subscribe({'speed': '500'})
-        # self.window.add_consumer(self)
+        self.logger = get_logger('DiffBookBidAskSum')
+        self.window.add_consumer(self)
 
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["b"] = sum(float(x[1]) for x in input_dict["b"])

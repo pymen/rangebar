@@ -21,39 +21,38 @@ def main() -> Window:
     """
     Event Subjects
     """
-    calc_indicators = Subject()
-    next_bar = Subject()
-    historical = Subject()
-    account_data_stream = Subject()
+    main = Subject()
     """
     Window
     """
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, calc_indicators, historical)
+    window = Window(ws_client, main)
     """
     Transformers
+
+    Need a reference to the window to access the data frames
     """
-    # DiffBookBidAskSum(window)
-    # Kline(window)
-    RangeBar(window)
+    # DiffBookBidAskSum(window, window)
+    # Kline(window, window)
+    RangeBar(window, main)
     """
     Historical
     """
-    HistoricalKline(window)
+    HistoricalKline(main)
     """
     Indicators
     """
-    SimpleStrategyIndicators(calc_indicators, next_bar)
+    SimpleStrategyIndicators(main)
     """
     Strategies
     """
     client: OrderClient = OrderClient()
-    SimpleStrategy(client, next_bar)
+    SimpleStrategy(main)
     """
     Account
     """
-    AccountData(account_data_stream)
-    AccountOrchestration(client, account_data_stream)
+    AccountData(main)
+    AccountOrchestration(client, main)
     """"""
     window.start()
     return window
