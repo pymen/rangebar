@@ -11,19 +11,18 @@ import time
 logging = get_logger('tests')
 
 def new_instance_with_subjects():
-    calc_indicators = Subject()
-    historical = Subject()
+    main = Subject()
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, calc_indicators)
-    return window, historical, calc_indicators
+    window = Window(ws_client, main)
+    return window, main
 
 def test_range_bars():
     clear_logs()
     clear_symbol_windows()
-    window, historical, _ = new_instance_with_subjects()
-    RangeBar(window, historical)
-    HistoricalKline(window, historical)
+    window, main = new_instance_with_subjects()
+    RangeBar(window, main)
+    HistoricalKline(main)
     window.start()
     time.sleep(900)
     window.shutdown()

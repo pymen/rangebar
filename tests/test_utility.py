@@ -5,7 +5,7 @@ def test_get_file_path():
     print("test_get_file_path ~ settings", str(settings))
 
 def test_logging():
-    logger = get_logger('JustinRobinsonNutter')
+    logger = get_logger('JustinRobinsonDreamer')
     for i in range(0, 10):
         logger.info(f'logging test: {i}')  
 

@@ -11,10 +11,10 @@ import datetime
 logging = get_logger('tests')
 
 def new_instance():
-    historical = Subject()
+    main = Subject()
     settings = get_settings('bi')
     window = Window(UMFuturesWebsocketClient(stream_url=settings['stream_url']), Subject())
-    return HistoricalKline(window, historical)
+    return HistoricalKline(window, main)
 
 def test_get_1000_minute_intervals():
     target = new_instance()

@@ -14,46 +14,41 @@ import pytest
 
 logging = get_logger('tests')
 
-def new_instance_with_subjects():
-    calc_indicators = Subject()
-    historical = Subject()
+def new_instance():
+    main = Subject()
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, calc_indicators)
-    return window, historical, calc_indicators
-
-def new_instance():
-    window, _, _ = new_instance_with_subjects()
-    return window
+    window = Window(ws_client, main)
+    return window, main
 
 def test_get_consumer_df_name1():
-    window = new_instance()
-    con = DiffBookBidAskSum(window)
+    window, main = new_instance()
+    con = DiffBookBidAskSum(window, main)
     name = con.df_name
     assert name == 'diff_book_bid_ask_sum'
     
 def test_get_consumer_df_name2():
-    window = new_instance()
-    con = Kline(window)
+    window, main = new_instance()
+    con = Kline(window, main)
     name = con.df_name
     assert name == 'kline'
 
 def test_get_consumer_source1():
-    window = new_instance()
-    con = DiffBookBidAskSum(window)
+    window, main = new_instance()
+    con = DiffBookBidAskSum(window, main)
     name = con.source_name
     assert name == 'diff_book_depth'
    
 
 def test_get_consumer_source2():
-    window = new_instance()
-    con = Kline(window)
+    window, main = new_instance()
+    con = Kline(window, main)
     name = con.source_name
     assert name == 'kline'  
 
 def test_get_consumer_source3():
-    window = new_instance()
-    con = RangeBar(window)
+    window, main = new_instance()
+    con = RangeBar(window, main)
     name = con.source_name
     assert name == 'kline'
     

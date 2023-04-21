@@ -11,9 +11,9 @@ import time
 logging = get_logger('tests')
 
 def new_instance():
-    account_data_stream = Subject()
-    order_status = AccountData(account_data_stream)
-    return order_status, account_data_stream
+    main = Subject()
+    order_status = AccountData(main)
+    return order_status, main
 
 
 def test_get_exchange_info():
@@ -26,8 +26,8 @@ def test_get_exchange_info():
 
 @pytest.mark.asyncio
 async def test_poll():
-    target, account_data_stream = new_instance()
-    await account_data_stream.subscribe(lambda x: print(x))
+    target, main = new_instance()
+    await main.subscribe(lambda x: print(x))
     try:
         await target.poll()
     except Exception as e:
@@ -41,13 +41,13 @@ async def test_poll():
 async def test_subscribe_to_user_stream():
     import json
     from pathlib import Path
-    target, account_data_stream = new_instance()
+    target, main = new_instance()
     cwd = Path.cwd()
     dir_path = cwd.joinpath('tests/out')
     filename = dir_path.joinpath(filename)
     with open('user_data.json', 'a') as f:
         # Subscribe to the data stream
-        account_data_stream.subscribe(lambda x: f.write(json.dumps(x) + '\n'))
+        main.subscribe(lambda x: f.write(json.dumps(x) + '\n'))
     await target.subscribe_to_user_stream()
     await asyncio.sleep(360)
     
