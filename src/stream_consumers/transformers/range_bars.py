@@ -1,3 +1,4 @@
+import io
 from typing import Dict
 import pandas as pd
 import numpy as np
@@ -9,6 +10,8 @@ from src.util import get_logger
 from src.window.window import Window
 from rx.subject import Subject
 import rx.operators as op
+
+from tests.utils import write_to_tests_out_file
 
 
 @consumer_source(name='kline')
@@ -36,32 +39,43 @@ class RangeBar(StreamConsumer):
         # access existing range_bar_df and check timestamp of last row
         range_bar_df = self.window.symbol_dict_df_dict[symbol]["range_bars"]
         kline_df = self.window.symbol_dict_df_dict[symbol]["kline"]
-        num_days = (kline_df.index[-1] - kline_df.index[0]).days + 1
+        kline_last_index = kline_df.index[-1]
+        kline_first_index = kline_df.index[0]
+        num_days = (kline_last_index - kline_first_index).days + 1
+        self.logger.info(
+            f"create_range_bars: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
         if not range_bar_df.empty:
             last_timestamp = range_bar_df.tail(1).index
             # Compare last_timestamp to current time and publish a fetch historical event if more than 1 minute has elapsed
             if (pd.Timestamp.now() - last_timestamp).seconds / 60 > 1:
                 # this is for the purpose of pulling historical to fill a gap, created by app shutdown
-                event = HistoricalKlineEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp)
+                event = HistoricalKlineEvent(
+                    symbol=symbol, source='kline', last_timestamp=last_timestamp)
                 self.logger.info(f"create_range_bars: event: {str(event)}")
                 self.main.on_next(event)
                 return None
-        elif num_days < 30:
+        elif num_days < 14:
             # Set last_timestamp to one month ago
             last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
-            event = HistoricalKlineEvent(symbol=symbol, source='kline', last_timestamp=last_timestamp)
+            event = HistoricalKlineEvent(
+                symbol=symbol, source='kline', last_timestamp=last_timestamp)
             self.logger.info(f"create_range_bars: event: {str(event)}")
             self.main.on_next(event)
-            return None   
-        
+            return None
+
         return self.create_range_bar_df(df)
-    
+
     def create_range_bar_df(self, df_window: pd.DataFrame) -> pd.DataFrame:
         """
         the window is from the last range bar timestamp to now, a mechanism to pull historical kline 
         data to fill in a gap that may occur if the application is stopped is also provided via 
         src.fetch_historical
         """
+        # output_str = io.StringIO()
+        # df_window.to_csv(output_str)
+        # csv_contents = output_str.getvalue()
+        # write_to_tests_out_file(csv_contents, 'df_window.csv')
+    
         df = self.adv(self.relative_adr_range_size(df_window))
         range_bars = []
         current_bar = {'adv': df.iloc[0]['adv'], 'volume': df.iloc[0]['volume'], 'average_adr': df.iloc[0]['average_adr'], 'timestamp': df.index.to_series(
@@ -88,7 +102,7 @@ class RangeBar(StreamConsumer):
                     range_bars.append(current_bar)
 
                 current_bar = {'volume': row['volume'] * num_bars, 'average_adr': row['average_adr'], 'adv': row['adv'], 'timestamp': index,
-                            'Open': current_low + range_size * num_bars, 'High': high, 'Low': current_low + range_size * num_bars, 'Close': row['Close']}
+                               'Open': current_low + range_size * num_bars, 'High': high, 'Low': current_low + range_size * num_bars, 'Close': row['Close']}
                 current_high = high
                 current_low = current_bar['Low']
 
@@ -105,7 +119,7 @@ class RangeBar(StreamConsumer):
                     range_bars.append(current_bar)
 
                 current_bar = {'volume': row['volume'] * (num_bars + 1), 'average_adr': row['average_adr'], 'adv': row['adv'], 'timestamp': index,
-                            'Open': current_high - range_size * (num_bars + 1), 'High': current_high - range_size * num_bars, 'Low': low, 'Close': row['Close']}
+                               'Open': current_high - range_size * (num_bars + 1), 'High': current_high - range_size * num_bars, 'Low': low, 'Close': row['Close']}
                 current_high = current_bar['High']
                 current_low = low
             else:
@@ -121,14 +135,12 @@ class RangeBar(StreamConsumer):
 
         return pd.DataFrame(range_bars), filler_bars
 
-
     def adr(self, df: pd.DataFrame) -> float:
-        df['date'] = pd.to_datetime(df.copy()['timestamp']).dt.date
+        df['date'] = df.copy().index.date
         daily_high_low = df.groupby('date')['high', 'low'].agg(['max', 'min'])
         daily_high_low['adr'] = daily_high_low[(
             'high', 'max')] - daily_high_low[('low', 'min')]
         return np.mean(daily_high_low['adr'])
-
 
     def relative_adr_range_size(self, df_in: pd.DataFrame, resample_arg: str = 'W'):
         groups = df_in.resample(resample_arg)
@@ -139,13 +151,9 @@ class RangeBar(StreamConsumer):
             week_day_seg['average_adr'] = average_adr
             df_out = pd.concat([df_out, week_day_seg])
         return df_out
-    
+
     def adv(self, df: pd.DataFrame, window=14):
         result = df['volume'].rolling(window=window).mean()
         result.fillna(0, inplace=True)
         df['adv'] = result
         return df
-
-        
-        
-

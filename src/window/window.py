@@ -57,7 +57,7 @@ class Window:
                 first_window_start = df.index[0] # dt.datetime.strptime(df.index[0], "%Y-%m-%d %H:%M:%S.%f")
                 self.logger.info(f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
                 # Convert integer to timedelta object
-                window_timedelta = dt.timedelta(minutes=int(self.settings['window']))
+                window_timedelta = dt.timedelta(days=int(self.settings['window']))
                 # Subtract timedelta from datetime object
                 window_start = last_window_end - window_timedelta
                 if window_start > first_window_start:
