@@ -7,7 +7,7 @@ from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject
 import rx.operators as op
-from src.helpers.dataclasses import Event, WindowCommandEvent
+from src.helpers.dataclasses import IndicatorTickEvent, WindowCommandEvent
 
 class Window:
 
@@ -197,7 +197,7 @@ class Window:
                             self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
                             self.logger.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
                             pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)
-                            self.main.next(Event(f'{symbol}.{df_name}', derived_df))  
+                            self.main.on_next(IndicatorTickEvent(symbol, derived_df))  
                         except Exception as e:
                             self.logger.info(f"eval_count_triggers ~ Exception: {e}")
                        

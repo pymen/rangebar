@@ -10,7 +10,7 @@ import time
 
 logging = get_logger('tests')
 
-def new_instance_with_subjects():
+def new_instance():
     main = Subject()
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
@@ -20,7 +20,7 @@ def new_instance_with_subjects():
 def test_range_bars():
     clear_logs()
     clear_symbol_windows()
-    window, main = new_instance_with_subjects()
+    window, main = new_instance()
     RangeBar(window, main)
     HistoricalKline(main)
     window.start()

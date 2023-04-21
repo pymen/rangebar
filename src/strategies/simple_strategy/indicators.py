@@ -3,7 +3,7 @@ import pandas as pd
 import ta
 from rx.subject import Subject
 import rx.operators as op
-from src.helpers.dataclasses import Event, IndicatorTickEvent, StrategyTickEvent
+from src.helpers.dataclasses import IndicatorTickEvent, StrategyTickEvent
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 
 
