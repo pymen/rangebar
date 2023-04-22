@@ -8,25 +8,24 @@ from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject
 import rx.operators as op
-from src.helpers.dataclasses import IndicatorTickEvent, WindowCommandEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, IndicatorTickEvent, WindowCommandEvent
 
 class Window:
 
-    symbol_dict_df_dict: Dict[str, Dict[str, pd.DataFrame]] = {}
-    symbol_dict_df_dict_added_row_count: Dict[str, Dict[str, int]] = {}
-    consumers: Dict[str, Dict[str, object]] = {}
+    symbol_df_dict: Dict[str, pd.DataFrame] = {}
     prune_started = False
 
-    def __init__(self, ws_client, main: Subject):
-        self.logger = get_logger('Window')
+    def __init__(self, df_name: str, ws_client, main: Subject):
+        self.logger = get_logger(f'Window_{df_name}')
+        self.df_name = df_name
         self.main = main
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             df = self.load_symbol_window_data(symbols_config['symbol'])
             if bool(df):
-                self.symbol_dict_df_dict[symbols_config['symbol']] = df
+                self.symbol_df_dict[symbols_config['symbol']] = df
             else:
-                self.symbol_dict_df_dict[symbols_config['symbol']] = {}    
+                self.symbol_df_dict[symbols_config['symbol']] = {}    
         self.ws_client = ws_client
         
 
@@ -39,56 +38,45 @@ class Window:
     def start(self):
         self.ws_client.start()
 
-    def add_consumer(self, consumer: object):
-        for symbols_config in self.settings['symbols_config']:
-            self.consumers.setdefault(symbols_config['symbol'], {})
-            self.consumers[symbols_config['symbol']][consumer.df_name] = consumer   
-
-    def load_symbol_window_data(self, symbol) -> Dict[str, pd.DataFrame]:
-        df_names = self.get_df_names_from_csv_paths()
-        df_dict = {}
-        for df_name in df_names:
-            path = self.get_symbol_window_csv_path(symbol, df_name)
-            if os.path.exists(path):
-                df = pd.read_csv(path, index_col="timestamp", parse_dates=True)
-                df.sort_index(inplace=True)
-                # Convert last_window_end to a datetime object
-                last_window_end = df.index[-1] # dt.datetime.strptime(df.index[-1], "%Y-%m-%d %H:%M:%S.%f")
-                first_window_start = df.index[0] # dt.datetime.strptime(df.index[0], "%Y-%m-%d %H:%M:%S.%f")
-                self.logger.info(f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
-                # Convert integer to timedelta object
-                window_timedelta = dt.timedelta(days=int(self.settings['window']))
-                # Subtract timedelta from datetime object
-                window_start = last_window_end - window_timedelta
-                if window_start > first_window_start:
-                    df = df.loc[window_start:]
-                df_dict[df_name] = df
-        return df_dict
+    def load_symbol_window_data(self, symbol) -> pd.DataFrame:
+        path = self.get_symbol_window_csv_path(symbol, self.df_name)
+        if os.path.exists(path):
+            df = pd.read_csv(path, index_col="timestamp", parse_dates=True)
+            df.sort_index(inplace=True)
+            # Convert last_window_end to a datetime object
+            last_window_end = df.index[-1] # dt.datetime.strptime(df.index[-1], "%Y-%m-%d %H:%M:%S.%f")
+            first_window_start = df.index[0] # dt.datetime.strptime(df.index[0], "%Y-%m-%d %H:%M:%S.%f")
+            self.logger.info(f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
+            # Convert integer to timedelta object
+            window_timedelta = dt.timedelta(days=int(self.settings['window']))
+            # Subtract timedelta from datetime object
+            window_start = last_window_end - window_timedelta
+            if window_start > first_window_start:
+                df = df.loc[window_start:]
+            return df
 
     def prune_windows(self):
-        for symbols_config, df_dict in self.symbol_dict_df_dict.items():
-            self.prune_symbol_window(symbols_config['symbol'], df_dict)
+        for symbols_config, df in self.symbol_df_dict.items():
+            self.prune_symbol_window(symbols_config['symbol'], df)
 
     # FIXME: This is not working
     # Define a function named prune_symbol_window that takes in two arguments, symbol and df_dict
-    def prune_symbol_window(self, symbol: str, df_dict: Dict[str, pd.DataFrame]):
-        pass
-        # Loop through the keys of the dictionary df_dict
-        for df_name in df_dict.keys():
-            # Calculate the rolling window using the value of the current key
-            rolling_window = df_dict[df_name].rolling(window=f"{self.settings['window']}min")
-            # Check if the rolling window has valid values
-            if rolling_window.has_valid_values():
-                # Get the end time of the last window
-                last_window_end = rolling_window.end_time[-1]
-                # Get the data to drop from the start of the dataframe up to the last window end
-                data_to_drop = df_dict[df_name][:last_window_end]
-                # Append the data to the CSV file
-                data_to_drop.to_csv(self.get_symbol_window_csv_path(symbol, df_name), mode='a', header=False)
-                # Remove the dropped data from the dataframe
-                df_dict[df_name] = df_dict[df_name][last_window_end:]
-                # Update the symbol_dict_df_dict with the new rolling window
-                self.symbol_dict_df_dict[symbol][df_name] = rolling_window
+    def prune_symbol_window(self, symbol: str, df: pd.DataFrame):
+        # Calculate the rolling window using the value of the current key
+        rolling_window = df.rolling(window=f"{self.settings['window']}min")
+        # Check if the rolling window has valid values
+        if rolling_window.has_valid_values():
+            # Get the end time of the last window
+            last_window_end = rolling_window.end_time[-1]
+            # Get the data to drop from the start of the dataframe up to the last window end
+            data_to_drop = df[:last_window_end]
+            # Append the data to the CSV file
+            data_to_drop.to_csv(self.get_symbol_window_csv_path(symbol, self.df_name), mode='a', header=False)
+            # Remove the dropped data from the dataframe
+            df = df[last_window_end:]
+            # Update the symbol_dict_df_dict with the new rolling window
+            self.symbol_df_dict[symbol] = rolling_window
+            
     
     async def start_interval_save(self, delay_seconds=300):
         while True:
@@ -96,11 +84,10 @@ class Window:
             await asyncio.sleep(delay_seconds)
 
     def save_symbol_window_data(self):
-        for symbol, df_dict in self.symbol_dict_df_dict.items():
-            for df_name, df in df_dict.items():
-                if not df.empty:
-                    df.to_csv(self.get_symbol_window_csv_path(symbol, df_name))
-
+        for symbol, df in self.symbol_df_dict.items():
+            if not df.empty:
+                    df.to_csv(self.get_symbol_window_csv_path(symbol, self.df_name))
+                
     def shutdown(self):
         self.ws_client.stop()
         self.save_symbol_window_data()
@@ -108,18 +95,6 @@ class Window:
     def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
         return get_file_path(f'symbol_windows/{symbol}-{df_name}.csv')
  
-    def get_df_names_from_csv_paths(self) -> List[str]:
-        dir_path = get_file_path(f'symbol_windows/')
-        file_list = os.listdir(dir_path)
-        file_list = [f for f in file_list if (f.endswith(
-            '.csv') and os.path.isfile(os.path.join(dir_path, f)))]
-        symbol_dict_names = self.group_by_prefix(file_list)
-        if len(symbol_dict_names) > 0:
-            df_names = [name[name.find('-')+1:name.find('.')] for name in symbol_dict_names[next(iter(symbol_dict_names))]]
-            return df_names
-        else:
-            return []
-
     def group_by_prefix(self, strings) -> List[List[str]]:
         groups = {}
         for string in strings:
@@ -130,13 +105,13 @@ class Window:
         return groups
 
     # Define a function to append a row to a dataframe
-    def append_row(self, symbol: str = None, df_name: str = None, row: pd.Series = None, index: List[str] = None):
+    def append_row(self, symbol: str = None, row: pd.Series = None, index: List[str] = None):
         # Check if pruning has started and start the timer if not
         if not self.prune_started:
             self.prune_started = True
             # self.timer.start()
         # Create a dictionary of dataframes for each symbol and dataframe name
-        self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(df_name, pd.DataFrame())
+        self.symbol_df_dict.setdefault(symbol, pd.DataFrame()).
         # Convert the timestamp to datetime format and set it as the index
         row['timestamp'] = pd.to_datetime(row['timestamp'], unit='ms')
         # Concatenate the new row with the existing dataframe and set the index to the timestamp
@@ -145,69 +120,79 @@ class Window:
             row_as_frame.set_index('timestamp', inplace=True)
         else:
             row_as_frame.set_index(index, inplace=True)    
-        self.symbol_dict_df_dict[symbol][df_name] = pd.concat([self.symbol_dict_df_dict[symbol][df_name], row_as_frame])  
-        # Create a dictionary to keep track of the number of rows added to each dataframe
-        self.symbol_dict_df_dict_added_row_count.setdefault(symbol, {}).setdefault(df_name, 1)
-        # Increment the count for the current dataframe
-        self.symbol_dict_df_dict_added_row_count[symbol][df_name] += 1
-        self.eval_count_triggers()
-
+        self.symbol_df_dict[symbol] = pd.concat([self.symbol_df_dict[symbol], row_as_frame])  
+      
     # Define a function to append a historical df to the main df
-    def append_rows(self, symbol: str, df_name: str, df_section: pd.DataFrame):
+    def append_rows(self, symbol: str, df_section: pd.DataFrame):
         # Check if pruning has started and start the timer if not
         if not self.prune_started:
             self.prune_started = True
             # self.timer.start()
-        self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(df_name, pd.DataFrame())
-        self.symbol_dict_df_dict[symbol][df_name] = pd.concat([self.symbol_dict_df_dict[symbol][df_name], df_section]) 
-        self.symbol_dict_df_dict[symbol][df_name].sort_values('timestamp', inplace=True)
-        self.symbol_dict_df_dict[symbol][df_name].set_index('timestamp', inplace=True)
+        self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
+        self.symbol_df_dict[symbol] = pd.concat([self.symbol_df_dict[symbol], df_section]) 
+        self.symbol_df_dict[symbol].sort_values('timestamp', inplace=True)
+        self.symbol_df_dict[symbol].set_index('timestamp', inplace=True)
         self.save_symbol_window_data() 
-        self.symbol_dict_df_dict_added_row_count.setdefault(symbol, {}).setdefault(df_name, 1)
-        self.symbol_dict_df_dict_added_row_count[symbol][df_name] += len(df_section)
-        self.eval_count_triggers()    
-    
-
-    def get_consumer_triggers(self, consumer):
-        triggers = []
-        for attr in dir(consumer):
-            if callable(getattr(consumer, attr)) and not attr.startswith('__'):
-                func = getattr(consumer, attr)
-                func_attrs = dir(func)
-                if hasattr(func, 'is_derived_consumer_trigger'):
-                    triggers.append(func)
-        return triggers
-
+     
     def get_symbol_config(self, symbol: str):
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]    
 
+    def fill_historical(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
+        # access existing range_bar_df and check timestamp of last row
+        if self.df_name != 'range_bars':
+            return df
+        kline_df = self.window.symbol_df_dict[symbol]
+        kline_last_index = kline_df.index[-1]
+        kline_first_index = kline_df.index[0]
+        num_days = (kline_last_index - kline_first_index).days + 1
 
-    def eval_count_triggers(self):
-        for symbol, consumer_dict in self.consumers.items():
-            for df_name, consumer in consumer_dict.items():
-                self.logger.debug(f'consumer: {consumer.__class__} df_name: {df_name}')
-                triggers = self.get_consumer_triggers(consumer)
-                for trigger in triggers:
-                    count = getattr(trigger, 'count')
-                    derived_df_name = getattr(trigger, 'df_name')
-                    if count is not None: 
-                      if self.symbol_dict_df_dict_added_row_count[symbol][df_name] >= count:
-                        self.symbol_dict_df_dict.setdefault(symbol, {}).setdefault(derived_df_name, pd.DataFrame())
-                        try:
-                            pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
-                            derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol)
-                            if derived_df is None:
-                                continue
-                            self.logger.debug(f"eval_count_triggers ~ derived_df: {len(derived_df)}")
-                            self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
-                            self.logger.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
-                            self.symbol_dict_df_dict[symbol][derived_df_name] = pd.concat([pre_existing_derived_df, derived_df])
-                            self.save_symbol_window_data()
-                            self.main.on_next(IndicatorTickEvent(symbol, derived_df))  
-                        except Exception as e:
-                            self.logger.info(f"eval_count_triggers ~ Exception: {e}")
-                       
-                        self.symbol_dict_df_dict_added_row_count[symbol][df_name] = 0
+        if num_days < 14:
+            # Set last_timestamp to one month ago
+            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
+            event = HistoricalKlineEvent(
+                symbol=symbol, source='kline', last_timestamp=last_timestamp)
+            self.logger.info(f"fill_historical: event: {str(event)}")
+            self.main.on_next(event)
+            return None
+        self.logger.info(
+            f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
+        return self.add_average_columns(df, symbol)
+    
+    def add_average_columns(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
+        try:
+            df = self.adv(self.relative_adr_range_size(df))
+        except Exception as e:
+            self.logger.error(f"create_range_bar_df: {str(e)}")
+
+    def adr(self, df: pd.DataFrame) -> float:
+        df['date'] = df.copy().index.date
+        try:
+            daily_high_low = df.groupby(
+                'date')['high', 'low'].agg(['max', 'min'])
+            self.logger.debug(f"adr: daily_high_low: {str(daily_high_low)}")
+            daily_high_low['adr'] = daily_high_low[(
+                'high', 'max')] - daily_high_low[('low', 'min')]
+            return np.mean(daily_high_low['adr'])
+        except Exception as e:
+            self.logger.error(f"adr: {str(e)}")
+        return None
+
+    def relative_adr_range_size(self, df_in: pd.DataFrame, resample_arg: str = 'W'):
+        groups = df_in.resample(resample_arg)
+        df_out = pd.DataFrame()
+        for _, group in groups:
+            week_day_seg = group.copy()
+            average_adr = self.adr(week_day_seg)
+            if average_adr is not None:
+                week_day_seg['average_adr'] = average_adr
+                df_out = pd.concat([df_out, week_day_seg])
+        return df_out
+
+    def adv(self, df: pd.DataFrame, window=14):
+        result = df['volume'].rolling(window=window).mean()
+        result.fillna(0, inplace=True)
+        df['adv'] = result
+        return df              
                    
 

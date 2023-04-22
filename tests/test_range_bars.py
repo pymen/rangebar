@@ -7,7 +7,7 @@ from src.settings import get_settings
 from src.strategies.order_client import OrderClient
 from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
-from src.stream_consumers.transformers.range_bars import RangeBar
+from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import clear_logs, get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient

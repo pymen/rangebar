@@ -1,13 +1,13 @@
 from src.helpers.decorators import consumer_source
-from src.stream_consumers.stream_consumer import StreamConsumer
+from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
 from src.window.window import Window
 from rx.subject import Subject
 import rx.operators as op
 
 
-@consumer_source(name='kline')
-class Kline(StreamConsumer):
+@consumer_source(stream_name='kline')
+class Kline(PrimaryStreamConsumer):
     """
     Need a reference to the window to access the data frames
     """

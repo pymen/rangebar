@@ -1,8 +1,8 @@
 
 
 from src.settings import get_settings
-from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
-from src.stream_consumers.transformers.range_bars import RangeBar
+from src.stream_consumers.primary_transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
+from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
@@ -30,7 +30,7 @@ def test_window_logging():
 def test_window_start_init():
     window = new_instance()
     assert window is not None
-    print("window.symbol_dict_df_dict: ", window.symbol_dict_df_dict)
+    print("window.symbol_dict_df_dict: ", window.symbol_df_dict)
 
 
 def test_window_start():

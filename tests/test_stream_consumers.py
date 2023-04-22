@@ -1,9 +1,9 @@
 
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.settings import get_settings
-from src.stream_consumers.transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
-from src.stream_consumers.transformers.kline import Kline
-from src.stream_consumers.transformers.range_bars import RangeBar
+from src.stream_consumers.primary_transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
+from src.stream_consumers.primary_transformers.kline import Kline
+from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import clear_logs, get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient

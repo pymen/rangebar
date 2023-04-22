@@ -1,5 +1,5 @@
 from src.helpers.decorators import consumer_source, derived_frame_trigger
-from src.stream_consumers.stream_consumer import StreamConsumer
+from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
 from src.window.window import Window
 import pandas as pd
@@ -7,8 +7,8 @@ from rx.subject import Subject
 import rx.operators as op
 
 
-@consumer_source(name='diff_book_depth')
-class DiffBookBidAskSum(StreamConsumer):
+@consumer_source(stream_name='diff_book_depth')
+class DiffBookBidAskSum(PrimaryStreamConsumer):
     """
      Need a reference to the window to access the data frames
      https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams

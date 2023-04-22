@@ -9,16 +9,15 @@ from rx.subject import Subject
 import rx.operators as op
 
 
-class StreamConsumer(ABC):
+class PrimaryStreamConsumer(ABC):
     """
-    Abstract class for stream consumers.
-    Need a reference to the window to access the data frames
+    Abstract class for level 1 stream consumers.
+    Transforms events originating from external sources
     """
 
-    def __init__(self, window: Window, main: Subject, col_mapping: dict, primary_df_name: str = None) -> None:
+    def __init__(self, main: Subject, col_mapping: dict, primary_df_name: str = None) -> None:
         super().__init__()
-        self.logger = get_logger('AbstractStreamConsumer')
-        self.window = window
+        self.logger = get_logger('PrimaryStreamConsumer')
         self.main = main
         self.settings = get_settings('app')
         self.col_mapping = col_mapping
