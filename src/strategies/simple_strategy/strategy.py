@@ -30,7 +30,7 @@ class SimpleStrategy:
     def next(self, e: StrategyTickEvent):
         df = e.df
         row = df.tail(1)
-        current_close = row['Close']
+        current_close = row['close']
         index = df.index[-1]
         numeric_index = self.df.index.get_loc(index)
         stop_loss_magnitude = row['average_adr'] * \
@@ -72,7 +72,7 @@ class SimpleStrategy:
             if len(upper_series) < 2:
                 return False
             # self.logger.info(f'upper_series:\n{str(upper_series)}')
-            close = row['Close']
+            close = row['close']
             since = self.iterations_back_till_condition(
                 upper_series, lambda x: x >= close)
             # self.logger.info(f'bb_upper_near(upper_series >= close): index: {index}, close: {close}, since: {since}')
@@ -87,7 +87,7 @@ class SimpleStrategy:
             if len(lower_series) < 2:
                 return False
         #  self.logger.info(f'lower_series:\n{str(lower_series)}')
-            close = row['Close']
+            close = row['close']
             since = self.iterations_back_till_condition(
                 lower_series, lambda x: x <= close)
         #  self.logger.info(f'bb_lower_near(lower_series <= close): index: {index}, close: {close}, since: {since}')
