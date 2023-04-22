@@ -134,8 +134,8 @@ class RangeBar(StreamConsumer):
                 current_bar['average_adr'] = row['average_adr']
                 current_bar['volume'] = row['volume']
                 current_bar['adv'] = row['adv']
-
-        return pd.DataFrame(range_bars), filler_bars
+        self.logger.debug(f"create_range_bar_df: filler_bars: {filler_bars}")
+        return pd.DataFrame(range_bars)
 
     def adr(self, df: pd.DataFrame) -> float:
         df['date'] = df.copy().index.date
