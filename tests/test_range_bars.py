@@ -16,10 +16,10 @@ from rx.scheduler.eventloop import AsyncIOScheduler
 import rx.operators as op
 import time
 import asyncio
-
+import pytest
 from tests.utils import get_test_out_absolute_path
 
-logging = get_logger('tests')
+
 
 def new_instance():
     main = Subject()
@@ -59,14 +59,23 @@ def test_relative_adr_range_size():
     df.to_csv(csv_path)
     assert len(df) > 0
 
+def pytest_configure(config):
+    def pytest_shutdown_hook():
+        print("Tests are shutting down...")
+        if interval_task is not None:
+            interval_task.cancel()
+    config.add_cleanup(pytest_shutdown_hook)
 
     
 interval_task: asyncio.Task = None
-def test_range_bars():
+@pytest.mark.asyncio
+async def test_range_bars():
     global interval_task
     clear_logs()
+    logger = get_logger('RangeBarsTest')
+    logger.info('started')
     window, main = new_instance()
-    main.pipe(op.filter(lambda o: isinstance(o, IndicatorTickEvent))).subscribe(lambda x: logging.info(f'IndicatorTickEvent: tick test: {str(x)}'))
+    main.pipe(op.filter(lambda o: isinstance(o, IndicatorTickEvent))).subscribe(lambda x: logger.info(f'IndicatorTickEvent: tick test: {str(x)}'))
     window.init_subscriptions()
     RangeBar(window, main)
     HistoricalKline(main)
@@ -76,13 +85,7 @@ def test_range_bars():
     window.start()
     interval_task = asyncio.create_task(window.start_interval_save())
 
-def pytest_configure(config):
-    def pytest_shutdown_hook():
-        print("Tests are shutting down...")
-        if interval_task is not None:
-            interval_task.cancel()
 
-    config.add_cleanup(pytest_shutdown_hook)
 
 
 
