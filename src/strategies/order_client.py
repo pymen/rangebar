@@ -21,7 +21,7 @@ class OrderClient:
         self.logger = get_logger('OrderClient')
         self.settings = get_settings('bi')
         self.client = Client(
-            api_key=self.settings['key'], secret_key=self.settings['secret'])
+            key=self.settings['key'], secret=self.settings['secret'])
 
    
     def buy(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str):

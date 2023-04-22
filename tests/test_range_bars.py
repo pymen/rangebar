@@ -2,13 +2,20 @@
 import numpy as np
 import pandas as pd
 from src.fetch_historical.historical_kline import HistoricalKline
+from src.helpers.dataclasses import IndicatorTickEvent
 from src.settings import get_settings
+from src.strategies.order_client import OrderClient
+from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
+from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.transformers.range_bars import RangeBar
-from src.util import clear_logs, clear_symbol_windows, get_logger
+from src.util import clear_logs, get_logger
 from src.window.window import Window
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
+from rx.scheduler.eventloop import AsyncIOScheduler
+import rx.operators as op
 import time
+import asyncio
 
 from tests.utils import get_test_out_absolute_path
 
@@ -20,18 +27,6 @@ def new_instance():
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
     window = Window(ws_client, main)
     return window, main
-
-def test_range_bars():
-    clear_logs()
-    # clear_symbol_windows()
-    window, main = new_instance()
-    window.init_subscriptions()
-    RangeBar(window, main)
-    HistoricalKline(main)
-    window.start()
-    time.sleep(900)
-    window.shutdown()
-
 
 def test_relative_adr_range_size():
     def adr(df: pd.DataFrame) -> float:
@@ -63,3 +58,31 @@ def test_relative_adr_range_size():
     df = adv(relative_adr_range_size(df_window))
     df.to_csv(csv_path)
     assert len(df) > 0
+
+
+    
+interval_task: asyncio.Task = None
+def test_range_bars():
+    global interval_task
+    clear_logs()
+    window, main = new_instance()
+    main.pipe(op.filter(lambda o: isinstance(o, IndicatorTickEvent))).subscribe(lambda x: logging.info(f'IndicatorTickEvent: tick test: {str(x)}'))
+    window.init_subscriptions()
+    RangeBar(window, main)
+    HistoricalKline(main)
+    SimpleStrategyIndicators(main)
+    client: OrderClient = OrderClient()
+    SimpleStrategy(client, main)
+    window.start()
+    interval_task = asyncio.create_task(window.start_interval_save())
+
+def pytest_configure(config):
+    def pytest_shutdown_hook():
+        print("Tests are shutting down...")
+        if interval_task is not None:
+            interval_task.cancel()
+
+    config.add_cleanup(pytest_shutdown_hook)
+
+
+

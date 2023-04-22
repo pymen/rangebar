@@ -1,4 +1,5 @@
 from typing import Dict, List
+import asyncio
 import pandas as pd
 import datetime as dt
 import os
@@ -49,7 +50,7 @@ class Window:
         for df_name in df_names:
             path = self.get_symbol_window_csv_path(symbol, df_name)
             if os.path.exists(path):
-                df = pd.read_csv(path, index_col=0, parse_dates=True)
+                df = pd.read_csv(path, index_col="timestamp", parse_dates=True)
                 df.sort_index(inplace=True)
                 # Convert last_window_end to a datetime object
                 last_window_end = df.index[-1] # dt.datetime.strptime(df.index[-1], "%Y-%m-%d %H:%M:%S.%f")
@@ -89,6 +90,10 @@ class Window:
                 # Update the symbol_dict_df_dict with the new rolling window
                 self.symbol_dict_df_dict[symbol][df_name] = rolling_window
     
+    async def start_interval_save(self, delay_seconds=300):
+        while True:
+            await self.save_symbol_window_data()
+            await asyncio.sleep(delay_seconds)
 
     def save_symbol_window_data(self):
         for symbol, df_dict in self.symbol_dict_df_dict.items():
@@ -192,13 +197,12 @@ class Window:
                         try:
                             pre_existing_derived_df = self.symbol_dict_df_dict[symbol][derived_df_name]
                             derived_df = trigger(self.symbol_dict_df_dict[symbol][df_name], symbol)
-
                             if derived_df is None:
                                 continue
                             self.logger.debug(f"eval_count_triggers ~ derived_df: {len(derived_df)}")
                             self.logger.info(f"eval_count_triggers ~ derived_df.columns: {derived_df.columns}")
                             self.logger.info(f"eval_count_triggers ~ pre_existing_derived_df.columns: {pre_existing_derived_df.columns}")
-                            pre_existing_derived_df = derived_df # pd.concat([pre_existing_derived_df, derived_df], ignore_index=True)
+                            self.symbol_dict_df_dict[symbol][derived_df_name] = pd.concat([pre_existing_derived_df, derived_df])
                             self.save_symbol_window_data()
                             self.main.on_next(IndicatorTickEvent(symbol, derived_df))  
                         except Exception as e:

@@ -1,5 +1,3 @@
-import io
-from typing import Dict
 import pandas as pd
 import numpy as np
 from src.helpers.dataclasses import HistoricalKlineEvent
@@ -9,9 +7,6 @@ from src.stream_consumers.transformers.kline import Kline
 from src.util import get_logger
 from src.window.window import Window
 from rx.subject import Subject
-import rx.operators as op
-
-from tests.utils import write_to_tests_out_file
 
 
 @consumer_source(name='kline')
@@ -42,8 +37,7 @@ class RangeBar(StreamConsumer):
         kline_last_index = kline_df.index[-1]
         kline_first_index = kline_df.index[0]
         num_days = (kline_last_index - kline_first_index).days + 1
-        self.logger.info(
-            f"create_range_bars: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
+
         if not range_bar_df.empty:
             last_timestamp = range_bar_df.tail(1).index
             # Compare last_timestamp to current time and publish a fetch historical event if more than 1 minute has elapsed
@@ -62,7 +56,8 @@ class RangeBar(StreamConsumer):
             self.logger.info(f"create_range_bars: event: {str(event)}")
             self.main.on_next(event)
             return None
-
+        self.logger.info(
+            f"create_range_bars: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
         return self.create_range_bar_df(df)
 
     def create_range_bar_df(self, df_window: pd.DataFrame) -> pd.DataFrame:
@@ -135,30 +130,32 @@ class RangeBar(StreamConsumer):
                 current_bar['volume'] = row['volume']
                 current_bar['adv'] = row['adv']
         self.logger.debug(f"create_range_bar_df: filler_bars: {filler_bars}")
+        self.logger.debug(
+            f"create_range_bar_df: range_bars: length: {str(range_bars)}")
         return pd.DataFrame(range_bars)
 
     def adr(self, df: pd.DataFrame) -> float:
         df['date'] = df.copy().index.date
         try:
-            daily_high_low = df.groupby('date')['high', 'low'].agg(['max', 'min'])
+            daily_high_low = df.groupby(
+                'date')['high', 'low'].agg(['max', 'min'])
             self.logger.debug(f"adr: daily_high_low: {str(daily_high_low)}")
             daily_high_low['adr'] = daily_high_low[(
                 'high', 'max')] - daily_high_low[('low', 'min')]
             return np.mean(daily_high_low['adr'])
         except Exception as e:
-                self.logger.error(f"adr: {str(e)}")
-        return None        
-        
+            self.logger.error(f"adr: {str(e)}")
+        return None
 
     def relative_adr_range_size(self, df_in: pd.DataFrame, resample_arg: str = 'W'):
         groups = df_in.resample(resample_arg)
         df_out = pd.DataFrame()
         for _, group in groups:
-                week_day_seg = group.copy()
-                average_adr = self.adr(week_day_seg)
-                if average_adr is not None:
-                    week_day_seg['average_adr'] = average_adr
-                    df_out = pd.concat([df_out, week_day_seg])
+            week_day_seg = group.copy()
+            average_adr = self.adr(week_day_seg)
+            if average_adr is not None:
+                week_day_seg['average_adr'] = average_adr
+                df_out = pd.concat([df_out, week_day_seg])
         return df_out
 
     def adv(self, df: pd.DataFrame, window=14):
