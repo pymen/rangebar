@@ -75,8 +75,12 @@ class RangeBar(StreamConsumer):
         # df_window.to_csv(output_str)
         # csv_contents = output_str.getvalue()
         # write_to_tests_out_file(csv_contents, 'df_window.csv')
-    
-        df = self.adv(self.relative_adr_range_size(df_window))
+        try:
+            df = self.adv(self.relative_adr_range_size(df_window))
+        except Exception as e:
+            self.logger.error(f"create_range_bar_df: {str(e)}")
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df.set_index('timestamp', inplace=True)
         range_bars = []
         current_bar = {'adv': df.iloc[0]['adv'], 'volume': df.iloc[0]['volume'], 'average_adr': df.iloc[0]['average_adr'], 'timestamp': df.index.to_series(
         )[0], 'Open': df.iloc[0]['Open'], 'High': df.iloc[0]['High'], 'Low': df.iloc[0]['Low'], 'Close': df.iloc[0]['Close']}

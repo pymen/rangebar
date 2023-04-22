@@ -1,4 +1,5 @@
 
+import numpy as np
 import pandas as pd
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.settings import get_settings
@@ -24,16 +25,41 @@ def test_range_bars():
     clear_logs()
     # clear_symbol_windows()
     window, main = new_instance()
+    window.init_subscriptions()
     RangeBar(window, main)
     HistoricalKline(main)
     window.start()
     time.sleep(900)
     window.shutdown()
 
+
 def test_relative_adr_range_size():
-    window, main = new_instance()
-    rb = RangeBar(window, main)
+    def adr(df: pd.DataFrame) -> float:
+        df['date'] = df.copy().index.date
+        daily_high_low = df.groupby('date')['high', 'low'].agg(['max', 'min'])
+        daily_high_low['adr'] = daily_high_low[(
+            'high', 'max')] - daily_high_low[('low', 'min')]
+        return np.mean(daily_high_low['adr'])
+
+    def relative_adr_range_size(df_in: pd.DataFrame, resample_arg: str = 'W'):
+        groups = df_in.resample(resample_arg)
+        df_out = pd.DataFrame()
+        for _, group in groups:
+            week_day_seg = group.copy()
+            average_adr = adr(week_day_seg)
+            week_day_seg['average_adr'] = average_adr
+            df_out = pd.concat([df_out, week_day_seg])
+        return df_out
+
+    def adv(df: pd.DataFrame, window=14):
+        result = df['volume'].rolling(window=window).mean()
+        result.fillna(0, inplace=True)
+        df['adv'] = result
+        return df
+    
     csv_path = get_test_out_absolute_path('df_window.csv')
-    df_window = pd.read_csv(csv_path)
-    df = rb.adv(rb.relative_adr_range_size(df_window))
+    df_window = pd.read_csv(csv_path, index_col=0, parse_dates=True)
+    df_window.sort_index(inplace=True)
+    df = adv(relative_adr_range_size(df_window))
+    df.to_csv(csv_path)
     assert len(df) > 0

@@ -27,7 +27,6 @@ class Window:
             else:
                 self.symbol_dict_df_dict[symbols_config['symbol']] = {}    
         self.ws_client = ws_client
-        self.init_subscriptions()
         
 
     def init_subscriptions(self):
@@ -94,7 +93,8 @@ class Window:
     def save_symbol_window_data(self):
         for symbol, df_dict in self.symbol_dict_df_dict.items():
             for df_name, df in df_dict.items():
-                df.to_csv(self.get_symbol_window_csv_path(symbol, df_name))
+                if not df.empty:
+                    df.to_csv(self.get_symbol_window_csv_path(symbol, df_name))
 
     def shutdown(self):
         self.ws_client.stop()
