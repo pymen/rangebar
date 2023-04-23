@@ -16,7 +16,12 @@ from rx.subject import Subject
 @consumer_source(event_source=KlineEvent)
 class RangeBar(SecondaryStreamConsumer):
     """
-    Need a reference to the window to access the data frames
+    Needs to handle the following:
+    - create range bars from a kline df
+    - create the next range bar(s) from a the latest kline row
+
+    After transformation the range bar(s) will be published to the secondary stream.
+    And go back to the secondary data frame io, which will publish the df window to the indicators.
     """
 
     def __init__(self, primary: Subject, secondary: Subject):
