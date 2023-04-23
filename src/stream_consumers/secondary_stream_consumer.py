@@ -15,10 +15,11 @@ class SecondaryStreamConsumer(ABC):
     Transforms events originating from the window class
     """
 
-    def __init__(self, primary: Subject) -> None:
+    def __init__(self, primary: Subject, secondary: Subject) -> None:
         super().__init__()
         self.logger = get_logger('SecondaryStreamConsumer')
         self.primary = primary
+        self.secondary = secondary
        
     def get_consumer_df_name(self):
         snake_case = ""

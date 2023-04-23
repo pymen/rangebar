@@ -1,7 +1,7 @@
 
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
-from src.account_admin.user_data_stream import AccountData
+from src.stream_consumers.primary_transformers.user_data import AccountData
 from src.util import get_logger
 from tests.utils import write_to_tests_out_file
 import asyncio

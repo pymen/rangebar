@@ -16,9 +16,10 @@ class SimpleStrategy:
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
 
-    def __init__(self, client: OrderClient, primary: Subject):
+    def __init__(self, secondary: Subject):
         self.logger = get_logger('SimpleStrategy')
-        self.client = client
+        self.client = OrderClient()
+        self.secondary = secondary
 
     def init_subscriptions(self):
         self.primary.pipe(

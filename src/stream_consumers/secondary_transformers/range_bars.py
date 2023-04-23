@@ -20,7 +20,7 @@ class RangeBar(SecondaryStreamConsumer):
     """
 
     def __init__(self, primary: Subject, secondary: Subject):
-        super().__init__(primary)
+        super().__init__(primary, secondary)
         self.logger = get_logger('RangeBar')
         self.window.add_consumer(self)
         self.primary = primary

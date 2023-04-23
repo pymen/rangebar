@@ -3,10 +3,9 @@ import random
 from typing import Tuple
 from src.settings import get_settings
 from src.util import get_logger
-from src.window.window import Window
+from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 import pandas as pd
 from rx.subject import Subject
-import rx.operators as op
 
 
 class PrimaryStreamConsumer(ABC):
@@ -15,18 +14,16 @@ class PrimaryStreamConsumer(ABC):
     Transforms events originating from external sources
     """
 
-    def __init__(self, primary: Subject, col_mapping: dict, primary_df_name: str = None) -> None:
+    def __init__(self, primary: Subject, col_mapping: dict) -> None:
         super().__init__()
+        settings = get_settings('bi')
+        self.ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
         self.logger = get_logger('PrimaryStreamConsumer')
         self.primary = primary
         self.settings = get_settings('app')
         self.col_mapping = col_mapping
-        if primary_df_name is not None:
-            self.df_name = primary_df_name
-        else:    
-            self.df_name = self.get_consumer_df_name()
-        
-
+        self.df_name = self.get_consumer_df_name()  
+            
     def get_consumer_df_name(self):
         snake_case = ""
         for char in self.__class__.__name__:
@@ -87,6 +84,12 @@ class PrimaryStreamConsumer(ABC):
         Called before mapping is applied to the input dictionary.
         """
         return input_dict
+    
+    def shutdown(self):
+        self.ws_client.stop()
+
+    def start(self):
+        self.ws_client.start()    
     
     
  

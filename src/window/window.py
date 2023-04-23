@@ -16,7 +16,7 @@ class Window:
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
     prune_started = False
 
-    def __init__(self, df_name: str, ws_client, primary: Subject, secondary: Subject):
+    def __init__(self, df_name: str, primary: Subject, secondary: Subject):
         self.logger = get_logger(f'Window_{df_name}')
         self.df_name = df_name
         self.primary = primary
@@ -28,7 +28,7 @@ class Window:
                 self.symbol_df_dict[symbols_config['symbol']] = df
             else:
                 self.symbol_df_dict[symbols_config['symbol']] = {}    
-        self.ws_client = ws_client
+   
         
 
     def init_subscriptions(self):
@@ -37,8 +37,7 @@ class Window:
                        op.map(lambda e: getattr(self, e.method)(**e.kwargs))
                        ).subscribe()      
         
-    def start(self):
-        self.ws_client.start()
+    
 
     def load_symbol_window_data(self, symbol) -> pd.DataFrame:
         path = self.get_symbol_window_csv_path(symbol, self.df_name)
@@ -90,10 +89,6 @@ class Window:
             if not df.empty:
                     df.to_csv(self.get_symbol_window_csv_path(symbol, self.df_name))
                 
-    def shutdown(self):
-        self.ws_client.stop()
-        self.save_symbol_window_data()
-
     def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
         return get_file_path(f'symbol_windows/{symbol}-{df_name}.csv')
  

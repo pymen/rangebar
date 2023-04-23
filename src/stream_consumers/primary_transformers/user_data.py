@@ -1,57 +1,111 @@
-from rx.subject import Subject
-import rx.operators as op
+
+
 from src.helpers.dataclasses import OrderStatusEvent
-from src.helpers.util import flatten_dict
-from src.rx.pool_scheduler import observe_on_pool_scheduler
-from src.strategies.order_client import OrderClient
-from enum import Enum
+from src.helpers.util import flatten_dict, get_unix_epoch_time_ms
+from src.settings import get_settings
+from binance.um_futures import UMFutures as Client
+from rx.subject import Subject
+import asyncio
+from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
 from src.util import get_logger
 
 
-class AccountUpdateEventReasonType(Enum):
-    DEPOSIT = 'DEPOSIT'
-    WITHDRAW = 'WITHDRAW'
-    ORDER = 'ORDER'
-    FUNDING_FEE = 'FUNDING_FEE'
-    WITHDRAW_REJECT = 'WITHDRAW_REJECT'
-    ADJUSTMENT = 'ADJUSTMENT'
-    INSURANCE_CLEAR = 'INSURANCE_CLEAR'
-    ADMIN_DEPOSIT = 'ADMIN_DEPOSIT'
-    ADMIN_WITHDRAW = 'ADMIN_WITHDRAW'
-    MARGIN_TRANSFER = 'MARGIN_TRANSFER'
-    MARGIN_TYPE_CHANGE = 'MARGIN_TYPE_CHANGE'
-    ASSET_TRANSFER = 'ASSET_TRANSFER'
-    OPTIONS_PREMIUM_FEE = 'OPTIONS_PREMIUM_FEE'
-    OPTIONS_SETTLE_PROFIT = 'OPTIONS_SETTLE_PROFIT'
-    AUTO_EXCHANGE = 'AUTO_EXCHANGE'
-    COIN_SWAP_DEPOSIT = 'COIN_SWAP_DEPOSIT'
-    COIN_SWAP_WITHDRAW = 'COIN_SWAP_WITHDRAW'
-
-
-class UserData:
+class AccountData:
     """
-    The responsibility of this to orchestrate the order cancellation, 
-    in the case of a take profit or stop loss orders.
-    Also in the case of impending liquidation.
+    Since stop_loss_order or take_profit_order needs to be cancelled if the other is filled, we need a stream of the status
+    none is provided via the websocket. This class will be responsible for checking the status of the orders, publishing events 
+    on a Subject
+    Since rate limits are changed dynamically, the poll interval needs to be adjusted in line with rate limit info from exchangeInfo
+    A websocket user stream will be kept open to listen for order updates, this is the primary source of order status, but since disconnects
+    could result in missing information polling is required to ensure any missing information is retrieved 
 
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
-
+   
     def __init__(self, primary: Subject):
+        self.logger = get_logger('AccountData')
+        self.kill_polling = False
+        self.kill_renew_listen_key = False
         self.primary = primary
-        self.order_client = OrderClient()
-        self.logger = get_logger('AccountOrchestration')
-        # self.init_subscriptions()
+        self.bi_settings = get_settings('bi')
+        self.app_settings = get_settings('app')
+        self.client = Client(
+            key=self.bi_settings['key'], secret=self.bi_settings['secret'], base_url=self.bi_settings['base_url'])
 
-    def init_subscriptions(self):
-        self.get_user_data_stream().subscribe()  
+    async def poll(self):
+        """
+        Poll the order status asynchronously.
+        Test response for get_exchange_info was:
+        {
+            "rateLimitType": "ORDERS",
+            "interval": "MINUTE",
+            "intervalNum": 1,
+            "limit": 1200
+        }
+        Much more than we need, so every 10 seconds should be fine.
+        """
+        count = 0
+        while True:
+            for symbols_config in self.app_settings['symbols_config']:
+                symbol = symbols_config['symbol']
+                resp = await self.client.get_all_orders(symbol=symbol, timestamp=get_unix_epoch_time_ms())
+                count += 1
+                self.logger.info(f'{count}. get_all_orders: {resp}')
+                self.primary.on_next(OrderStatusEvent(
+                    symbol=symbol, payload_type='http', payload=resp))
+            if self.kill_polling:
+                break
+            # pause for 10 seconds before polling again
+            await asyncio.sleep(10)
 
-    def get_user_data_stream(self):
-        return self.primary.pipe(
-            observe_on_pool_scheduler(),
-            op.filter(lambda o: isinstance(o, OrderStatusEvent)),
-            op.map(self.map_raw_payload)
-            )
+    def get_exchange_info(self):
+        """
+        Get the exchange info which includes rate limits
+        """
+        resp = self.client.exchange_info()
+        self.logger.info(f'exchange_info: {resp}')
+        return resp
+
+    def get_balance(self):
+        """
+        Get the balance
+        """
+        resp = self.client.balance(timestamp=get_unix_epoch_time_ms())
+        self.logger.info(f'get_balance: {resp}')
+        return resp
+
+    async def subscribe_to_user_stream(self):
+        """
+        Subscribe to the user stream
+        """
+        def message_handler(message):
+            print(message)
+            if 'result' not in message or message['result'] is not None:
+                
+                # Update main with OrderStatusEvent, default symbol to 'general' if None
+                symbol = message['s'] if message.get('s') is not None else 'general'
+                self.primary.on_next(OrderStatusEvent(
+                    symbol=symbol, payload_type='ws', payload=message))
+
+        response = self.client.new_listen_key()
+        self.logger.info("Listen key : {}".format(response["listenKey"]))
+
+        user_data_ws_client = CMFuturesWebsocketClient(stream_url=self.bi_settings['stream_url'])
+        user_data_ws_client.start()
+        self.listen_key=response["listenKey"]
+        user_data_ws_client.user_data(
+            listen_key=self.listen_key,
+            id=1,
+            callback=message_handler)
+        await self.renew_listen_key()
+    
+    async def renew_listen_key(self):
+        while True:
+            await asyncio.sleep(60 * 30)
+            response = self.client.renew_listen_key(self.listen_key)
+            self.logger.info("renew_listen_key: response : {}".format(response))
+            if hasattr(self, 'kill_renew_listen_key') and self.kill_renew_listen_key:
+                break
 
     def map_raw_payload(self, e):
         event_type = e['e']
@@ -174,5 +228,5 @@ class UserData:
             if key in mapping:
                 output_dict[mapping[key]] = value
         return output_dict        
-
-    
+        
+           
