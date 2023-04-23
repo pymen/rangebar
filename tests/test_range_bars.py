@@ -27,7 +27,7 @@ def test_kline_df():
     kline = Kline(primary)
     kline.start()
     time.sleep(120)
-    kline_df.save_symbol_window_data()
+    kline_df.save_symbol_df_data()
     kline.stop()
 
 def test_range_bars():

@@ -1,3 +1,5 @@
+from src.data_frame_io.primary_data_frame_io import PrimaryDataFrameIO
+from src.data_frame_io.secondary_data_frame_io import SecondaryDataFrameIO
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.stream_consumers.primary_transformers.user_data import UserData
 from src.fetch_historical.historical_kline import HistoricalKline
@@ -5,7 +7,6 @@ from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
-from src.data_frame_io.data_frame_io import DataFrameIO
 from rx.subject import Subject
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
@@ -33,9 +34,9 @@ def setup():
     """
     Data Frame IO
     """
-    DataFrameIO('kline', primary, secondary)
-    DataFrameIO('range_bar', primary, secondary)
-    DataFrameIO('user_data', primary, secondary)
+    PrimaryDataFrameIO('kline', primary, secondary)
+    SecondaryDataFrameIO('range_bar', primary, secondary)
+    # DataFrameIO('user_data', primary, secondary)
     """
     Historical
     """

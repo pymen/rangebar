@@ -11,6 +11,15 @@ class RangeBarEvent:
     symbol: str
     df: pd.DataFrame # data frame with range bars for the symbol with len equal to what is needed by the indicator
 
+@dataclass
+class PrimaryDataEvent:
+    symbol: str
+    df: pd.DataFrame
+
+@dataclass
+class SecondaryDataEvent:
+    symbol: str
+    df: pd.DataFrame
 
 @dataclass
 class IndicatorTickEvent:
