@@ -1,7 +1,7 @@
 from src.helpers.decorators import consumer_source, derived_frame_trigger
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
-from src.window.window import Window
+from src.data_source.data_frame_io import DataFrameIO
 import pandas as pd
 from rx.subject import Subject
 import rx.operators as op
@@ -25,7 +25,7 @@ class DiffBookBidAskSum(PrimaryStreamConsumer):
         'a': 'total_ask_quantity'  # originally Asks to be updated
     }
 
-    def __init__(self, window: Window, primary: Subject):
+    def __init__(self, window: DataFrameIO, primary: Subject):
         super().__init__(window, main, self.col_mapping)
         super().subscribe({'speed': '500'})
         self.logger = get_logger('DiffBookBidAskSum')

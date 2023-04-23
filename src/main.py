@@ -5,7 +5,7 @@ from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
-from src.window.window import Window
+from src.data_source.data_frame_io import DataFrameIO
 from rx.subject import Subject
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
@@ -31,11 +31,11 @@ def setup():
     """
     range_bar = RangeBar(primary, secondary)
     """
-    Window
+    Data Frame IO
     """
-    Window('kline', primary, secondary)
-    Window('range_bar', primary, secondary)
-    Window('user_data', primary, secondary)
+    DataFrameIO('kline', primary, secondary)
+    DataFrameIO('range_bar', primary, secondary)
+    DataFrameIO('user_data', primary, secondary)
     """
     Historical
     """

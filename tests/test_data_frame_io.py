@@ -4,7 +4,7 @@ from src.settings import get_settings
 from src.stream_consumers.primary_transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
-from src.window.window import Window
+from src.data_source.data_frame_io import DataFrameIO
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 import rx.operators as op
@@ -17,7 +17,7 @@ logging = get_logger('tests')
 def new_instance():
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, Subject())
+    window = DataFrameIO(ws_client, Subject())
     return window
 
 

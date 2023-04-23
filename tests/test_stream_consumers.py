@@ -5,7 +5,7 @@ from src.stream_consumers.primary_transformers.diff_book_bid_ask_sum import Diff
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import clear_logs, get_logger
-from src.window.window import Window
+from src.data_source.data_frame_io import DataFrameIO
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 import time
@@ -18,7 +18,7 @@ def new_instance():
     main = Subject()
     settings = get_settings('bi')
     ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = Window(ws_client, main)
+    window = DataFrameIO(ws_client, main)
     return window, main
 
 def test_get_consumer_df_name1():

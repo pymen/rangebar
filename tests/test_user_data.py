@@ -1,9 +1,10 @@
 
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
+from src.helpers.dataclasses import OrderStatusEvent
 from src.stream_consumers.primary_transformers.user_data import AccountData
 from src.util import get_logger
-from tests.utils import write_to_tests_out_file
+from tests.utils import read_from_tests_out_json_to_dict, write_to_tests_out_file
 import asyncio
 import pytest
 import time
@@ -57,7 +58,15 @@ def test_get_balance():
     import json
     # convert the dictionary to a JSON string with indentation
     json_str = json.dumps(resp, indent=4)
-    write_to_tests_out_file(json_str, 'get_balance.json')    
+    write_to_tests_out_file(json_str, 'get_balance.json')
+
+def test_parse_order_trade_update():
+    target, main = new_instance()
+    raw_message = read_from_tests_out_json_to_dict('user_data_mapping/ORDER_TRADE_UPDATE.json')
+    print(f'raw_message: {raw_message}')
+    target.get_user_data_stream().subscribe(lambda x: print(x))
+    main.on_next(OrderStatusEvent(
+                    symbol='BTCUSDT', payload_type='ws', payload=raw_message))
 
     
 

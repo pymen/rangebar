@@ -2,7 +2,7 @@ from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import HistoricalKlineEvent
 from src.settings import get_settings
 from src.util import get_logger
-from src.window.window import Window
+from src.data_source.data_frame_io import DataFrameIO
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 import pandas as pd
@@ -13,7 +13,7 @@ logging = get_logger('tests')
 def new_instance():
     main = Subject()
     settings = get_settings('bi')
-    window = Window(UMFuturesWebsocketClient(stream_url=settings['stream_url']), Subject())
+    window = DataFrameIO(UMFuturesWebsocketClient(stream_url=settings['stream_url']), Subject())
     return HistoricalKline(window, main)
 
 def test_get_1000_minute_intervals():

@@ -1,11 +1,11 @@
 
-from src.main import main
+from src.main import start, stop
 import time
 from src.util import get_logger
 
 logging = get_logger('tests')
 
-def test_consume():
-    window = main()
+def test_run():
+    start()
     time.sleep(1800)
-    window.stop()
+    stop()

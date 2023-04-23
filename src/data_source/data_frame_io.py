@@ -11,7 +11,7 @@ from rx.subject import Subject
 import rx.operators as op
 from src.helpers.dataclasses import HistoricalKlineEvent, WindowCommandEvent
 
-class Window:
+class DataFrameIO:
 
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
     prune_started = False
@@ -23,7 +23,7 @@ class Window:
         self.secondary = secondary
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
-            df = self.load_symbol_window_data(symbols_config['symbol'])
+            df = self.load_symbol_df_window(symbols_config['symbol'])
             if bool(df):
                 self.symbol_df_dict[symbols_config['symbol']] = df
             else:
@@ -38,8 +38,7 @@ class Window:
                        ).subscribe()      
         
     
-
-    def load_symbol_window_data(self, symbol) -> pd.DataFrame:
+    def load_symbol_df_window(self, symbol) -> pd.DataFrame:
         path = self.get_symbol_window_csv_path(symbol, self.df_name)
         if os.path.exists(path):
             df = pd.read_csv(path, index_col="timestamp", parse_dates=True)
@@ -56,13 +55,13 @@ class Window:
                 df = df.loc[window_start:]
             return df
 
-    def prune_windows(self):
+    def prune_df_windows(self):
         for symbols_config, df in self.symbol_df_dict.items():
-            self.prune_symbol_window(symbols_config['symbol'], df)
+            self.prune_symbol_df_window(symbols_config['symbol'], df)
 
     # FIXME: This is not working
     # Define a function named prune_symbol_window that takes in two arguments, symbol and df_dict
-    def prune_symbol_window(self, symbol: str, df: pd.DataFrame):
+    def prune_symbol_df_window(self, symbol: str, df: pd.DataFrame):
         # Calculate the rolling window using the value of the current key
         rolling_window = df.rolling(window=f"{self.settings['window']}")
         # Check if the rolling window has valid values
