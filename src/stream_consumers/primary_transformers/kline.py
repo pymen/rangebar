@@ -33,7 +33,6 @@ class Kline(PrimaryStreamConsumer):
     def __init__(self, primary: Subject):
         super().__init__(primary, self.col_mapping)
         super().subscribe({'interval': '1m'})
-        self.window.add_consumer(self)
         self.logger = get_logger('Kline')
        
     def transform_message_dict(self, input_dict) -> dict:

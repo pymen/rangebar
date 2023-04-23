@@ -22,7 +22,6 @@ class RangeBar(SecondaryStreamConsumer):
     def __init__(self, primary: Subject, secondary: Subject):
         super().__init__(primary, secondary)
         self.logger = get_logger('RangeBar')
-        self.window.add_consumer(self)
         self.primary = primary
         self.secondary = secondary
         self.primary.pipe(
@@ -32,9 +31,7 @@ class RangeBar(SecondaryStreamConsumer):
              ).subscribe()
         
     def process(self, e: KlineEvent):
-        self.logger.info(f'process: {e}')
-      
-        return df    
+        self.logger.info(f'process: {e}') 
 
 
     def create_range_bar_df(self, df_window: pd.DataFrame) -> pd.DataFrame:

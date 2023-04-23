@@ -25,11 +25,10 @@ class DiffBookBidAskSum(PrimaryStreamConsumer):
         'a': 'total_ask_quantity'  # originally Asks to be updated
     }
 
-    def __init__(self, window: DataFrameIO, primary: Subject):
-        super().__init__(window, main, self.col_mapping)
+    def __init__(self, primary: Subject):
+        super().__init__(primary, self.col_mapping)
         super().subscribe({'speed': '500'})
         self.logger = get_logger('DiffBookBidAskSum')
-        self.window.add_consumer(self)
 
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["b"] = sum(float(x[1]) for x in input_dict["b"])
@@ -37,7 +36,6 @@ class DiffBookBidAskSum(PrimaryStreamConsumer):
         return input_dict
 
     # FIXME: there are ordering checks that need to be done as described in the docs
-    @derived_frame_trigger(df_name="diff_book_resample_30s", count=60)
     def diff_book_resample(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         This consumer receives a rows ever 500ms.  We want to resample the data at 30s intervals.

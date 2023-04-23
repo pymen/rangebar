@@ -44,7 +44,7 @@ class PrimaryStreamConsumer(ABC):
             kwargs['id'] = stream_id
             kwargs['symbol'] = symbol
             kwargs['callback'] = self.message_handler
-            func = getattr(self.window.ws_client, self.source_name)
+            func = getattr(self.ws_client, self.source_name)
             try:
                 func(**kwargs)
             except ValueError as ve:

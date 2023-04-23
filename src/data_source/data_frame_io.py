@@ -163,10 +163,10 @@ class DataFrameIO:
                 f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
             return self.add_basic_indicators(df, symbol)
 
-    def add_basic_indicators(self, df: pd.DataFrame, symbol: str = None) -> Tuple(str, pd.DataFrame):
+    def add_basic_indicators(self, df: pd.DataFrame, symbol: str = None):
         try:
             df = self.adv(self.relative_adr_range_size(df))
-            return symbol, df
+            return df
         except Exception as e:
             self.logger.error(f"create_range_bar_df: {str(e)}")
 

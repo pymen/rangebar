@@ -24,7 +24,7 @@ def test_kline_df():
     secondary = Subject()
     kline_df = DataFrameIO('kline', primary, secondary)
     HistoricalKline(primary)
-    kline = Kline(primary, secondary)
+    kline = Kline(primary)
     kline.start()
     time.sleep(120)
     kline_df.save_symbol_window_data()

@@ -24,8 +24,8 @@ def setup():
     """
     Primary Consumers & Transformers
     """
-    kline = Kline(primary, secondary)
-    user_date = UserData(primary, secondary)
+    kline = Kline(primary)
+    user_date = UserData(primary)
     """
     Secondary Consumers & Transformers
     """
