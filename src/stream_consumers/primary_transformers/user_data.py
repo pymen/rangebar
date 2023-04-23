@@ -28,7 +28,7 @@ class AccountUpdateEventReasonType(Enum):
     COIN_SWAP_WITHDRAW = 'COIN_SWAP_WITHDRAW'
 
 
-class AccountOrchestration:
+class UserData:
     """
     The responsibility of this to orchestrate the order cancellation, 
     in the case of a take profit or stop loss orders.
@@ -37,8 +37,8 @@ class AccountOrchestration:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
 
-    def __init__(self, main: Subject):
-        self.main = main
+    def __init__(self, primary: Subject):
+        self.primary = primary
         self.order_client = OrderClient()
         self.logger = get_logger('AccountOrchestration')
         # self.init_subscriptions()
@@ -47,7 +47,7 @@ class AccountOrchestration:
         self.get_user_data_stream().subscribe()  
 
     def get_user_data_stream(self):
-        return self.main.pipe(
+        return self.primary.pipe(
             observe_on_pool_scheduler(),
             op.filter(lambda o: isinstance(o, OrderStatusEvent)),
             op.map(self.map_raw_payload)

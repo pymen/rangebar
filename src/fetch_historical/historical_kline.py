@@ -10,12 +10,12 @@ from rx.subject import Subject
 
 
 class HistoricalKline:
-    def __init__(self, main: Subject):
-         self.main = main
+    def __init__(self, primary: Subject):
+         self.primary = primary
          self.processing = False
          self.um_futures_client = UMFutures()
          self.logger = get_logger('HistoricalKline')
-         self.main.pipe(
+         self.primary.pipe(
                 observe_on_pool_scheduler(),
                 op.filter(lambda o: isinstance(o, HistoricalKlineEvent)),
                 op.skip_while(lambda _: self.processing),
@@ -36,7 +36,7 @@ class HistoricalKline:
             pairs = self.get_1000_minute_intervals(e.last_timestamp)
             resp_data = self.fetch_all_intervals(e, pairs)
             df = self.build_df(resp_data, e.symbol)
-            self.main.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
+            self.primary.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
             self.processing = False     
 
 

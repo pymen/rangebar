@@ -66,10 +66,10 @@ def test_consumer_derived_frame_trigger_decorator():
 class Test1:
 
     def __init__(self, main):
-        self.main = main
+        self.primary = primary
 
     def init_subscriptions(self):
-        self.main.pipe(
+        self.primary.pipe(
             op.filter(lambda o: isinstance(o, WindowCommandEvent)),
             op.map(lambda e: getattr(self, e.method)(**e.kwargs))
         ).subscribe()

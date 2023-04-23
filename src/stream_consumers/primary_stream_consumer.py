@@ -15,10 +15,10 @@ class PrimaryStreamConsumer(ABC):
     Transforms events originating from external sources
     """
 
-    def __init__(self, main: Subject, col_mapping: dict, primary_df_name: str = None) -> None:
+    def __init__(self, primary: Subject, col_mapping: dict, primary_df_name: str = None) -> None:
         super().__init__()
         self.logger = get_logger('PrimaryStreamConsumer')
-        self.main = main
+        self.primary = primary
         self.settings = get_settings('app')
         self.col_mapping = col_mapping
         if primary_df_name is not None:

@@ -16,12 +16,12 @@ class SimpleStrategy:
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
 
-    def __init__(self, client: OrderClient, main: Subject):
+    def __init__(self, client: OrderClient, primary: Subject):
         self.logger = get_logger('SimpleStrategy')
         self.client = client
 
     def init_subscriptions(self):
-        self.main.pipe(
+        self.primary.pipe(
             observe_on_pool_scheduler(),
             op.filter(lambda o: isinstance(o, StrategyTickEvent)),
             op.map(self.next)

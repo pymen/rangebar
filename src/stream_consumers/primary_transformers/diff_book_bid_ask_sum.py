@@ -25,7 +25,7 @@ class DiffBookBidAskSum(PrimaryStreamConsumer):
         'a': 'total_ask_quantity'  # originally Asks to be updated
     }
 
-    def __init__(self, window: Window, main: Subject):
+    def __init__(self, window: Window, primary: Subject):
         super().__init__(window, main, self.col_mapping)
         super().subscribe({'speed': '500'})
         self.logger = get_logger('DiffBookBidAskSum')

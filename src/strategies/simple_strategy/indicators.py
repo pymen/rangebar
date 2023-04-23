@@ -15,11 +15,11 @@ class SimpleStrategyIndicators:
     Depending on the indicator windows needed for this strategy, we can also determine the size of the window
     """
 
-    def __init__(self, main: Subject):
-        self.main = main
+    def __init__(self, primary: Subject):
+        self.primary = primary
 
     def init_subscriptions(self):
-        self.main.pipe(
+        self.primary.pipe(
             observe_on_pool_scheduler(),
             op.filter(lambda o: isinstance(o, IndicatorTickEvent)),
             op.map(self.apply)
@@ -47,4 +47,4 @@ class SimpleStrategyIndicators:
         self.macd()
         self.bb()
         self.rsi()
-        self.main.on_next(StrategyTickEvent(event.symbol, self.df))
+        self.primary.on_next(StrategyTickEvent(event.symbol, self.df))

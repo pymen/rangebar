@@ -19,12 +19,13 @@ class RangeBar(SecondaryStreamConsumer):
     Need a reference to the window to access the data frames
     """
 
-    def __init__(self, main: Subject):
-        super().__init__(main)
+    def __init__(self, primary: Subject, secondary: Subject):
+        super().__init__(primary)
         self.logger = get_logger('RangeBar')
         self.window.add_consumer(self)
-        self.main = main
-        self.main.pipe(
+        self.primary = primary
+        self.secondary = secondary
+        self.primary.pipe(
                 op.filter(lambda o: isinstance(o, self.event_source)),
                 op.map(self.process),
                 observe_on_pool_scheduler(),

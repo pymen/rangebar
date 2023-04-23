@@ -1,6 +1,6 @@
 
 from src.account_admin.user_data_stream import AccountData
-from src.stream_consumers.primary_transformers.account_orchestration import AccountOrchestration
+from src.stream_consumers.primary_transformers.user_data import UserData
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.settings import get_settings
 from src.strategies.order_client import OrderClient
@@ -52,7 +52,7 @@ def main() -> Window:
     Account
     """
     AccountData(main)
-    AccountOrchestration(client, main)
+    UserData(client, main)
     """"""
     window.start()
     return window

@@ -1,5 +1,6 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import asyncio
+import numpy as np
 import pandas as pd
 import datetime as dt
 import os
@@ -8,17 +9,18 @@ from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject
 import rx.operators as op
-from src.helpers.dataclasses import HistoricalKlineEvent, IndicatorTickEvent, WindowCommandEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, WindowCommandEvent
 
 class Window:
 
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
     prune_started = False
 
-    def __init__(self, df_name: str, ws_client, main: Subject):
+    def __init__(self, df_name: str, ws_client, primary: Subject, secondary: Subject):
         self.logger = get_logger(f'Window_{df_name}')
         self.df_name = df_name
-        self.main = main
+        self.primary = primary
+        self.secondary = secondary
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             df = self.load_symbol_window_data(symbols_config['symbol'])
@@ -30,7 +32,7 @@ class Window:
         
 
     def init_subscriptions(self):
-        self.main.pipe(observe_on_pool_scheduler(), 
+        self.primary.pipe(observe_on_pool_scheduler(), 
                        op.filter(lambda o: isinstance(o, WindowCommandEvent)), 
                        op.map(lambda e: getattr(self, e.method)(**e.kwargs))
                        ).subscribe()      
@@ -63,7 +65,7 @@ class Window:
     # Define a function named prune_symbol_window that takes in two arguments, symbol and df_dict
     def prune_symbol_window(self, symbol: str, df: pd.DataFrame):
         # Calculate the rolling window using the value of the current key
-        rolling_window = df.rolling(window=f"{self.settings['window']}min")
+        rolling_window = df.rolling(window=f"{self.settings['window']}")
         # Check if the rolling window has valid values
         if rolling_window.has_valid_values():
             # Get the end time of the last window
@@ -111,7 +113,7 @@ class Window:
             self.prune_started = True
             # self.timer.start()
         # Create a dictionary of dataframes for each symbol and dataframe name
-        self.symbol_df_dict.setdefault(symbol, pd.DataFrame()).
+        self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         # Convert the timestamp to datetime format and set it as the index
         row['timestamp'] = pd.to_datetime(row['timestamp'], unit='ms')
         # Concatenate the new row with the existing dataframe and set the index to the timestamp
@@ -139,29 +141,32 @@ class Window:
         return [d for d in symbols_config if d['symbol'] == symbol]    
 
     def fill_historical(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
-        # access existing range_bar_df and check timestamp of last row
-        if self.df_name != 'range_bars':
-            return df
-        kline_df = self.window.symbol_df_dict[symbol]
-        kline_last_index = kline_df.index[-1]
-        kline_first_index = kline_df.index[0]
-        num_days = (kline_last_index - kline_first_index).days + 1
+        """
+        Only used for primary consumers.
+        Currently only used for kline.
+        """
+        if self.df_name == 'kline':
+            kline_df = self.window.symbol_df_dict[symbol]
+            kline_last_index = kline_df.index[-1]
+            kline_first_index = kline_df.index[0]
+            num_days = (kline_last_index - kline_first_index).days + 1
 
-        if num_days < 14:
-            # Set last_timestamp to one month ago
-            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
-            event = HistoricalKlineEvent(
-                symbol=symbol, source='kline', last_timestamp=last_timestamp)
-            self.logger.info(f"fill_historical: event: {str(event)}")
-            self.main.on_next(event)
-            return None
-        self.logger.info(
-            f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
-        return self.add_average_columns(df, symbol)
+            if num_days < 14:
+                # Set last_timestamp to one month ago
+                last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
+                event = HistoricalKlineEvent(
+                    symbol=symbol, source='kline', last_timestamp=last_timestamp)
+                self.logger.info(f"fill_historical: event: {str(event)}")
+                self.primary.on_next(event)
+                return None
+            self.logger.info(
+                f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
+            return self.add_basic_indicators(df, symbol)
     
-    def add_average_columns(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
+    def add_basic_indicators(self, df: pd.DataFrame, symbol: str = None) -> Tuple(str, pd.DataFrame):
         try:
             df = self.adv(self.relative_adr_range_size(df))
+            return symbol, df
         except Exception as e:
             self.logger.error(f"create_range_bar_df: {str(e)}")
 

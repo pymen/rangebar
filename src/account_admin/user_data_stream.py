@@ -22,11 +22,11 @@ class AccountData:
     https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
     """
    
-    def __init__(self, main: Subject):
+    def __init__(self, primary: Subject):
         self.logger = get_logger('AccountData')
         self.kill_polling = False
         self.kill_renew_listen_key = False
-        self.main = main
+        self.primary = primary
         self.bi_settings = get_settings('bi')
         self.app_settings = get_settings('app')
         self.client = Client(
@@ -51,7 +51,7 @@ class AccountData:
                 resp = await self.client.get_all_orders(symbol=symbol, timestamp=get_unix_epoch_time_ms())
                 count += 1
                 self.logger.info(f'{count}. get_all_orders: {resp}')
-                self.main.on_next(OrderStatusEvent(
+                self.primary.on_next(OrderStatusEvent(
                     symbol=symbol, payload_type='http', payload=resp))
             if self.kill_polling:
                 break
@@ -84,7 +84,7 @@ class AccountData:
                 
                 # Update main with OrderStatusEvent, default symbol to 'general' if None
                 symbol = message['s'] if message.get('s') is not None else 'general'
-                self.main.on_next(OrderStatusEvent(
+                self.primary.on_next(OrderStatusEvent(
                     symbol=symbol, payload_type='ws', payload=message))
 
         response = self.client.new_listen_key()
