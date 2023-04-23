@@ -10,7 +10,7 @@ from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClie
 from src.util import get_logger
 
 
-class AccountData:
+class UserData:
     """
     Since stop_loss_order or take_profit_order needs to be cancelled if the other is filled, we need a stream of the status
     none is provided via the websocket. This class will be responsible for checking the status of the orders, publishing events 

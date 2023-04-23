@@ -3,6 +3,7 @@ from src.fetch_historical.historical_kline import HistoricalKline
 from src.settings import get_settings
 from src.stream_consumers.primary_transformers.diff_book_bid_ask_sum import DiffBookBidAskSum
 from src.stream_consumers.primary_transformers.kline import Kline
+from src.stream_consumers.primary_transformers.user_data import UserData
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import clear_logs, get_logger
 from src.data_source.data_frame_io import DataFrameIO
@@ -15,11 +16,11 @@ import pytest
 logging = get_logger('tests')
 
 def new_instance():
-    main = Subject()
-    settings = get_settings('bi')
-    ws_client = UMFuturesWebsocketClient(stream_url=settings['stream_url'])
-    window = DataFrameIO(ws_client, main)
-    return window, main
+    primary = Subject()
+    secondary = Subject()
+    kline = Kline(primary, secondary)
+    user_date = UserData(primary, secondary)
+    return kline, user_date
 
 def test_get_consumer_df_name1():
     window, main = new_instance()

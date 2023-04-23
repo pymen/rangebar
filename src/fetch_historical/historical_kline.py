@@ -1,4 +1,4 @@
-from src.helpers.dataclasses import HistoricalKlineEvent, WindowCommandEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, DataFrameIOCommandEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
@@ -36,7 +36,7 @@ class HistoricalKline:
             pairs = self.get_1000_minute_intervals(e.last_timestamp)
             resp_data = self.fetch_all_intervals(e, pairs)
             df = self.build_df(resp_data, e.symbol)
-            self.primary.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
+            self.primary.on_next(DataFrameIOCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
             self.processing = False     
 
 

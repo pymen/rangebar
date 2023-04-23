@@ -9,7 +9,8 @@ from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject
 import rx.operators as op
-from src.helpers.dataclasses import HistoricalKlineEvent, WindowCommandEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, DataFrameIOCommandEvent
+
 
 class DataFrameIO:
 
@@ -17,7 +18,7 @@ class DataFrameIO:
     prune_started = False
 
     def __init__(self, df_name: str, primary: Subject, secondary: Subject):
-        self.logger = get_logger(f'Window_{df_name}')
+        self.logger = get_logger(f'DataFrameIO_{df_name}')
         self.df_name = df_name
         self.primary = primary
         self.secondary = secondary
@@ -27,26 +28,28 @@ class DataFrameIO:
             if bool(df):
                 self.symbol_df_dict[symbols_config['symbol']] = df
             else:
-                self.symbol_df_dict[symbols_config['symbol']] = {}    
-   
-        
+                self.symbol_df_dict[symbols_config['symbol']] = {}
 
     def init_subscriptions(self):
-        self.primary.pipe(observe_on_pool_scheduler(), 
-                       op.filter(lambda o: isinstance(o, WindowCommandEvent)), 
-                       op.map(lambda e: getattr(self, e.method)(**e.kwargs))
-                       ).subscribe()      
-        
-    
+        self.primary.pipe(
+            op.filter(lambda o: isinstance(o, DataFrameIOCommandEvent)
+                      and o.kwargs['df_name'] == self.df_name),
+            op.map(lambda e: getattr(self, e.method)(**e.kwargs)),
+            observe_on_pool_scheduler()
+        ).subscribe()
+
     def load_symbol_df_window(self, symbol) -> pd.DataFrame:
         path = self.get_symbol_window_csv_path(symbol, self.df_name)
         if os.path.exists(path):
             df = pd.read_csv(path, index_col="timestamp", parse_dates=True)
             df.sort_index(inplace=True)
             # Convert last_window_end to a datetime object
-            last_window_end = df.index[-1] # dt.datetime.strptime(df.index[-1], "%Y-%m-%d %H:%M:%S.%f")
-            first_window_start = df.index[0] # dt.datetime.strptime(df.index[0], "%Y-%m-%d %H:%M:%S.%f")
-            self.logger.info(f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
+            # dt.datetime.strptime(df.index[-1], "%Y-%m-%d %H:%M:%S.%f")
+            last_window_end = df.index[-1]
+            # dt.datetime.strptime(df.index[0], "%Y-%m-%d %H:%M:%S.%f")
+            first_window_start = df.index[0]
+            self.logger.info(
+                f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
             # Convert integer to timedelta object
             window_timedelta = dt.timedelta(days=int(self.settings['window']))
             # Subtract timedelta from datetime object
@@ -71,13 +74,13 @@ class DataFrameIO:
             # Get the data to drop from the start of the dataframe up to the last window end
             data_to_drop = df[:last_window_end]
             # Append the data to the CSV file
-            data_to_drop.to_csv(self.get_symbol_window_csv_path(symbol, self.df_name), mode='a', header=False)
+            data_to_drop.to_csv(self.get_symbol_window_csv_path(
+                symbol, self.df_name), mode='a', header=False)
             # Remove the dropped data from the dataframe
             df = df[last_window_end:]
             # Update the symbol_dict_df_dict with the new rolling window
             self.symbol_df_dict[symbol] = rolling_window
-            
-    
+
     async def start_interval_save(self, delay_seconds=300):
         while True:
             await self.save_symbol_window_data()
@@ -86,11 +89,12 @@ class DataFrameIO:
     def save_symbol_window_data(self):
         for symbol, df in self.symbol_df_dict.items():
             if not df.empty:
-                    df.to_csv(self.get_symbol_window_csv_path(symbol, self.df_name))
-                
+                df.to_csv(self.get_symbol_window_csv_path(
+                    symbol, self.df_name))
+
     def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
         return get_file_path(f'symbol_windows/{symbol}-{df_name}.csv')
- 
+
     def group_by_prefix(self, strings) -> List[List[str]]:
         groups = {}
         for string in strings:
@@ -115,9 +119,10 @@ class DataFrameIO:
         if index is None:
             row_as_frame.set_index('timestamp', inplace=True)
         else:
-            row_as_frame.set_index(index, inplace=True)    
-        self.symbol_df_dict[symbol] = pd.concat([self.symbol_df_dict[symbol], row_as_frame])  
-      
+            row_as_frame.set_index(index, inplace=True)
+        self.symbol_df_dict[symbol] = pd.concat(
+            [self.symbol_df_dict[symbol], row_as_frame])
+
     # Define a function to append a historical df to the main df
     def append_rows(self, symbol: str, df_section: pd.DataFrame):
         # Check if pruning has started and start the timer if not
@@ -125,14 +130,15 @@ class DataFrameIO:
             self.prune_started = True
             # self.timer.start()
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
-        self.symbol_df_dict[symbol] = pd.concat([self.symbol_df_dict[symbol], df_section]) 
+        self.symbol_df_dict[symbol] = pd.concat(
+            [self.symbol_df_dict[symbol], df_section])
         self.symbol_df_dict[symbol].sort_values('timestamp', inplace=True)
         self.symbol_df_dict[symbol].set_index('timestamp', inplace=True)
-        self.save_symbol_window_data() 
-     
+        self.save_symbol_window_data()
+
     def get_symbol_config(self, symbol: str):
         symbols_config = self.settings['symbols_config']
-        return [d for d in symbols_config if d['symbol'] == symbol]    
+        return [d for d in symbols_config if d['symbol'] == symbol]
 
     def fill_historical(self, df: pd.DataFrame, symbol: str = None) -> pd.DataFrame:
         """
@@ -156,7 +162,7 @@ class DataFrameIO:
             self.logger.info(
                 f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
             return self.add_basic_indicators(df, symbol)
-    
+
     def add_basic_indicators(self, df: pd.DataFrame, symbol: str = None) -> Tuple(str, pd.DataFrame):
         try:
             df = self.adv(self.relative_adr_range_size(df))
@@ -192,6 +198,4 @@ class DataFrameIO:
         result = df['volume'].rolling(window=window).mean()
         result.fillna(0, inplace=True)
         df['adv'] = result
-        return df              
-                   
-
+        return df

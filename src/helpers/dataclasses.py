@@ -35,7 +35,7 @@ class OrderStatusEvent:
     payload: dict
 
 @dataclass
-class WindowCommandEvent:
+class DataFrameIOCommandEvent:
     method: str
     kwargs: dict
         

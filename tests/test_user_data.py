@@ -2,7 +2,7 @@
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject
 from src.helpers.dataclasses import OrderStatusEvent
-from src.stream_consumers.primary_transformers.user_data import AccountData
+from src.stream_consumers.primary_transformers.user_data import UserData
 from src.util import get_logger
 from tests.utils import read_from_tests_out_json_to_dict, write_to_tests_out_file
 import asyncio
@@ -13,7 +13,7 @@ logging = get_logger('tests')
 
 def new_instance():
     main = Subject()
-    order_status = AccountData(main)
+    order_status = UserData(main)
     return order_status, main
 
 
