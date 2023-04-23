@@ -3,7 +3,7 @@ import random
 from typing import Tuple
 from src.settings import get_settings
 from src.util import get_logger
-from src.data_source.data_frame_io import DataFrameIO
+from src.data_frame_io.data_frame_io import DataFrameIO
 import pandas as pd
 from rx.subject import Subject
 import rx.operators as op

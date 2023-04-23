@@ -1,7 +1,7 @@
 from src.helpers.decorators import consumer_source
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
-from src.data_source.data_frame_io import DataFrameIO
+from src.data_frame_io.data_frame_io import DataFrameIO
 from rx.subject import Subject
 import rx.operators as op
 

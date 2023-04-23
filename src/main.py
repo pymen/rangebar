@@ -5,7 +5,7 @@ from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.strategy import SimpleStrategy
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
-from src.data_source.data_frame_io import DataFrameIO
+from src.data_frame_io.data_frame_io import DataFrameIO
 from rx.subject import Subject
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
