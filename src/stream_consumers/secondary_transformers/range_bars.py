@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.helpers.dataclasses import HistoricalKlineEvent, KlineEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, KlineEvent, SecondaryDataEvent
 from src.helpers.decorators import consumer_source
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.stream_consumers.secondary_stream_consumer import SecondaryStreamConsumer
@@ -36,19 +36,21 @@ class RangeBar(SecondaryStreamConsumer):
              ).subscribe()
         
     def process(self, e: KlineEvent):
-        self.logger.info(f'process: {e}') 
+        self.logger.info(f'process: {e}')
+        range_bar_df = self.create_range_bar_df(e.df)
+        self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
+        self.secondary.on_next(SecondaryDataEvent(e.symbol, range_bar_df))
 
 
-    def create_range_bar_df(self, df_window: pd.DataFrame) -> pd.DataFrame:
+    def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         the window is from the last range bar timestamp to now, a mechanism to pull historical kline 
         data to fill in a gap that may occur if the application is stopped is also provided via 
-        src.fetch_historical
+        src.fetch_historical.
+
+        This method may more often then not be running with len(df) == 1, but that is ok, at startup it
+        may run for more
         """
-        # output_str = io.StringIO()
-        # df_window.to_csv(output_str)
-        # csv_contents = output_str.getvalue()
-        # write_to_tests_out_file(csv_contents, 'df_window.csv')
         
         range_bars = []
         current_bar = {'adv': df.iloc[0]['adv'], 'volume': df.iloc[0]['volume'], 'average_adr': df.iloc[0]['average_adr'], 'timestamp': df.index.to_series(
@@ -107,7 +109,7 @@ class RangeBar(SecondaryStreamConsumer):
                 current_bar['adv'] = row['adv']
         self.logger.debug(f"create_range_bar_df: filler_bars: {filler_bars}")
         self.logger.debug(
-            f"create_range_bar_df: range_bars: length: {str(range_bars)}")
+            f"create_range_bar_df: range_bars: length: {len(range_bars)}")
         return pd.DataFrame(range_bars)
 
     
