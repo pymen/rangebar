@@ -1,22 +1,29 @@
 from src.data_frame_io.data_frame_io import DataFrameIO
+from src.helpers.util import get_strategy_parameters_max
 from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
 from rx.subject import Subject
 import rx.operators as op
 from src.helpers.dataclasses import PrimaryDataEvent, SecondaryDataEvent
 
-class SecondaryDataFrameIO(DataFrameIO):
+class RangeBarDataFrameIO(DataFrameIO):
     """
     In order for the indicators to be applied we need to have enough range bars to handle their look back periods.
     We can't fetch historical, but we can generate range bars from the kline data.
     That will happen on bot start up. But thereafter we are going to be creating a singe range bar at a time, 
     based on the latest kline & then publishing a df window for the indicators to be applied. With that latest new 
-    range bar as the last row 
+    range bar as the last row.
+    So it will be the latest created + eg: 26 from storage or the number to make up the difference in this case a total
+    of 27 
     """
+    # this is the min window size of range bars that can be published to the indicators class eg: 26
+    min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators)
 
     def __init__(self, df_name: str, primary: Subject, secondary: Subject):
         super().__init__(df_name, primary, secondary)
-        self.logger = get_logger(f'SecondaryDataFrameIO{df_name}')
+        self.logger = get_logger(f'RangeBarDataFrameIO')
+        
 
     def init_subscriptions(self):
         super().init_subscriptions()

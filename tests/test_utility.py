@@ -1,3 +1,5 @@
+from src.helpers.util import get_strategy_parameters_max
+from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import clear_logs, clear_symbol_windows, get_file_path, get_logger
 
 def test_get_file_path():
@@ -13,4 +15,9 @@ def test_clear_logs():
     clear_logs()
 
 def test_clear_symbol_windows():
-    clear_symbol_windows()          
+    clear_symbol_windows()  
+
+def test_get_strategy_parameters_max():
+   max_win = get_strategy_parameters_max(SimpleStrategyIndicators)
+   print(f'max_win: {max_win}')    
+

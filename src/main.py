@@ -1,10 +1,10 @@
 from src.data_frame_io.primary_data_frame_io import PrimaryDataFrameIO
-from src.data_frame_io.secondary_data_frame_io import SecondaryDataFrameIO
+from src.data_frame_io.range_bar_data_frame_io import RangeBarDataFrameIO
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.stream_consumers.primary_transformers.user_data import UserData
 from src.fetch_historical.historical_kline import HistoricalKline
-from src.strategies.simple_strategy.indicators import SimpleStrategyIndicators
-from src.strategies.simple_strategy.strategy import SimpleStrategy
+from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
+from src.strategies.simple_strategy.smiple_strategy import SimpleStrategy
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
 from rx.subject import Subject
@@ -35,7 +35,7 @@ def setup():
     Data Frame IO
     """
     PrimaryDataFrameIO('kline', primary, secondary)
-    SecondaryDataFrameIO('range_bar', primary, secondary)
+    RangeBarDataFrameIO('range_bar', primary, secondary)
     # DataFrameIO('user_data', primary, secondary)
     """
     Historical

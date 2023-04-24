@@ -15,3 +15,14 @@ def flatten_dict(d, parent_key='', sep='_'):
             else:
                 items.append((new_key, v))
         return dict(items)
+
+def get_strategy_parameters_max(strategy: object):
+        """
+        Get static class values & return the max
+        """
+        parameters = []
+        for attr in dir(strategy):
+            if attr.startswith('p_'):
+                p = getattr(strategy, attr)
+                parameters.append(p)
+        return max(parameters)
