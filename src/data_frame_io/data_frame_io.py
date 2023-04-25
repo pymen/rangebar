@@ -31,12 +31,11 @@ class DataFrameIO(ABC):
 
     def init_subscriptions(self):
         self.primary.pipe(
-            op.filter(lambda o: isinstance(o, DataFrameIOCommandEvent)
-                      and o.kwargs['df_name'] == self.df_name),
+            op.filter(lambda o: isinstance(o, DataFrameIOCommandEvent) and o.df_name == self.df_name),
             op.map(lambda e: getattr(self, e.method)(**e.kwargs)),
-            observe_on_pool_scheduler()
+            # observe_on_pool_scheduler()
         ).subscribe()
-
+        
     def publish_df_window(self, symbol: str, event_object: object, primary: bool = True):
         df = self.symbol_df_dict[symbol]
         rolling_window = df.rolling(window=f"{self.settings['window']}")
@@ -93,14 +92,11 @@ class DataFrameIO(ABC):
     def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
         return get_file_path(f'symbol_windows/{symbol}-{df_name}.csv')
 
-    def append_row(self, symbol: str = None, row: pd.Series = None, index: List[str] = None):
+    def append_row(self, symbol: str = None, row: pd.Series = None):
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         row['timestamp'] = pd.to_datetime(row['timestamp'], unit='ms')
         row_as_frame = row.to_frame().T
-        if index is None:
-            row_as_frame.set_index('timestamp', inplace=True)
-        else:
-            row_as_frame.set_index(index, inplace=True)
+        row_as_frame.set_index('timestamp', inplace=True)
         self.symbol_df_dict[symbol] = pd.concat(
             [self.symbol_df_dict[symbol], row_as_frame])
         self.append_post_processing(symbol)
@@ -113,12 +109,24 @@ class DataFrameIO(ABC):
         self.symbol_df_dict[symbol].set_index('timestamp', inplace=True)
         self.append_post_processing(symbol)
         
-    def append_post_processing(self, symbol: str):
-        self.add_basic_indicators(symbol)
-        self.append_symbol_df_data(symbol)
-        if self.fill_historical(symbol):
-            self.publish_df_window(symbol)
-
     def get_symbol_config(self, symbol: str):
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
+    
+    def add_basic_indicators(self, symbol: str = None):
+        """
+        Abstract method to be implemented by child classes
+        """
+        pass
+
+    def fill_historical(self, symbol: str = None) -> bool:
+        """
+        Abstract method to be implemented by child classes
+        """
+        pass
+    
+    def append_post_processing(self, symbol: str):
+        """
+        Abstract method to be implemented by child classes
+        """
+        pass

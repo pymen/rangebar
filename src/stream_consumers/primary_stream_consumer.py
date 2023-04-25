@@ -6,7 +6,7 @@ from src.settings import get_settings
 from src.util import get_logger
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 import pandas as pd
-from rx.subject import Subject
+from rx.subject.subject import Subject
 
 
 class PrimaryStreamConsumer(ABC):
@@ -15,7 +15,7 @@ class PrimaryStreamConsumer(ABC):
     Transforms events originating from external sources
     """
 
-    def __init__(self, primary: Subject, col_mapping: dict) -> None:
+    def __init__(self, primary: Subject, col_mapping: dict[str, str]) -> None:
         super().__init__()
         settings = get_settings('bi')
         self.ws_client = UMFuturesWebsocketClient(
@@ -25,6 +25,7 @@ class PrimaryStreamConsumer(ABC):
         self.settings = get_settings('app')
         self.col_mapping = col_mapping
         self.df_name = self.get_consumer_df_name()
+        self.logger.debug(f'df_name: {self.df_name}')
 
     def get_consumer_df_name(self):
         snake_case = ""
@@ -35,7 +36,7 @@ class PrimaryStreamConsumer(ABC):
                 snake_case += char
         return snake_case.lstrip("_")
 
-    def subscribe(self, kwargs: dict):
+    def subscribe(self, kwargs: dict[str, str | int | function]):
         for symbol_config in self.settings['symbols_config']:
             symbol = symbol_config['symbol']
             self.logger.info(
@@ -61,8 +62,10 @@ class PrimaryStreamConsumer(ABC):
                 if output_dict is not None:
                     symbol, df_name, series = self.create_series_from_dict(
                         output_dict)
-                    self.primary.on_next(DataFrameIOCommandEvent(method='append_row', kwargs={
-                                         'symbol': symbol.lower(), 'df_name':  df_name, 'series': series, 'index_cols': self.index_cols}))
+                    event = DataFrameIOCommandEvent(method='append_row', df_name=df_name, kwargs={
+                                         'symbol': symbol.lower(), 'row': series})
+                    self.logger.debug(f'event: {str(event)}')
+                    self.primary.on_next(event)
             except Exception as e:
                 self.logger.error("message_handler: ", str(e))
         else:

@@ -6,47 +6,35 @@ from src.util import get_logger
 from rx.subject import Subject
 from src.helpers.dataclasses import HistoricalKlineEvent, PrimaryDataEvent
 
-class PrimaryDataFrameIO(DataFrameIO):
+class KlineDataFrameIO(DataFrameIO):
 
     def __init__(self, df_name: str, primary: Subject, secondary: Subject):
         super().__init__(df_name, primary, secondary)
         self.logger = get_logger(f'PrimaryDataFrameIO_{df_name}')
+        self.init_subscriptions()
 
     def publish_df_window(self, symbol: str):
         super().publish_df_window(symbol, PrimaryDataEvent, True)
         
-    def append_post_processing(self, symbol: str):
-        self.add_basic_indicators(symbol)
-        self.append_symbol_df_data(symbol)
-        if self.fill_historical(symbol):
-            self.publish_df_window(symbol)
-
     def get_symbol_config(self, symbol: str):
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
 
     def fill_historical(self, symbol: str = None) -> bool:
-        """
-        Only used for primary consumers.
-        Currently only used for kline.
-        """
-        if self.df_name == 'kline':
-            kline_df = self.symbol_df_dict[symbol]
-            kline_last_index = kline_df.index[-1]
-            kline_first_index = kline_df.index[0]
-            num_days = (kline_last_index - kline_first_index).days + 1
-            self.logger.info(
-                f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
-            if num_days < 7:
-                # Set last_timestamp to one month ago
-                last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
-                event = HistoricalKlineEvent(
-                    symbol=symbol, source='kline', last_timestamp=last_timestamp)
-                self.logger.info(f"fill_historical: event: {str(event)}")
-                self.primary.on_next(event)
-                return False
-            else:
-                return True
+        kline_df = self.symbol_df_dict[symbol]
+        kline_last_index = kline_df.index[-1]
+        kline_first_index = kline_df.index[0]
+        num_days = (kline_last_index - kline_first_index).days + 1
+        self.logger.info(
+            f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
+        if num_days < 7:
+            # Set last_timestamp to one month ago
+            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
+            event = HistoricalKlineEvent(
+                symbol=symbol, source='kline', last_timestamp=last_timestamp)
+            self.logger.info(f"fill_historical: event: {str(event)}")
+            self.primary.on_next(event)
+            return False
         else:
             return True
 
@@ -87,3 +75,9 @@ class PrimaryDataFrameIO(DataFrameIO):
         result.fillna(0, inplace=True)
         df['adv'] = result
         return df
+    
+    def append_post_processing(self, symbol: str):
+        self.add_basic_indicators(symbol)
+        self.append_symbol_df_data(symbol)
+        if self.fill_historical(symbol):
+            self.publish_df_window(symbol)

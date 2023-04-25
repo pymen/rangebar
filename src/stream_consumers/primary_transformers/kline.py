@@ -1,10 +1,7 @@
 from src.helpers.decorators import consumer_source
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
-from src.data_frame_io.data_frame_io import DataFrameIO
-from rx.subject import Subject
-import rx.operators as op
-
+from rx.subject.subject import Subject
 
 @consumer_source(stream_name='kline')
 class Kline(PrimaryStreamConsumer):
@@ -34,6 +31,7 @@ class Kline(PrimaryStreamConsumer):
         super().__init__(primary, self.col_mapping)
         super().subscribe({'interval': '1m'})
         self.logger = get_logger('Kline')
+        
        
     def transform_message_dict(self, input_dict) -> dict:
         input_dict["k"]["s"] = input_dict["s"]

@@ -1,4 +1,4 @@
-from src.data_frame_io.primary_data_frame_io import PrimaryDataFrameIO
+from src.data_frame_io.kline_data_frame_io import KlineDataFrameIO
 from src.data_frame_io.range_bar_data_frame_io import RangeBarDataFrameIO
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.stream_consumers.primary_transformers.user_data import UserData
@@ -34,7 +34,7 @@ def setup():
     """
     Data Frame IO
     """
-    PrimaryDataFrameIO('kline', primary, secondary)
+    KlineDataFrameIO('kline', primary, secondary)
     RangeBarDataFrameIO('range_bar', primary, secondary)
     # DataFrameIO('user_data', primary, secondary)
     """

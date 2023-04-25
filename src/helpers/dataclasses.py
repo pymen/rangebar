@@ -46,6 +46,7 @@ class OrderStatusEvent:
 @dataclass
 class DataFrameIOCommandEvent:
     method: str
+    df_name: str
     kwargs: dict
         
         
