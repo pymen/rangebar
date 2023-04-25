@@ -3,7 +3,7 @@ from src.helpers.util import get_strategy_parameters_max
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
-from rx.subject import Subject
+from rx.subject.subject import Subject
 import rx.operators as op
 from src.helpers.dataclasses import PrimaryDataEvent, SecondaryDataEvent
 
@@ -27,14 +27,14 @@ class RangeBarDataFrameIO(DataFrameIO):
 
     def init_subscriptions(self):
         super().init_subscriptions()
-        self.primary.pipe(
-                op.filter(lambda o: isinstance(o, PrimaryDataEvent)),
-                op.map(self.generate_range_bars),
+        self.primary.pipe( # type: ignore
+                op.filter(lambda o: isinstance(o, PrimaryDataEvent)), # type: ignore
+                op.map(self.generate_range_bars), # type: ignore
                 observe_on_pool_scheduler()
             ).subscribe() 
     
     def publish_df_window(self, symbol: str):
-        super().publish_df_window(symbol, SecondaryDataEvent, False)
+        super().generic_publish_df_window(symbol, SecondaryDataEvent, False)
  
     def append_post_processing(self, symbol: str):
         self.append_symbol_df_data(symbol)

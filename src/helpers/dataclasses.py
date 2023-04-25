@@ -4,7 +4,7 @@ import pandas as pd
 @dataclass
 class KlineEvent:
     symbol: str
-    row: dict
+    row: dict[str, str | int]
 
 @dataclass
 class RangeBarEvent:
@@ -41,12 +41,12 @@ class HistoricalKlineEvent:
 class OrderStatusEvent:
     symbol: str
     payload_type: str # 'http' or 'ws'
-    payload: dict
+    payload: dict[str, str | int]
 
 @dataclass
 class DataFrameIOCommandEvent:
     method: str
     df_name: str
-    kwargs: dict
+    kwargs: dict[str, str | int]
         
         

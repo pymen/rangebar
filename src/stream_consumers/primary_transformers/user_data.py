@@ -1,10 +1,11 @@
 
 
+from typing import Any
 from src.helpers.dataclasses import OrderStatusEvent
 from src.helpers.util import flatten_dict, get_unix_epoch_time_ms
 from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
-from rx.subject import Subject
+from rx.subject.subject import Subject
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
 from src.util import get_logger
@@ -26,6 +27,7 @@ class UserData:
         self.logger = get_logger('AccountData')
         self.kill_polling = False
         self.kill_renew_listen_key = False
+        self.listen_key = ''
         self.primary = primary
         self.bi_settings = get_settings('bi')
         self.app_settings = get_settings('app')
@@ -48,66 +50,67 @@ class UserData:
         while True:
             for symbols_config in self.app_settings['symbols_config']:
                 symbol = symbols_config['symbol']
-                resp = await self.client.get_all_orders(symbol=symbol, timestamp=get_unix_epoch_time_ms())
+                resp = await self.client.get_all_orders(symbol=symbol, timestamp=get_unix_epoch_time_ms()) # type: ignore
                 count += 1
                 self.logger.info(f'{count}. get_all_orders: {resp}')
                 self.primary.on_next(OrderStatusEvent(
-                    symbol=symbol, payload_type='http', payload=resp))
+                    symbol=symbol, payload_type='http', payload=resp)) # type: ignore
             if self.kill_polling:
                 break
             # pause for 10 seconds before polling again
             await asyncio.sleep(10)
 
-    def get_exchange_info(self):
+    def get_exchange_info(self) -> dict[str, Any]:
         """
         Get the exchange info which includes rate limits
         """
-        resp = self.client.exchange_info()
+        resp = self.client.exchange_info() # type: ignore
         self.logger.info(f'exchange_info: {resp}')
-        return resp
+        return resp # type: ignore
 
-    def get_balance(self):
+    def get_balance(self) -> dict[str, Any]:
         """
         Get the balance
         """
-        resp = self.client.balance(timestamp=get_unix_epoch_time_ms())
+        resp = self.client.balance(timestamp=get_unix_epoch_time_ms()) # type: ignore
         self.logger.info(f'get_balance: {resp}')
-        return resp
+        return resp # type: ignore
 
     async def subscribe_to_user_stream(self):
         """
         Subscribe to the user stream
         """
-        def message_handler(message):
+        def message_handler(message: dict[str, Any]):
             print(message)
             if 'result' not in message or message['result'] is not None:
                 
                 # Update main with OrderStatusEvent, default symbol to 'general' if None
-                symbol = message['s'] if message.get('s') is not None else 'general'
+                symbol: str = message['s'] if message.get('s') is not None else 'general'
                 self.primary.on_next(OrderStatusEvent(
                     symbol=symbol, payload_type='ws', payload=message))
 
-        response = self.client.new_listen_key()
-        self.logger.info("Listen key : {}".format(response["listenKey"]))
+        response: dict[str, str] = self.client.new_listen_key() # type: ignore
+        my_listen_key: str = response["listenKey"] # type: ignore
+        self.logger.info(f"Listen key : {my_listen_key}")
 
         user_data_ws_client = CMFuturesWebsocketClient(stream_url=self.bi_settings['stream_url'])
         user_data_ws_client.start()
-        self.listen_key=response["listenKey"]
-        user_data_ws_client.user_data(
-            listen_key=self.listen_key,
+        self.listen_key: str = my_listen_key
+        user_data_ws_client.user_data( # type: ignore
+            listen_key=self.listen_key,  # type: ignore
             id=1,
-            callback=message_handler)
+            callback=message_handler) # type: ignore
         await self.renew_listen_key()
     
     async def renew_listen_key(self):
         while True:
             await asyncio.sleep(60 * 30)
-            response = self.client.renew_listen_key(self.listen_key)
-            self.logger.info("renew_listen_key: response : {}".format(response))
+            response: dict[str, str] = self.client.renew_listen_key(self.listen_key) # type: ignore
+            self.logger.info(f"renew_listen_key: response : {response}")
             if hasattr(self, 'kill_renew_listen_key') and self.kill_renew_listen_key:
                 break
 
-    def map_raw_payload(self, e):
+    def map_raw_payload(self, e: dict[str, Any]):
         event_type = e['e']
         if event_type == 'ACCOUNT_CONFIG_UPDATE':
             mapping = {
@@ -150,11 +153,11 @@ class UserData:
             # there are no lists so flattening first makes sense for this one
             flat = flatten_dict(e)
             result = self.map_payload(mapping, flat)
-            positions = []
+            positions: list[dict[str, str]] = []
             for p in result['positions']:
                 positions.append(self.map_payload(positions_array_item, p))
             result['positions'] = positions
-            balances = []
+            balances: list[dict[str, str]] = []
             for b in result['balances']:
                 balances.append(self.map_payload(balances_array_item, b))
             result['balances'] = balances
@@ -177,7 +180,7 @@ class UserData:
                 "mm": "maintenance_margin_required"
             }
             result = self.map_payload(mapping, e)
-            positions = []
+            positions: list[dict[str, str]] = []
             for p in result['positions']:
                 positions.append(self.map_payload(positions_array_item, p))
             result['positions'] = positions
@@ -222,8 +225,8 @@ class UserData:
             result = self.map_payload(mapping, flat)
 
 
-    def map_payload(self, mapping, input_dict):
-        output_dict = {}
+    def map_payload(self, mapping: dict[str, str], input_dict: dict[str, Any]) -> dict[str, Any]:
+        output_dict: dict[str, str] = {}
         for key, value in input_dict.items():
             if key in mapping:
                 output_dict[mapping[key]] = value

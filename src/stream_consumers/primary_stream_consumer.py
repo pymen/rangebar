@@ -62,7 +62,7 @@ class PrimaryStreamConsumer(ABC):
                 if output_dict is not None:
                     symbol, df_name, series = self.create_series_from_dict(output_dict)
                     event = DataFrameIOCommandEvent(method='append_row', df_name=df_name, kwargs={
-                                         'symbol': symbol.lower(), 'row': series})
+                                         'symbol': symbol.lower(), 'row': series}) # type: ignore
                     self.logger.debug(f'event: {str(event)}')
                     self.primary.on_next(event)
             except Exception as e:
@@ -93,8 +93,8 @@ class PrimaryStreamConsumer(ABC):
         """
         return input_dict
 
-    def shutdown(self) -> Any:
+    def shutdown(self) -> None:
         self.ws_client.stop() # type: ignore
 
-    def start(self):
+    def start(self) -> None:
         self.ws_client.start()

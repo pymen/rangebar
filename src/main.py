@@ -7,7 +7,7 @@ from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStra
 from src.strategies.simple_strategy.smiple_strategy import SimpleStrategy
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
-from rx.subject import Subject
+from rx.subject.subject import Subject
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
@@ -51,16 +51,16 @@ def setup():
     SimpleStrategy(secondary)
     return kline, user_date, range_bar
 
-consumers: tuple[Kline, UserData, RangeBar] = None
+consumers = setup()
 def start():
     global consumers
-    consumers = setup()
     for consumer in consumers:
-        consumer.start()
+        consumer.start() # type: ignore
 
 def stop():
+    global consumers
     for consumer in consumers:
-        consumer.stop()
+        consumer.stop() # type: ignore
 
     
     
