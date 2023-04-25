@@ -1,5 +1,10 @@
 https://binance-docs.github.io/apidocs/futures/en/
 
+## Architecture v2
+
+<img src="./rig-arch.png"
+     alt="rig architecture v2" />
+
 ## To Do
 * offline protection for account admin - if failed orchestration retry until successful
 * somehow transformers are being instantiated, even in tests which exclude those objects (was because there was an inst somewhere now removed, but retest) 

@@ -126,7 +126,5 @@ class HistoricalKline:
         # Set timestamp as the index
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-       
-       
         return df
                      

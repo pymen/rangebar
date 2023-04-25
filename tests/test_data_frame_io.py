@@ -1,3 +1,4 @@
+from src.data_frame_io.primary_data_frame_io import PrimaryDataFrameIO
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.util import get_logger
 from src.data_frame_io.data_frame_io import DataFrameIO
@@ -10,7 +11,7 @@ logging = get_logger('tests')
 def new_instance(df_name):
     primary = Subject()
     secondary = Subject()
-    data_frame_io = DataFrameIO(df_name, primary, secondary)
+    data_frame_io = PrimaryDataFrameIO(df_name, primary, secondary)
     return primary, secondary, data_frame_io
 
 
@@ -23,7 +24,7 @@ def test_window_logging():
 def test_kline_ingestion():
     primary, secondary, data_frame_io = new_instance('kline')
     data_frame_io.init_subscriptions()
-    kline = Kline(primary, secondary)
+    kline = Kline(primary)
     kline.start()
     time.sleep(120)
     kline.stop()
