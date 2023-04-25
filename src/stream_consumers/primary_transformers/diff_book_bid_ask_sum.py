@@ -1,11 +1,9 @@
-from src.helpers.decorators import consumer_source, derived_frame_trigger
+from typing import Any
+from src.helpers.decorators import consumer_source
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
-from src.data_frame_io.data_frame_io import DataFrameIO
 import pandas as pd
-from rx.subject import Subject
-import rx.operators as op
-
+from rx.subject.subject import Subject
 
 @consumer_source(stream_name='diff_book_depth')
 class DiffBookBidAskSum(PrimaryStreamConsumer):
@@ -30,7 +28,7 @@ class DiffBookBidAskSum(PrimaryStreamConsumer):
         super().subscribe({'speed': '500'})
         self.logger = get_logger('DiffBookBidAskSum')
 
-    def transform_message_dict(self, input_dict) -> dict:
+    def transform_message_dict(self, input_dict: Any) -> dict[str, str | int] | None:
         input_dict["b"] = sum(float(x[1]) for x in input_dict["b"])
         input_dict["a"] = sum(float(x[1]) for x in input_dict["a"])
         return input_dict
@@ -43,6 +41,6 @@ class DiffBookBidAskSum(PrimaryStreamConsumer):
         df_copy = df.drop(columns=["event_type", 'event_timestamp', "first_update_id_event",
                 "final_update_id_event", "previous_final_update_id_event"]).copy()
         self.logger.info(f"diff_book_resample ~ resampled: df_copy.columns: {df_copy.columns}")
-        resampled = df_copy.resample('30s').sum()
+        resampled = df_copy.resample('30s').sum() # type: ignore
         self.logger.info("diff_book_resample ~ resampled", type(resampled))
         return resampled

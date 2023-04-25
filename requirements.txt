@@ -1,3 +1,6 @@
 pytest
 setuptools
-rx 
+rx
+binance-futures-connector
+pandas
+numpy

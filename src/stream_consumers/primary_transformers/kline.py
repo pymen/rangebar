@@ -1,3 +1,4 @@
+from typing import Any
 from src.helpers.decorators import consumer_source
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
@@ -33,7 +34,7 @@ class Kline(PrimaryStreamConsumer):
         self.logger = get_logger('Kline')
         
        
-    def transform_message_dict(self, input_dict) -> dict:
+    def transform_message_dict(self, input_dict: Any) -> dict[str, str | int] | None:
         input_dict["k"]["s"] = input_dict["s"]
         if input_dict["k"]["x"] == True:
             return input_dict["k"]

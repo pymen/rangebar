@@ -1,13 +1,12 @@
 from abc import ABC
 import random
-from typing import Tuple
 from src.helpers.dataclasses import DataFrameIOCommandEvent
 from src.settings import get_settings
 from src.util import get_logger
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-import pandas as pd
 from rx.subject.subject import Subject
-
+import pandas as pd
+from typing import Any
 
 class PrimaryStreamConsumer(ABC):
     """
@@ -15,6 +14,7 @@ class PrimaryStreamConsumer(ABC):
     Transforms events originating from external sources
     """
 
+    source_name: str
     def __init__(self, primary: Subject, col_mapping: dict[str, str]) -> None:
         super().__init__()
         settings = get_settings('bi')
@@ -55,13 +55,12 @@ class PrimaryStreamConsumer(ABC):
             except Exception as e:
                 self.logger.info(f"An unknown error occurred: {e}")
 
-    def message_handler(self, message):
+    def message_handler(self, message: dict[str, str | int]):
         if 'result' not in message:
             try:
-                output_dict = self.transform_message_dict(message)
+                output_dict: dict[str, str | int] | None = self.transform_message_dict(message)
                 if output_dict is not None:
-                    symbol, df_name, series = self.create_series_from_dict(
-                        output_dict)
+                    symbol, df_name, series = self.create_series_from_dict(output_dict)
                     event = DataFrameIOCommandEvent(method='append_row', df_name=df_name, kwargs={
                                          'symbol': symbol.lower(), 'row': series})
                     self.logger.debug(f'event: {str(event)}')
@@ -71,30 +70,31 @@ class PrimaryStreamConsumer(ABC):
         else:
             self.logger.info(f"connection message: {message}")
 
-    def create_series_from_dict(self, input_dict: dict) -> Tuple:
+    def create_series_from_dict(self, input_dict: dict[str, str | int]) -> tuple[str, str, pd.Series[Any]]:
         self.logger.info(f"create_series_from_dict: {str(input_dict)}")
         try:
             # Map the dictionary keys to the desired column names using the col_mapping dictionary
-            output_dict = {}
+            output_dict: dict[str, str | int] = {}
             for key, value in input_dict.items():
                 if key in self.col_mapping:
                     output_dict[self.col_mapping[key]] = value
             # Create a pandas series using the updated dictionary
-            output_series = pd.Series(output_dict)
-            return (input_dict['s'].lower(), self.df_name, output_series)
+            output_series: pd.Series[Any] = pd.Series(output_dict)
+            symbol_lower: str = input_dict['s'] # type: ignore
+            return (symbol_lower, self.df_name, output_series)
         except KeyError as e:
             self.logger.info(
                 f"create_series_from_dict: mapping: KeyError: {str(e)}")
             raise e
 
-    def transform_message_dict(self, input_dict) -> dict:
+    def transform_message_dict(self, input_dict: dict[str, str | int]) -> dict[str, str | int] | None:
         """
         Called before mapping is applied to the input dictionary.
         """
         return input_dict
 
-    def shutdown(self):
-        self.ws_client.stop()
+    def shutdown(self) -> Any:
+        self.ws_client.stop() # type: ignore
 
     def start(self):
         self.ws_client.start()
