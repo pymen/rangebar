@@ -70,7 +70,7 @@ class PrimaryStreamConsumer(ABC):
         else:
             self.logger.info(f"connection message: {message}")
 
-    def create_series_from_dict(self, input_dict: dict[str, str | int]) -> tuple[str, str, pd.Series[Any]]:
+    def create_series_from_dict(self, input_dict: dict[str, str | int]) -> tuple[str, str, Any]:
         self.logger.info(f"create_series_from_dict: {str(input_dict)}")
         try:
             # Map the dictionary keys to the desired column names using the col_mapping dictionary
@@ -79,7 +79,7 @@ class PrimaryStreamConsumer(ABC):
                 if key in self.col_mapping:
                     output_dict[self.col_mapping[key]] = value
             # Create a pandas series using the updated dictionary
-            output_series: pd.Series[Any] = pd.Series(output_dict)
+            output_series = pd.Series(output_dict)
             symbol_lower: str = input_dict['s'] # type: ignore
             return (symbol_lower, self.df_name, output_series)
         except KeyError as e:

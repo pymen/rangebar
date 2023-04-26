@@ -9,3 +9,6 @@ https://binance-docs.github.io/apidocs/futures/en/
 ## To Do
 * offline protection for account admin - if failed orchestration retry until successful
 * append buy, sell lines of df to csv 
+
+## Notes
+python.analysis.typeCheckingMode

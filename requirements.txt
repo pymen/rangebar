@@ -4,3 +4,5 @@ rx
 binance-futures-connector
 pandas
 numpy
+ta
+scipy
