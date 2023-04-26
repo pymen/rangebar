@@ -10,8 +10,7 @@ from src.util import get_logger
 
 
 class SimpleStrategy:
-    per_trade_risk_perc_equity = 0.1
-    per_trade_amount_mbtc = 0.001
+    per_trade_risk_perc_equity = 0.02
     rsi_upper_limit = 70
     rsi_lower_limit = 30
     stop_loss_aadr_multiplier = 0.1
@@ -30,21 +29,21 @@ class SimpleStrategy:
             op.map(self.next)
         ).subscribe()
 
-    def next(self, e: StrategyTickEvent):
+    def next(self, e: StrategyTickEvent) -> None:
         df = e.df
         row = df.tail(1)
         current_close = row['close']
         index = df.index[-1]
-        numeric_index = df.index.get_loc(index) 
+        numeric_index = df.index.get_loc(index)
         stop_loss_magnitude = row['average_adr'] * \
             self.stop_loss_aadr_multiplier
         potential_profit_magnitude = row['average_adr'] * \
             self.potential_profit_aadr_multiplier
 
-        sl_buy = current_close - stop_loss_magnitude
-        tp_buy = current_close + potential_profit_magnitude
-        sl_sell = current_close + stop_loss_magnitude
-        tp_sell = current_close - potential_profit_magnitude
+        sl_buy = str(current_close - stop_loss_magnitude)
+        tp_buy = str(current_close + potential_profit_magnitude)
+        sl_sell = str(current_close + stop_loss_magnitude)
+        tp_sell = str(current_close - potential_profit_magnitude)
 
         is_long_rsi = row['rsi'] > self.rsi_upper_limit
         is_long_macd = row['macd'] > row['macd_signal'] > 0
@@ -54,17 +53,26 @@ class SimpleStrategy:
         is_short_rsi = row['rsi'] < self.rsi_lower_limit
         is_short_macd = row['macd'] < row['macd_signal'] < 0
         is_bb_lower_near = self.bb_lower_near(numeric_index, df, row)
-        is_bb_lower_pointing_down = self.bb_lower_pointing_down(numeric_index, df)
+        is_bb_lower_pointing_down = self.bb_lower_pointing_down(
+            numeric_index, df)
         is_bb_dist_above = row['bb_distance'] > self.anti_squeeze_distance
         is_volume_above_adv_limit = row['volume'] > row['adv']
 
         if is_long_rsi and is_long_macd and is_bb_upper_near and is_bb_upper_pointing_up and is_bb_dist_above:
-            self.client.buy(symbol=e.symbol, quantity=self.per_trade_amount_mbtc,
-                            stop_loss=sl_buy, take_profit=tp_buy, entry_price=current_close)
+            quantity = self.client.get_percentage_equity_quantity_usd( # type: ignore
+                self.per_trade_risk_perc_equity)  
+            self.logger.warn(
+                f'buy quantity: {quantity} at entry price: {current_close}')
+            self.client.buy(symbol=e.symbol, quantity=quantity,
+                            stop_loss=sl_buy, take_profit=tp_buy, entry_price=str(current_close))
             row['trade'] = 1
         elif is_short_rsi and is_short_macd and is_bb_lower_near and is_bb_lower_pointing_down and is_bb_dist_above and is_volume_above_adv_limit:
-            self.client.sell(symbol=e.symbol, quantity=self.per_trade_amount_mbtc,
-                             stop_loss=sl_sell, take_profit=tp_sell, entry_price=current_close)
+            quantity = self.client.get_percentage_equity_quantity_usd( # type: ignore
+                self.per_trade_risk_perc_equity) 
+            self.logger.warn(
+                f'sell quantity: {quantity} at entry price: {current_close}')
+            self.client.sell(symbol=e.symbol, quantity=quantity,
+                             stop_loss=sl_sell, take_profit=tp_sell, entry_price=str(current_close))
             row['trade'] = -1
         else:
             row['trade'] = 0

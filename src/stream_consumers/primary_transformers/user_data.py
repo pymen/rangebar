@@ -68,13 +68,7 @@ class UserData:
         self.logger.info(f'exchange_info: {resp}')
         return resp # type: ignore
 
-    def get_balance(self) -> dict[str, Any]:
-        """
-        Get the balance
-        """
-        resp = self.client.balance(timestamp=get_unix_epoch_time_ms()) # type: ignore
-        self.logger.info(f'get_balance: {resp}')
-        return resp # type: ignore
+    
 
     async def subscribe_to_user_stream(self):
         """

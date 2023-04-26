@@ -4,7 +4,7 @@ from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 
-@consumer_source(stream_name='kline')
+@consumer_source(source_name='kline')
 class Kline(PrimaryStreamConsumer):
     """
     Need a reference to the window to access the data frames

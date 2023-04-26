@@ -18,6 +18,7 @@ class PrimaryStreamConsumer(ABC):
     def __init__(self, primary: Subject, col_mapping: dict[str, str]) -> None:
         super().__init__()
         settings = get_settings('bi')
+        self.source_name = self.source_name
         self.ws_client = UMFuturesWebsocketClient(
             stream_url=settings['stream_url'])
         self.logger = get_logger('PrimaryStreamConsumer')
@@ -40,7 +41,7 @@ class PrimaryStreamConsumer(ABC):
         for symbol_config in self.settings['symbols_config']:
             symbol = symbol_config['symbol']
             self.logger.info(
-                f"base_stream_consumer: subscribe: symbol: {symbol}, stream_name: {self.source_name}")
+                f"base_stream_consumer: subscribe: symbol: {symbol}")
             stream_id = random.randint(100, 999)
             kwargs['id'] = stream_id
             kwargs['symbol'] = symbol

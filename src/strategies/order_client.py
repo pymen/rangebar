@@ -1,9 +1,9 @@
 from datetime import datetime
+from typing import Any
 from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
 from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
-
 from src.util import get_logger
 
 
@@ -17,14 +17,25 @@ class OrderClient:
     Not a limit order is not guaranteed to be filled! If it isn't the other 2 in the group should also be canceled
     """
     trades = []
-
     def __init__(self):
         self.logger = get_logger('OrderClient')
         self.settings = get_settings('bi')
         self.client = Client(
             key=self.settings['key'], secret=self.settings['secret'])
+        
 
-   
+    def get_percentage_equity_quantity_usdt(self, percentage_equity: float) -> float:
+        """
+        Get the quantity from the balance equity percentage
+        """
+        dict_list: list[dict[str, str]] = self.client.balance.balance() # type: ignore
+        usdt_dist: dict[str, str] = next((x for x in dict_list if x['asset'] == 'USDT'))
+        balance = float(usdt_dist['availableBalance'])
+        self.logger.debug(f'get_balance: usdt availableBalance: {balance}')
+        usdt_quantity = balance * percentage_equity
+        self.logger.debug(f'get_balance: usdt quantity: {usdt_quantity}')
+        return usdt_quantity
+
     def buy(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str):
         """
         BTC 0.001 is called a millibitcoin or mBTC. It is one-thousandth of a bitcoin (BTC)

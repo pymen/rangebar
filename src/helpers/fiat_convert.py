@@ -36,7 +36,7 @@ class CryptoToFiatConverter:
     This object is also a Singleton
     """
     __instance = None
-    _coingekko: CoinGeckoAPI = None
+    _coingekko: CoinGeckoAPI
     _coinlistings: List[Dict] = []
     _backoff: float = 0.0
 
@@ -51,7 +51,7 @@ class CryptoToFiatConverter:
                 # otherwise we risk bot impact if coingecko is down.
                 CryptoToFiatConverter._coingekko = CoinGeckoAPI(retries=1)
             except BaseException:
-                CryptoToFiatConverter._coingekko = None
+                CryptoToFiatConverter._coingekko
         return CryptoToFiatConverter.__instance
 
     def __init__(self) -> None:
