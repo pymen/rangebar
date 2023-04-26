@@ -6,7 +6,7 @@ import os
 from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject # type: ignore
-import rx.operators as op
+import rx.operators as op # type: ignore
 from src.helpers.dataclasses import DataFrameIOCommandEvent
 from abc import ABC #, abstractmethod
 
@@ -73,7 +73,7 @@ class DataFrameIO(ABC):
         rolling_window = df.rolling(window=f"{self.settings['window']}") # type: ignore
         if rolling_window.has_valid_values(): # type: ignore
             window_start: dt.datetime = rolling_window.start_time[0] # type: ignore
-            df = df[window_start:]
+            df = df[window_start:] # type: ignore
             self.symbol_df_dict[symbol] = pd.DataFrame(rolling_window)
 
     def save_symbol_df_data(self, symbol: str):

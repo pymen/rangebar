@@ -6,3 +6,6 @@ pandas
 numpy
 ta
 scipy
+# src/helpers/fiat_convert.py
+pycoingecko==3.1.0
+cachetools

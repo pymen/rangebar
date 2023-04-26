@@ -11,4 +11,9 @@ https://binance-docs.github.io/apidocs/futures/en/
 * append buy, sell lines of df to csv 
 
 ## Notes
-python.analysis.typeCheckingMode
+* python version 3.11
+* python.analysis.typeCheckingMode basic - strict was painful
+* pip install -r requirements.txt
+* some patterns, techniques & adapted modules where extracted from https://github.com/freqtrade/freqtrade
+* use to bypass seemly unsolvable typing issues: # type: ignore
+
