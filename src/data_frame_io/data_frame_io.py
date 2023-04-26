@@ -15,7 +15,7 @@ class DataFrameIO(ABC):
 
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
 
-    def __init__(self, df_name: str, primary: Subject, secondary: Subject):
+    def __init__(self, df_name: str, primary: Subject, secondary: Subject) -> None:
         super().__init__()
         self.logger = get_logger(f'DataFrameIO_{df_name}')
         self.df_name = df_name
@@ -23,22 +23,26 @@ class DataFrameIO(ABC):
         self.secondary = secondary
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
-            df = self.load_symbol_df_window(symbols_config['symbol'])
+            # df = self.load_symbol_df_window(symbols_config['symbol'])
+            df = None
             if bool(df):
                 self.symbol_df_dict[symbols_config['symbol']] = df
             else:
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
 
-    def init_subscriptions(self):
+    def get_period_duration(self) -> str:
+        return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"            
+
+    def init_subscriptions(self) -> None:
         self.primary.pipe(
             op.filter(lambda o: isinstance(o, DataFrameIOCommandEvent) and o.df_name == self.df_name), # type: ignore
             op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
             # observe_on_pool_scheduler()
         ).subscribe()
         
-    def generic_publish_df_window(self, symbol: str, event_object: object, primary: bool = True):
+    def generic_publish_df_window(self, symbol: str, event_object: object, primary: bool = True) -> None:
         df = self.symbol_df_dict[symbol]
-        rolling_window = df.rolling(window=f"{self.settings['window']}")
+        rolling_window = df.rolling(window=self.get_period_duration())
         if rolling_window.has_valid_values(): # type: ignore
             window_start = rolling_window.start_time[0] # type: ignore
             window_df = df[window_start:]
@@ -47,42 +51,46 @@ class DataFrameIO(ABC):
             else:    
                 self.secondary.on_next(event_object(symbol, window_df)) # type: ignore
 
-    def load_symbol_df_window(self, symbol: str) -> pd.DataFrame | None:
-        path = self.get_symbol_window_csv_path(symbol, self.df_name)
-        if os.path.exists(path):
-            df = pd.read_csv(path, index_col="timestamp", parse_dates=True) # type: ignore
-            df.sort_index(inplace=True) # type: ignore
+    # def load_symbol_df_window(self, symbol: str) -> pd.DataFrame | None:
+    #     path = self.get_symbol_window_csv_path(symbol, self.df_name)
+    #     if os.path.exists(path):
+    #         df = pd.read_csv(path, index_col="timestamp", parse_dates=True) # type: ignore
+    #         df.sort_index(inplace=True) # type: ignore
            
-            last_window_end: dt.datetime = df.index[-1] # type: ignore
+    #         last_window_end: dt.datetime = df.index[-1] # type: ignore
           
-            first_window_start: dt.datetime = df.index[0] # type: ignore
-            self.logger.info(
-                f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
-            # Convert integer to timedelta object
-            window_timedelta: dt.timedelta = dt.timedelta(days=int(self.settings['window']))
-            # Subtract timedelta from datetime object
-            window_start: dt.datetime = last_window_end - window_timedelta
-            if window_start > first_window_start:
-                df = df.loc[window_start:]
-            return df
+    #         first_window_start: dt.datetime = df.index[0] # type: ignore
+    #         self.logger.info(
+    #             f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
+    #         # Convert integer to timedelta object
+    #         window_timedelta: dt.timedelta = dt.timedelta(days=int(self.settings['window']))
+    #         # Subtract timedelta from datetime object
+    #         window_start: dt.datetime = last_window_end - window_timedelta
+    #         if window_start > first_window_start:
+    #             df = df.loc[window_start:]
+    #         return df
 
-    def prune_symbol_df_window(self, symbol: str, df: pd.DataFrame):
+  
+
+    def prune_symbol_df_window(self, symbol: str, df: pd.DataFrame) -> None: # type: ignore
         """
         Reduce size of in memory df, since we are only interested in 7 days
         """
-        rolling_window = df.rolling(window=f"{self.settings['window']}") # type: ignore
+        period_duration = self.get_period_duration()
+        self.logger.debug(f"period_duration: {period_duration}")
+        rolling_window = df.rolling(window=period_duration) # type: ignore
         if rolling_window.has_valid_values(): # type: ignore
             window_start: dt.datetime = rolling_window.start_time[0] # type: ignore
             df = df[window_start:] # type: ignore
             self.symbol_df_dict[symbol] = pd.DataFrame(rolling_window)
 
-    def save_symbol_df_data(self, symbol: str):
+    def save_symbol_df_data(self, symbol: str) -> None:
         df = self.symbol_df_dict[symbol]
         if not df.empty:
             df.to_csv(self.get_symbol_window_csv_path(
                         symbol, self.df_name))
             
-    def append_symbol_df_data(self, symbol: str):
+    def append_symbol_df_data(self, symbol: str) -> None:
         df = self.symbol_df_dict[symbol]
         if not df.empty:
             df.to_csv(self.get_symbol_window_csv_path(
@@ -90,23 +98,67 @@ class DataFrameIO(ABC):
                
     def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
         return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.csv'))
+    
+   
 
-    def append_row(self, symbol: str, row: Any):
+    def check_datetime_index(self, df: pd.DataFrame) -> bool:
+        """
+        Checks if the index of a DataFrame is a DatetimeIndex.
+        
+        Parameters:
+            df (pd.DataFrame): The DataFrame to be checked.
+
+        Returns:
+            bool: True if the index is a DatetimeIndex, False otherwise.
+        """
+        is_datetime_index = isinstance(df.index, pd.DatetimeIndex)
+        if not is_datetime_index:
+            self.logger.error('Dataframe index is not a DatetimeIndex')
+            raise ValueError('Dataframe index is not a DatetimeIndex')
+        else:
+            return True
+
+
+    def check_df_contains_window_period(self, df: pd.DataFrame) -> bool:
+        self.check_datetime_index(df)
+        """
+        Check if a DataFrame with datetime index contains at least 7 days of data.
+        
+        :param df: Pandas DataFrame to check.
+        :return: True if DataFrame contains at least 7 days of data, False otherwise.
+        """
+        window = self.settings['window']['value']
+        # Get the range of dates covered by the DataFrame
+        date_range = df.index.max() - df.index.min()
+        # Check if the DataFrame covers at least 7 days
+        if date_range.days >= window:
+            return True
+        else:
+            return False
+
+
+    def append_row(self, symbol: str, row: Any) -> None:
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         row['timestamp'] = pd.to_datetime(row['timestamp'], unit='ms') # type: ignore
         row_as_frame = row.to_frame().T
         row_as_frame.set_index('timestamp', inplace=True)  # type: ignore
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
-            [self.symbol_df_dict[symbol], row_as_frame])  
-        self.append_post_processing(symbol)
+            [self.symbol_df_dict[symbol], row_as_frame])
+        if self.check_df_contains_window_period(self.symbol_df_dict[symbol]):  
+            self.append_post_processing(symbol)
+        else:
+            self.logger.info(f"append_row: DataFrame for {symbol} does not contain window period of data, yet")    
 
-    def append_rows(self, symbol: str, df_section: pd.DataFrame):
+    def append_rows(self, symbol: str, df_section: pd.DataFrame) -> None:
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], df_section])
         self.symbol_df_dict[symbol].sort_values('timestamp', inplace=True)  # type: ignore
         self.symbol_df_dict[symbol].set_index('timestamp', inplace=True)  # type: ignore
-        self.append_post_processing(symbol)
+        if self.check_df_contains_window_period(self.symbol_df_dict[symbol]):  
+            self.append_post_processing(symbol)
+        else:
+            self.logger.info(f"append_rows: DataFrame for {symbol} does not contain window period of data, yet")
         
     def get_symbol_config(self, symbol: str):
         symbols_config = self.settings['symbols_config']

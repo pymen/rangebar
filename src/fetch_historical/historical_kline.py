@@ -1,3 +1,4 @@
+from typing import Any
 from src.helpers.dataclasses import HistoricalKlineEvent, DataFrameIOCommandEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.rx.pool_scheduler import observe_on_pool_scheduler
@@ -6,11 +7,11 @@ import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 
 
 class HistoricalKline:
-    def __init__(self, primary: Subject):
+    def __init__(self, primary: Subject) -> None:
          self.primary = primary
          self.processing = False
          self.um_futures_client = UMFutures()
@@ -33,10 +34,10 @@ class HistoricalKline:
             missing source data will be there for it to continue. The time elapsed may 
             need to be adjusted depending on how long this takes
             """
-            pairs = self.get_1000_minute_intervals(e.last_timestamp)
-            resp_data = self.fetch_all_intervals(e, pairs)
+            pairs: list[tuple[Any, Any]] = self.get_1000_minute_intervals(e.last_timestamp) # type: ignore
+            resp_data = self.fetch_all_intervals(e, pairs) 
             df = self.build_df(resp_data, e.symbol)
-            self.primary.on_next(DataFrameIOCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
+            self.primary.on_next(DataFrameIOCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df})) # type: ignore
             self.processing = False     
 
 
@@ -63,7 +64,7 @@ class HistoricalKline:
         return pairs      
 
 
-    def fetch_all_intervals(self, e: HistoricalKlineEvent, pairs: list([datetime, datetime])):
+    def fetch_all_intervals(self, e: HistoricalKlineEvent, pairs: list[tuple[Any, Any]]):
         resp_data = []
         count = 0
         for pair in pairs:
@@ -72,7 +73,7 @@ class HistoricalKline:
             start = get_unix_epoch_time_ms(dt_s)
             end = get_unix_epoch_time_ms(dt_e)
             self.logger.info(f'request: {count}, start: {start} end: {end}')
-            resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000)
+            resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000) # type: ignore
             self.logger.info(f'len: {len(resp)}')
             resp_data.extend(resp)
         return resp_data
