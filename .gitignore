@@ -2,7 +2,7 @@
 **/__pycache__/
 .pytest_cache
 notebooks/dataset.csv
-rolling_window_trader.egg-info
+rig.egg-info
 .vscode
 resources/symbol_windows/**
 notebooks/tmp-data/**
