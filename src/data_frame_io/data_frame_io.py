@@ -5,7 +5,7 @@ import os
 # from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.settings import get_settings
 from src.util import get_file_path, get_logger
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import DataFrameIOCommandEvent
 from abc import ABC #, abstractmethod

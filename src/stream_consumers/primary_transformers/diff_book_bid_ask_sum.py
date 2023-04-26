@@ -3,7 +3,7 @@ from src.helpers.decorators import consumer_source
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
 import pandas as pd
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 
 @consumer_source(stream_name='diff_book_depth')
 class DiffBookBidAskSum(PrimaryStreamConsumer):

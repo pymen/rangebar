@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from src.data_frame_io.data_frame_io import DataFrameIO
 from src.util import get_logger
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 from src.helpers.dataclasses import HistoricalKlineEvent, PrimaryDataEvent
 import datetime as dt
 

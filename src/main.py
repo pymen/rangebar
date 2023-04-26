@@ -7,7 +7,7 @@ from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStra
 from src.strategies.simple_strategy.smiple_strategy import SimpleStrategy
 from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import get_logger
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"

@@ -1,9 +1,7 @@
 from src.data_frame_io.kline_data_frame_io import KlineDataFrameIO
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.util import clear_logs, get_logger
-from src.data_frame_io.data_frame_io import DataFrameIO
-from rx.subject import Subject
-import time
+from rx.subject import Subject # type: ignore
 
 logging = get_logger('tests')
 

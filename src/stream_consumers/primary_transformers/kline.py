@@ -2,7 +2,7 @@ from typing import Any
 from src.helpers.decorators import consumer_source
 from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
 from src.util import get_logger
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 
 @consumer_source(stream_name='kline')
 class Kline(PrimaryStreamConsumer):

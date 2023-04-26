@@ -4,7 +4,7 @@ from src.helpers.dataclasses import DataFrameIOCommandEvent
 from src.settings import get_settings
 from src.util import get_logger
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 import pandas as pd
 from typing import Any
 
@@ -36,7 +36,7 @@ class PrimaryStreamConsumer(ABC):
                 snake_case += char
         return snake_case.lstrip("_")
 
-    def subscribe(self, kwargs: dict[str, str | int | function]):
+    def subscribe(self, kwargs: dict[str, Any]):
         for symbol_config in self.settings['symbols_config']:
             symbol = symbol_config['symbol']
             self.logger.info(

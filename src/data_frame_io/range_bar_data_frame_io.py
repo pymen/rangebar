@@ -3,7 +3,7 @@ from src.helpers.util import get_strategy_parameters_max
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
-from rx.subject.subject import Subject
+from rx.subject import Subject # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import PrimaryDataEvent, SecondaryDataEvent
 
