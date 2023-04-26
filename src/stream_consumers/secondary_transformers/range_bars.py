@@ -1,19 +1,20 @@
 import pandas as pd
 import numpy as np
-from src.helpers.dataclasses import HistoricalKlineEvent, KlineEvent, SecondaryDataEvent
+from src.helpers.dataclasses import SecondaryDataEvent
 from src.helpers.decorators import consumer_source
+from src.helpers.util import check_df_has_datetime_index
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.stream_consumers.secondary_stream_consumer import SecondaryStreamConsumer
 from src.util import get_logger
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
 import rx.operators as op
 import pandas as pd
-from rx.subject import Subject
 
 
-@consumer_source(event_source=KlineEvent)
+
+@consumer_source(name='range_bars')
 class RangeBar(SecondaryStreamConsumer):
     """
     Needs to handle the following:
@@ -24,18 +25,18 @@ class RangeBar(SecondaryStreamConsumer):
     And go back to the secondary data frame io, which will publish the df window to the indicators.
     """
 
-    def __init__(self, primary: Subject, secondary: Subject):
+    def __init__(self, primary: Subject, secondary: Subject) -> None:
         super().__init__(primary, secondary)
-        self.logger = get_logger('RangeBar')
+        self.logger = get_logger('RangeBars')
         self.primary = primary
         self.secondary = secondary
         self.primary.pipe(
-                op.filter(lambda o: isinstance(o, self.event_source)),
+                op.filter(lambda o: isinstance(o, SecondaryDataEvent)), # type: ignore
                 op.map(self.process),
                 observe_on_pool_scheduler(),
              ).subscribe()
         
-    def process(self, e: KlineEvent):
+    def process(self, e: SecondaryDataEvent) -> None:
         self.logger.info(f'process: {e}')
         range_bar_df = self.create_range_bar_df(e.df)
         self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
@@ -43,6 +44,7 @@ class RangeBar(SecondaryStreamConsumer):
 
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        check_df_has_datetime_index(df)
         """
         the window is from the last range bar timestamp to now, a mechanism to pull historical kline 
         data to fill in a gap that may occur if the application is stopped is also provided via 
@@ -70,7 +72,7 @@ class RangeBar(SecondaryStreamConsumer):
 
                 num_bars = int((high - current_low - range_size) // range_size)
                 for i in range(num_bars):
-                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'adv': row['adv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_low + range_size * (
+                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'adv': row['adv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_low + range_size * ( # type: ignore
                         i), 'high': current_low + range_size * (i + 1), 'low': current_low + range_size * (i), 'close': current_low + range_size * (i + 1)}
                     # print(f'adjusted timestamp: {current_bar["timestamp"]}')
                     filler_bars += 1
@@ -87,7 +89,7 @@ class RangeBar(SecondaryStreamConsumer):
 
                 num_bars = int((current_high - low - range_size) // range_size)
                 for i in range(num_bars):
-                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'adv': row['adv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_high - range_size * (
+                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'adv': row['adv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_high - range_size * ( # type: ignore
                         i + 1), 'high': current_high - range_size * (i), 'low': current_high - range_size * (i + 1), 'close': current_high - range_size * (i + 1)}
                     # print(f'adjusted timestamp: {current_bar["timestamp"]}')
                     filler_bars += 1

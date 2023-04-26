@@ -41,7 +41,7 @@ class HistoricalKline:
             self.processing = False     
 
 
-    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp):
+    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp) -> list[list[Any]]:
         """
         Returns a list of pairs of start and end times
         """
@@ -78,7 +78,7 @@ class HistoricalKline:
             resp_data.extend(resp)
         return resp_data
     
-    def build_df(self, resp_data, symbol: str):
+    def build_df(self, resp_data, symbol: str) -> pd.DataFrame:
         """
         https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
         [

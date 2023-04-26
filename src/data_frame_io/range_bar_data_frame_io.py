@@ -20,12 +20,12 @@ class RangeBarDataFrameIO(DataFrameIO):
     # this is the min window size of range bars that can be published to the indicators class eg: 26
     min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators)
 
-    def __init__(self, df_name: str, primary: Subject, secondary: Subject):
+    def __init__(self, df_name: str, primary: Subject, secondary: Subject) -> None:
         super().__init__(df_name, primary, secondary)
         self.logger = get_logger(f'RangeBarDataFrameIO')
         
 
-    def init_subscriptions(self):
+    def init_subscriptions(self) -> None:
         super().init_subscriptions()
         self.primary.pipe( # type: ignore
                 op.filter(lambda o: isinstance(o, PrimaryDataEvent)), # type: ignore
@@ -33,14 +33,14 @@ class RangeBarDataFrameIO(DataFrameIO):
                 observe_on_pool_scheduler()
             ).subscribe() 
     
-    def publish_df_window(self, symbol: str):
+    def publish_df_window(self, symbol: str) -> None:
         super().generic_publish_df_window(symbol, SecondaryDataEvent, False)
  
-    def append_post_processing(self, symbol: str):
+    def append_post_processing(self, symbol: str) -> None:
         self.append_symbol_df_data(symbol)
         self.publish_df_window(symbol)
 
-    def generate_range_bars(self):
+    def generate_range_bars(self) -> None:
         pass    
             
 

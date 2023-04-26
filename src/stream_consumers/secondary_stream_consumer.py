@@ -1,11 +1,8 @@
 from abc import ABC
-import random
 from typing import Tuple
-from src.settings import get_settings
 from src.util import get_logger
-from src.data_frame_io.data_frame_io import DataFrameIO
 import pandas as pd
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 import rx.operators as op
 
 
@@ -21,29 +18,14 @@ class SecondaryStreamConsumer(ABC):
         self.primary = primary
         self.secondary = secondary
        
-    def get_consumer_df_name(self):
+    def get_consumer_df_name(self) -> str:
         snake_case = ""
         for char in self.__class__.__name__:
             if char.isupper():
                 snake_case += "_" + char.lower()
             else:
                 snake_case += char
-        return snake_case.lstrip("_")    
-            
-    def create_series_from_dict(self, input_dict: dict) -> Tuple:
-        self.logger.info(f"create_series_from_dict: {str(input_dict)}")
-        try:
-            # Map the dictionary keys to the desired column names using the col_mapping dictionary
-            output_dict = {}
-            for key, value in input_dict.items():
-                if key in self.col_mapping:
-                    output_dict[self.col_mapping[key]] = value
-            # Create a pandas series using the updated dictionary
-            output_series = pd.Series(output_dict)
-            return (input_dict['s'].lower(), self.df_name, output_series)
-        except KeyError as e:
-            self.logger.info(f"create_series_from_dict: mapping: KeyError: {str(e)}")
-            raise e
+        return snake_case.lstrip("_")
     
     
  

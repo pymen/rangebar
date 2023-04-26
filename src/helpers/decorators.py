@@ -6,9 +6,11 @@ def config(**kwargs):
         return func
     return decorator
 
-def consumer_source(stream_name: str = None, event_source: object = None):
+def consumer_source(**kwargs):
     def decorator(cls):
-        cls.source_name = stream_name
-        cls.event_source = event_source
+        for key, value in kwargs.items():
+            setattr(cls, key, value)
+        cls.is_consumer_source = True
         return cls
     return decorator
+  

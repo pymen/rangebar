@@ -2,6 +2,7 @@ from typing import Any, Dict
 import pandas as pd
 import datetime as dt
 import os
+from src.helpers.util import check_df_has_datetime_index
 # from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.settings import get_settings
 from src.util import get_file_path, get_logger
@@ -99,28 +100,8 @@ class DataFrameIO(ABC):
     def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
         return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.csv'))
     
-   
-
-    def check_datetime_index(self, df: pd.DataFrame) -> bool:
-        """
-        Checks if the index of a DataFrame is a DatetimeIndex.
-        
-        Parameters:
-            df (pd.DataFrame): The DataFrame to be checked.
-
-        Returns:
-            bool: True if the index is a DatetimeIndex, False otherwise.
-        """
-        is_datetime_index = isinstance(df.index, pd.DatetimeIndex)
-        if not is_datetime_index:
-            self.logger.error('Dataframe index is not a DatetimeIndex')
-            raise ValueError('Dataframe index is not a DatetimeIndex')
-        else:
-            return True
-
-
     def check_df_contains_window_period(self, df: pd.DataFrame) -> bool:
-        self.check_datetime_index(df)
+        check_df_has_datetime_index(df)
         """
         Check if a DataFrame with datetime index contains at least 7 days of data.
         
@@ -134,6 +115,7 @@ class DataFrameIO(ABC):
         if date_range.days >= window:
             return True
         else:
+            self.logger.info(f"append_rows: DataFrame does not contain window period of data, yet")
             return False
 
 
@@ -144,10 +126,7 @@ class DataFrameIO(ABC):
         row_as_frame.set_index('timestamp', inplace=True)  # type: ignore
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], row_as_frame])
-        if self.check_df_contains_window_period(self.symbol_df_dict[symbol]):  
-            self.append_post_processing(symbol)
-        else:
-            self.logger.info(f"append_row: DataFrame for {symbol} does not contain window period of data, yet")    
+        self.append_post_processing(symbol)    
 
     def append_rows(self, symbol: str, df_section: pd.DataFrame) -> None:
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
@@ -155,31 +134,29 @@ class DataFrameIO(ABC):
             [self.symbol_df_dict[symbol], df_section])
         self.symbol_df_dict[symbol].sort_values('timestamp', inplace=True)  # type: ignore
         self.symbol_df_dict[symbol].set_index('timestamp', inplace=True)  # type: ignore
-        if self.check_df_contains_window_period(self.symbol_df_dict[symbol]):  
-            self.append_post_processing(symbol)
-        else:
-            self.logger.info(f"append_rows: DataFrame for {symbol} does not contain window period of data, yet")
+        self.append_post_processing(symbol)
+            
         
-    def get_symbol_config(self, symbol: str):
+    def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
     
-    # @abstractmethod
+    # @abstractmethod # forces the subclass to implement this method
     def add_basic_indicators(self, symbol: str) -> pd.DataFrame | None:
         """
         Abstract method to be implemented by child classes
         """
         pass
 
-    # @abstractmethod
+    # @abstractmethod # forces the subclass to implement this method
     def fill_historical(self, symbol: str) -> bool | None:
         """
         Abstract method to be implemented by child classes
         """
         pass
     
-    # @abstractmethod
-    def append_post_processing(self, symbol: str):
+    # @abstractmethod # forces the subclass to implement this method
+    def append_post_processing(self, symbol: str) -> None:
         """
         Abstract method to be implemented by child classes
         """

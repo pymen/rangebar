@@ -1,10 +1,7 @@
 from dataclasses import dataclass
 import pandas as pd
 
-@dataclass
-class KlineEvent:
-    symbol: str
-    row: dict[str, str | int]
+
 
 @dataclass
 class RangeBarEvent:

@@ -27,7 +27,7 @@ class PrimaryStreamConsumer(ABC):
         self.df_name = self.get_consumer_df_name()
         self.logger.debug(f'df_name: {self.df_name}')
 
-    def get_consumer_df_name(self):
+    def get_consumer_df_name(self) -> str:
         snake_case = ""
         for char in self.__class__.__name__:
             if char.isupper():
@@ -36,7 +36,7 @@ class PrimaryStreamConsumer(ABC):
                 snake_case += char
         return snake_case.lstrip("_")
 
-    def subscribe(self, kwargs: dict[str, Any]):
+    def subscribe(self, kwargs: dict[str, Any]) -> None:
         for symbol_config in self.settings['symbols_config']:
             symbol = symbol_config['symbol']
             self.logger.info(
@@ -55,7 +55,7 @@ class PrimaryStreamConsumer(ABC):
             except Exception as e:
                 self.logger.info(f"An unknown error occurred: {e}")
 
-    def message_handler(self, message: dict[str, str | int]):
+    def message_handler(self, message: dict[str, str | int]) -> None:
         if 'result' not in message:
             try:
                 output_dict: dict[str, str | int] | None = self.transform_message_dict(message)
