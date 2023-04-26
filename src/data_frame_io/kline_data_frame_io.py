@@ -2,6 +2,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from src.data_frame_io.data_frame_io import DataFrameIO
+from src.helpers.util import check_df_has_datetime_index
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 from src.helpers.dataclasses import HistoricalKlineEvent, PrimaryDataEvent
@@ -23,7 +24,7 @@ class KlineDataFrameIO(DataFrameIO):
 
     def fill_historical(self, symbol: str) -> bool:
         kline_df = self.symbol_df_dict[symbol]
-        self.check_datetime_index(kline_df)
+        check_df_has_datetime_index(kline_df)
         kline_last_index: dt.datetime = kline_df.index[-1] # type: ignore
         kline_first_index: dt.datetime = kline_df.index[0] # type: ignore
         num_days = (kline_last_index - kline_first_index).days + 1
@@ -31,7 +32,7 @@ class KlineDataFrameIO(DataFrameIO):
             f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
         if num_days < self.settings['window']['value']:
             # Set last_timestamp to one month ago
-            last_timestamp = pd.Timestamp.now() - pd.DateOffset(months=1)
+            last_timestamp = pd.Timestamp.now() - pd.DateOffset(days=self.settings['window']['value'])
             event = HistoricalKlineEvent(
                 symbol=symbol, source='kline', last_timestamp=last_timestamp)
             self.logger.info(f"fill_historical: event: {str(event)}")

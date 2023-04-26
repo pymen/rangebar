@@ -26,9 +26,9 @@ class SimpleStrategyIndicators:
 
     def init_subscriptions(self):
         self.primary.pipe(
-            observe_on_pool_scheduler(),
             op.filter(lambda o: isinstance(o, IndicatorTickEvent)),
             op.map(self.apply)
+            #  observe_on_pool_scheduler(),
         ).subscribe()
 
     def macd(self) -> None:

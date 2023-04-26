@@ -17,10 +17,10 @@ class HistoricalKline:
          self.um_futures_client = UMFutures()
          self.logger = get_logger('HistoricalKline')
          self.primary.pipe(
-                observe_on_pool_scheduler(),
                 op.filter(lambda o: isinstance(o, HistoricalKlineEvent)),
                 op.skip_while(lambda _: self.processing),
                 op.map(self.fetch_historical)
+                # observe_on_pool_scheduler(),
              ).subscribe()
 
     def fetch_historical(self, e: HistoricalKlineEvent):

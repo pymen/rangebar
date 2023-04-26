@@ -21,12 +21,13 @@ class SimpleStrategy:
         self.logger = get_logger('SimpleStrategy')
         self.client = OrderClient()
         self.secondary = secondary
+        self.init_subscriptions()
 
     def init_subscriptions(self) -> None:
         self.primary.pipe(  # type: ignore
-            observe_on_pool_scheduler(),
             op.filter(lambda o: isinstance(o, StrategyTickEvent)),
-            op.map(self.next)
+            op.map(self.next),
+            observe_on_pool_scheduler()
         ).subscribe()
 
     def next(self, e: StrategyTickEvent) -> None:

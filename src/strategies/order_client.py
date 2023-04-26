@@ -17,7 +17,7 @@ class OrderClient:
     Not a limit order is not guaranteed to be filled! If it isn't the other 2 in the group should also be canceled
     """
     trades = []
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = get_logger('OrderClient')
         self.settings = get_settings('bi')
         self.client = Client(
@@ -36,7 +36,7 @@ class OrderClient:
         self.logger.debug(f'get_balance: usdt quantity: {usdt_quantity}')
         return usdt_quantity
 
-    def buy(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str):
+    def buy(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str) -> None:
         """
         BTC 0.001 is called a millibitcoin or mBTC. It is one-thousandth of a bitcoin (BTC)
         min quantity is 0.001
@@ -124,7 +124,7 @@ class OrderClient:
                 )
             )
 
-    def sell(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str):
+    def sell(self, symbol: str, quantity: int, stop_loss: str, take_profit: str, entry_price: str) -> None:
         """
         BTC 0.001 is called a millibitcoin or mBTC. It is one-thousandth of a bitcoin (BTC)
         min quantity is 0.001
@@ -209,7 +209,7 @@ class OrderClient:
                 )
             )
 
-    def cancel_order(self, symbol, order_id):
+    def cancel_order(self, symbol, order_id) -> None:
         try:
             response = self.client.cancel_order( # type: ignore
                 symbol=symbol, orderId=order_id, recvWindow=5000

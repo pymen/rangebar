@@ -30,7 +30,7 @@ class RangeBarDataFrameIO(DataFrameIO):
         self.primary.pipe( # type: ignore
                 op.filter(lambda o: isinstance(o, PrimaryDataEvent)), # type: ignore
                 op.map(self.generate_range_bars), # type: ignore
-                observe_on_pool_scheduler()
+                # observe_on_pool_scheduler()
             ).subscribe() 
     
     def publish_df_window(self, symbol: str) -> None:

@@ -33,7 +33,7 @@ class RangeBar(SecondaryStreamConsumer):
         self.primary.pipe(
                 op.filter(lambda o: isinstance(o, SecondaryDataEvent)), # type: ignore
                 op.map(self.process),
-                observe_on_pool_scheduler(),
+                # observe_on_pool_scheduler(),
              ).subscribe()
         
     def process(self, e: SecondaryDataEvent) -> None:
