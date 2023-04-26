@@ -1,4 +1,5 @@
-from rx.subject import Subject
+import pandas as pd
+from rx.subject import Subject  # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import StrategyTickEvent
 from scipy.stats import linregress
@@ -15,14 +16,15 @@ class SimpleStrategy:
     rsi_lower_limit = 30
     stop_loss_aadr_multiplier = 0.1
     potential_profit_aadr_multiplier = 0.15
+    anti_squeeze_distance = 0.05
 
     def __init__(self, secondary: Subject):
         self.logger = get_logger('SimpleStrategy')
         self.client = OrderClient()
         self.secondary = secondary
 
-    def init_subscriptions(self):
-        self.primary.pipe(
+    def init_subscriptions(self) -> None:
+        self.primary.pipe(  # type: ignore
             observe_on_pool_scheduler(),
             op.filter(lambda o: isinstance(o, StrategyTickEvent)),
             op.map(self.next)
@@ -33,7 +35,7 @@ class SimpleStrategy:
         row = df.tail(1)
         current_close = row['close']
         index = df.index[-1]
-        numeric_index = self.df.index.get_loc(index)
+        numeric_index = df.index.get_loc(index) 
         stop_loss_magnitude = row['average_adr'] * \
             self.stop_loss_aadr_multiplier
         potential_profit_magnitude = row['average_adr'] * \
@@ -46,13 +48,13 @@ class SimpleStrategy:
 
         is_long_rsi = row['rsi'] > self.rsi_upper_limit
         is_long_macd = row['macd'] > row['macd_signal'] > 0
-        is_bb_upper_near = self.bb_upper_near(numeric_index, row)
-        is_bb_upper_pointing_up = self.bb_upper_pointing_up(numeric_index)
+        is_bb_upper_near = self.bb_upper_near(numeric_index, df, row)
+        is_bb_upper_pointing_up = self.bb_upper_pointing_up(numeric_index, df)
 
         is_short_rsi = row['rsi'] < self.rsi_lower_limit
         is_short_macd = row['macd'] < row['macd_signal'] < 0
-        is_bb_lower_near = self.bb_lower_near(numeric_index, row)
-        is_bb_lower_pointing_down = self.bb_lower_pointing_down(numeric_index)
+        is_bb_lower_near = self.bb_lower_near(numeric_index, df, row)
+        is_bb_lower_pointing_down = self.bb_lower_pointing_down(numeric_index, df)
         is_bb_dist_above = row['bb_distance'] > self.anti_squeeze_distance
         is_volume_above_adv_limit = row['volume'] > row['adv']
 
@@ -67,9 +69,9 @@ class SimpleStrategy:
         else:
             row['trade'] = 0
 
-    def bb_upper_near(self, index, row):
+    def bb_upper_near(self, df: pd.DataFrame, index, row) -> bool:
         try:
-            upper_series = self.df.iloc[:index+1]['bb_upper']
+            upper_series = df.iloc[:index+1]['bb_upper']
             if len(upper_series) < 2:
                 return False
             # self.logger.info(f'upper_series:\n{str(upper_series)}')
@@ -82,9 +84,9 @@ class SimpleStrategy:
             self.logger.info(f'bb_upper_near: exception: {e.__cause__}')
             raise e
 
-    def bb_lower_near(self, index, row):
+    def bb_lower_near(self, df: pd.DataFrame, index, row) -> bool:
         try:
-            lower_series = self.df.iloc[:index+1]['bb_lower']
+            lower_series = df.iloc[:index+1]['bb_lower']
             if len(lower_series) < 2:
                 return False
         #  self.logger.info(f'lower_series:\n{str(lower_series)}')
@@ -105,8 +107,8 @@ class SimpleStrategy:
             count += 1
         return count
 
-    def bb_upper_pointing_up(self, index):
-        bb_seg = self.df.iloc[index-3:index+1]['bb_upper']
+    def bb_upper_pointing_up(self, df: pd.DataFrame, index):
+        bb_seg = df.iloc[index-3:index+1]['bb_upper']
         # self.logger.info(f'bb_seg: {len(bb_seg)}')
         if len(bb_seg) > 0:
             seg_len = len(bb_seg)
@@ -118,8 +120,8 @@ class SimpleStrategy:
                 self.logger.info(f'bb_upper_pointing_up: exception: {str(e)}')
         return False
 
-    def bb_lower_pointing_down(self, index):
-        bb_seg = self.df.iloc[index-3:index+1]['bb_lower']
+    def bb_lower_pointing_down(self,  df: pd.DataFrame, index):
+        bb_seg = df.iloc[index-3:index+1]['bb_lower']
         # self.logger.info(f'bb_seg: {len(bb_seg)}')
         if len(bb_seg) > 0:
             seg_len = len(bb_seg)

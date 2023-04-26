@@ -1,6 +1,7 @@
 from datetime import datetime
 from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
+from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
 
 from src.util import get_logger
@@ -32,7 +33,7 @@ class OrderClient:
         This would be equivalent, with BTC to a so called pip in forex trading
         but likely different for other coins
         """
-        sl_tp_order_id_prefix = self.get_unix_epoch_time_ms(datetime.now())
+        sl_tp_order_id_prefix = get_unix_epoch_time_ms(datetime.now())
         sl_id = f'{sl_tp_order_id_prefix}_b_sl'
         tp_id = f'{sl_tp_order_id_prefix}_b_tp'
         bo_id = f'{sl_tp_order_id_prefix}_b_bo'
@@ -102,13 +103,13 @@ class OrderClient:
             }
         ]
         try:
-            response = self.client.new_batch_order(params)
+            response = self.client.new_batch_order(params) # type: ignore
             self.trades.append((sl_id, tp_id, bo_id))
             self.logger.info(response)
         except ClientError as error:
             self.logger.error(
                 "Found error. status: {}, error code: {}, error message: {}".format(
-                    error.status_code, error.error_code, error.error_message
+                    error.status_code, error.error_code, error.error_message # type: ignore
                 )
             )
 
@@ -120,7 +121,7 @@ class OrderClient:
         This would be equivalent, with BTC to a so called pip in forex trading
         but likely different for other coins
         """
-        sl_tp_order_id_prefix = self.get_unix_epoch_time_ms(datetime.now())
+        sl_tp_order_id_prefix = get_unix_epoch_time_ms(datetime.now())
         sl_id = f'{sl_tp_order_id_prefix}_s_sl'
         tp_id = f'{sl_tp_order_id_prefix}_s_tp'
         bo_id = f'{sl_tp_order_id_prefix}_s_bo'
@@ -187,26 +188,26 @@ class OrderClient:
             }
         ]
         try:
-            response = self.client.new_batch_order(params)
+            response = self.client.new_batch_order(params) # type: ignore
             self.trades.append((sl_id, tp_id, bo_id))
             self.logger.info(response)
         except ClientError as error:
             self.logger.error(
                 "Found error. status: {}, error code: {}, error message: {}".format(
-                    error.status_code, error.error_code, error.error_message
+                    error.status_code, error.error_code, error.error_message # type: ignore
                 )
             )
 
     def cancel_order(self, symbol, order_id):
         try:
-            response = self.client.cancel_order(
+            response = self.client.cancel_order( # type: ignore
                 symbol=symbol, orderId=order_id, recvWindow=5000
             )
             self.logger.info(f'Order cancelled: {response}')
         except ClientError as error:
             self.logger.info(
                 "Found error. status: {}, error code: {}, error message: {}".format(
-                    error.status_code, error.error_code, error.error_message
+                    error.status_code, error.error_code, error.error_message # type: ignore
                 )
             )
 

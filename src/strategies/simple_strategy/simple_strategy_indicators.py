@@ -1,7 +1,7 @@
 from typing import Tuple
 import pandas as pd
 import ta
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import IndicatorTickEvent, StrategyTickEvent
 from src.rx.pool_scheduler import observe_on_pool_scheduler
@@ -31,24 +31,24 @@ class SimpleStrategyIndicators:
             op.map(self.apply)
         ).subscribe()
 
-    def macd(self):
-        macd = ta.trend.MACD(
+    def macd(self) -> None:
+        macd = ta.trend.MACD( # type: ignore
             self.df['close'], window_slow=self.p_macd_window_slow, window_fast=self.p_macd_window_fast, window_sign=self.p_macd_window_sign)
         self.df['macd'] = macd.macd()
         self.df['macd_signal'] = macd.macd_signal()
         self.df['macd_histogram'] = macd.macd_diff()
 
-    def bb(self):
-        bb = ta.volatility.BollingerBands(
+    def bb(self) -> None:
+        bb = ta.volatility.BollingerBands( # type: ignore
             self.df['close'], window=self.p_bb_window, window_dev=self.p_bb_window_dev)
         self.df['bb_upper'] = bb.bollinger_hband()
         self.df['bb_lower'] = bb.bollinger_lband()
 
-    def rsi(self):
-        rsi = ta.momentum.RSIIndicator(self.df['close'], window=self.p_rsi_window)
+    def rsi(self) -> None:
+        rsi = ta.momentum.RSIIndicator(self.df['close'], window=self.p_rsi_window) # type: ignore
         self.df['rsi'] = rsi.rsi()
 
-    def apply(self, event: IndicatorTickEvent) -> Tuple[pd.DataFrame, int]:
+    def apply(self, event: IndicatorTickEvent) -> None:
         self.df = event.df.copy()
         self.macd()
         self.bb()
