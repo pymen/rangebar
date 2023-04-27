@@ -27,16 +27,14 @@ class AbstractDataFrameIO(ABC):
                 self.symbol_df_dict[symbols_config['symbol']] = df
             else:
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
+        self.init_subscriptions()        
 
     def get_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"            
  
     def generic_publish_df_window(self, symbol: str, event_object: object, primary: bool = True) -> None:
         df = self.symbol_df_dict[symbol]
-        rolling_window = df.rolling(window=self.get_period_duration())
-        window_start = rolling_window.start_time # type: ignore
-        self.logger.debug(f"window_start: {window_start}")
-        window_df = df[window_start:]
+        window_df = df.loc[df.index >= df.index.max() - pd.Timedelta(self.get_period_duration())]
         self.logger.debug(f"window_df: len: {len(window_df)}")
         has_correct_data = self.check_df_contains_window_period(window_df)
         if has_correct_data:

@@ -8,12 +8,14 @@ from rx.subject import Subject # type: ignore
 from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
 import datetime as dt
 from src.helpers.dataclasses import KlineFrameIOCommandEvent
+import rx.operators as op
 
 class KlineDataFrameIO(AbstractDataFrameIO):
 
     def __init__(self, df_name: str, primary: Subject, secondary: Subject) -> None:
         super().__init__(df_name, primary, secondary)
         self.logger = get_logger(f'PrimaryDataFrameIO_{df_name}')
+        
   
     def init_subscriptions(self) -> None:
         self.primary.pipe(

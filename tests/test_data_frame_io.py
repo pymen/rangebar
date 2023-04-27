@@ -1,6 +1,7 @@
 from src.data_frame_io.kline_data_frame_io import KlineDataFrameIO
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.stream_consumers.primary_transformers.kline import Kline
+from src.stream_consumers.secondary_transformers.range_bars import RangeBar
 from src.util import clear_logs, clear_symbol_windows, get_logger
 from rx.subject import Subject # type: ignore
 
@@ -14,5 +15,6 @@ def test_kline_ingestion() -> None:
     KlineDataFrameIO('kline', primary, secondary)
     HistoricalKline(primary)
     kline = Kline(primary)
+    RangeBar(primary, secondary)
     kline.start()
 
