@@ -1,4 +1,5 @@
-from src.helpers.dataclasses import HistoricalKlineEvent, WindowCommandEvent
+from typing import Any
+from src.helpers.dataclasses import HistoricalKlineEvent, DataFrameIOCommandEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
@@ -6,24 +7,24 @@ import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
 import datetime
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 
 
 class HistoricalKline:
-    def __init__(self, main: Subject):
-         self.main = main
+    def __init__(self, primary: Subject) -> None:
+         self.primary = primary
          self.processing = False
          self.um_futures_client = UMFutures()
          self.logger = get_logger('HistoricalKline')
-         self.main.pipe(
-                observe_on_pool_scheduler(),
+         self.primary.pipe(
                 op.filter(lambda o: isinstance(o, HistoricalKlineEvent)),
                 op.skip_while(lambda _: self.processing),
                 op.map(self.fetch_historical)
+                # observe_on_pool_scheduler(),
              ).subscribe()
 
     def fetch_historical(self, e: HistoricalKlineEvent):
-        print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
+        self.logger.debug(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
         if not self.processing:
             self.processing = True
             """
@@ -33,14 +34,14 @@ class HistoricalKline:
             missing source data will be there for it to continue. The time elapsed may 
             need to be adjusted depending on how long this takes
             """
-            pairs = self.get_1000_minute_intervals(e.last_timestamp)
-            resp_data = self.fetch_all_intervals(e, pairs)
+            pairs: list[tuple[Any, Any]] = self.get_1000_minute_intervals(e.last_timestamp) # type: ignore
+            resp_data = self.fetch_all_intervals(e, pairs) 
             df = self.build_df(resp_data, e.symbol)
-            self.main.on_next(WindowCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df}))
+            self.primary.on_next(DataFrameIOCommandEvent(method='append_rows', df_name='kline', kwargs={'symbol': e.symbol, 'df_section': df})) # type: ignore
             self.processing = False     
 
 
-    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp):
+    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp) -> list[list[Any]]:
         """
         Returns a list of pairs of start and end times
         """
@@ -63,7 +64,7 @@ class HistoricalKline:
         return pairs      
 
 
-    def fetch_all_intervals(self, e: HistoricalKlineEvent, pairs: list([datetime, datetime])):
+    def fetch_all_intervals(self, e: HistoricalKlineEvent, pairs: list[tuple[Any, Any]]):
         resp_data = []
         count = 0
         for pair in pairs:
@@ -72,12 +73,12 @@ class HistoricalKline:
             start = get_unix_epoch_time_ms(dt_s)
             end = get_unix_epoch_time_ms(dt_e)
             self.logger.info(f'request: {count}, start: {start} end: {end}')
-            resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000)
+            resp = self.um_futures_client.klines(symbol=e.symbol, interval="1m", startTime=start, endTime=end, limit=1000) # type: ignore
             self.logger.info(f'len: {len(resp)}')
             resp_data.extend(resp)
         return resp_data
     
-    def build_df(self, resp_data, symbol: str):
+    def build_df(self, resp_data, symbol: str) -> pd.DataFrame:
         """
         https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
         [
@@ -126,7 +127,6 @@ class HistoricalKline:
         # Set timestamp as the index
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-       
-       
+        df.set_index('timestamp', inplace=True)
         return df
                      

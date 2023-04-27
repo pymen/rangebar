@@ -2,7 +2,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Dict
 import os
 import glob
 
@@ -25,7 +25,7 @@ def get_file_path(filename: str) -> Path:
 
 
 
-def load_json(filename: str) -> dict:
+def load_json(filename: str) -> dict[str, str | int]:
     """
     Load data from json file path.
     """
@@ -40,7 +40,7 @@ def load_json(filename: str) -> dict:
         return {}
 
 
-def save_json(filename: str, data: dict) -> None:
+def save_json(filename: str, data: dict[str, str | int]) -> None:
     """
     Save data into json file path.
     """
@@ -52,17 +52,6 @@ def save_json(filename: str, data: dict) -> None:
             indent=4,
             ensure_ascii=False
         )
-
-        
-
-def virtual(func: Callable) -> Callable:
-    """
-    mark a function as "virtual", which means that this function can be override.
-    any base class should use this or @abstractmethod to decorate all functions
-    that can be (re)implemented by subclasses.
-    """
-    return func
-
 
 file_handlers: Dict[str, logging.FileHandler] = {}
 logging.basicConfig(level=logging.DEBUG, force=True)

@@ -1,9 +1,8 @@
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import HistoricalKlineEvent
-from src.settings import get_settings
+from src.stream_consumers.primary_transformers.kline import Kline
 from src.util import get_logger
-from src.window.window import Window
-from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
+from src.data_frame_io.data_frame_io import DataFrameIO
 from rx.subject import Subject
 import pandas as pd
 import datetime
@@ -11,19 +10,20 @@ import datetime
 logging = get_logger('tests')
 
 def new_instance():
-    main = Subject()
-    settings = get_settings('bi')
-    window = Window(UMFuturesWebsocketClient(stream_url=settings['stream_url']), Subject())
-    return HistoricalKline(window, main)
+    primary = Subject()
+    secondary = Subject()
+    DataFrameIO('kline', primary, secondary)
+    kline = Kline(primary, secondary)
+    return HistoricalKline(primary), kline
 
 def test_get_1000_minute_intervals():
-    target = new_instance()
+    target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     assert len(pairs) == 11
 
 def test_fetch_all_intervals():
-    target = new_instance()
+    target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
@@ -35,7 +35,7 @@ def chunk_array(arr, chunk_size=10000):
 
 
 def test_build_df():
-    target = new_instance()
+    target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-20 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
@@ -45,7 +45,7 @@ def test_build_df():
     # logging.debug(f'df len: {len(df)}')
 
 def test_fetch_historical():
-    target = new_instance()
+    target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp)    
 

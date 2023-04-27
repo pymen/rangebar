@@ -1,3 +1,13 @@
 pytest
 setuptools
-rx 
+rx
+binance-futures-connector
+pandas
+numpy
+ta
+scipy
+humanize
+backtesting
+# src/helpers/fiat_convert.py
+pycoingecko==3.1.0
+cachetools
