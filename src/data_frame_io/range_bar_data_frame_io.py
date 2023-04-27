@@ -1,13 +1,13 @@
-from src.data_frame_io.data_frame_io import DataFrameIO
+from src.data_frame_io.abstract_data_frame_io import AbstractDataFrameIO
 from src.helpers.util import get_strategy_parameters_max
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import PrimaryDataEvent, SecondaryDataEvent
+from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarFrameIOCommandEvent, RangeBarWindowDataEvent
 
-class RangeBarDataFrameIO(DataFrameIO):
+class RangeBarDataFrameIO(AbstractDataFrameIO):
     """
     In order for the indicators to be applied we need to have enough range bars to handle their look back periods.
     We can't fetch historical, but we can generate range bars from the kline data.
@@ -28,19 +28,19 @@ class RangeBarDataFrameIO(DataFrameIO):
     def init_subscriptions(self) -> None:
         super().init_subscriptions()
         self.primary.pipe( # type: ignore
-                op.filter(lambda o: isinstance(o, PrimaryDataEvent)), # type: ignore
+                op.filter(lambda o: isinstance(o, RangeBarFrameIOCommandEvent)), # type: ignore
                 op.map(self.generate_range_bars), # type: ignore
                 # observe_on_pool_scheduler()
             ).subscribe() 
     
     def publish_df_window(self, symbol: str) -> None:
-        super().generic_publish_df_window(symbol, SecondaryDataEvent, False)
+        super().generic_publish_df_window(symbol, RangeBarWindowDataEvent, False)
  
     def append_post_processing(self, symbol: str) -> None:
         self.append_symbol_df_data_to_csv(symbol)
         self.publish_df_window(symbol)
 
-    def generate_range_bars(self) -> None:
+    def generate_range_bars(self, e: KlineWindowDataEvent) -> None:
         pass    
             
 

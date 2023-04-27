@@ -2,7 +2,7 @@ from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import HistoricalKlineEvent
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.util import get_logger
-from src.data_frame_io.data_frame_io import DataFrameIO
+from src.data_frame_io.abstract_data_frame_io import AbstractDataFrameIO
 from rx.subject import Subject
 import pandas as pd
 import datetime
@@ -12,7 +12,7 @@ logging = get_logger('tests')
 def new_instance():
     primary = Subject()
     secondary = Subject()
-    DataFrameIO('kline', primary, secondary)
+    AbstractDataFrameIO('kline', primary, secondary)
     kline = Kline(primary, secondary)
     return HistoricalKline(primary), kline
 

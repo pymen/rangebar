@@ -1,20 +1,18 @@
 from dataclasses import dataclass
 import pandas as pd
 
-
-
 @dataclass
-class RangeBarEvent:
-    symbol: str
-    df: pd.DataFrame # data frame with range bars for the symbol with len equal to what is needed by the indicator
-
-@dataclass
-class PrimaryDataEvent:
+class KlineWindowDataEvent:
     symbol: str
     df: pd.DataFrame
 
 @dataclass
-class SecondaryDataEvent:
+class RangeBarWindowDataEvent:
+    symbol: str
+    df: pd.DataFrame    
+
+@dataclass
+class RangeBarFrameIOCommandEvent:
     symbol: str
     df: pd.DataFrame
 
@@ -41,7 +39,7 @@ class OrderStatusEvent:
     payload: dict[str, str | int]
 
 @dataclass
-class DataFrameIOCommandEvent:
+class KlineFrameIOCommandEvent:
     method: str
     df_name: str
     kwargs: dict[str, str | int]

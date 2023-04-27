@@ -7,12 +7,9 @@ from src.helpers.util import check_df_has_datetime_index
 from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject # type: ignore
-import rx.operators as op # type: ignore
-from src.helpers.dataclasses import DataFrameIOCommandEvent
-from abc import ABC #, abstractmethod
+from abc import ABC, abstractmethod #, abstractmethod
 
-
-class DataFrameIO(ABC):
+class AbstractDataFrameIO(ABC):
 
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
 
@@ -33,18 +30,11 @@ class DataFrameIO(ABC):
 
     def get_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"            
-
-    def init_subscriptions(self) -> None:
-        self.primary.pipe(
-            op.filter(lambda o: isinstance(o, DataFrameIOCommandEvent) and o.df_name == self.df_name), # type: ignore
-            op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
-            # observe_on_pool_scheduler()
-        ).subscribe()
-        
+ 
     def generic_publish_df_window(self, symbol: str, event_object: object, primary: bool = True) -> None:
         df = self.symbol_df_dict[symbol]
         rolling_window = df.rolling(window=self.get_period_duration())
-        window_start = rolling_window.start_time[0] # type: ignore
+        window_start = rolling_window.start_time # type: ignore
         self.logger.debug(f"window_start: {window_start}")
         window_df = df[window_start:]
         self.logger.debug(f"window_df: len: {len(window_df)}")
@@ -146,23 +136,27 @@ class DataFrameIO(ABC):
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
     
-    # @abstractmethod # forces the subclass to implement this method
+    # @abstractmethod # forces the subclass to implement this method - we want optional implementation
     def add_basic_indicators(self, symbol: str) -> pd.DataFrame | None:
         """
         Abstract method to be implemented by child classes
         """
         pass
 
-    # @abstractmethod # forces the subclass to implement this method
+    # @abstractmethod # forces the subclass to implement this method - we want optional implementation
     def fill_historical(self, symbol: str) -> bool | None:
         """
         Abstract method to be implemented by child classes
         """
         pass
     
-    # @abstractmethod # forces the subclass to implement this method
+    # @abstractmethod # forces the subclass to implement this method - we want optional implementation
     def append_post_processing(self, symbol: str) -> None:
         """
         Abstract method to be implemented by child classes
         """
+        pass
+
+    @abstractmethod    
+    def init_subscriptions(self) -> None:
         pass

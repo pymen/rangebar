@@ -1,22 +1,29 @@
 from typing import Any
 import numpy as np
 import pandas as pd
-from src.data_frame_io.data_frame_io import DataFrameIO
+from src.data_frame_io.abstract_data_frame_io import AbstractDataFrameIO
 from src.helpers.util import check_df_has_datetime_index
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
-from src.helpers.dataclasses import HistoricalKlineEvent, PrimaryDataEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
 import datetime as dt
+from src.helpers.dataclasses import KlineFrameIOCommandEvent
 
-class KlineDataFrameIO(DataFrameIO):
+class KlineDataFrameIO(AbstractDataFrameIO):
 
     def __init__(self, df_name: str, primary: Subject, secondary: Subject) -> None:
         super().__init__(df_name, primary, secondary)
         self.logger = get_logger(f'PrimaryDataFrameIO_{df_name}')
-        self.init_subscriptions()
+  
+    def init_subscriptions(self) -> None:
+        self.primary.pipe(
+            op.filter(lambda o: isinstance(o, KlineFrameIOCommandEvent) and o.df_name == self.df_name), # type: ignore
+            op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
+            # observe_on_pool_scheduler()
+        ).subscribe()    
 
     def publish_df_window(self, symbol: str) -> None:
-        super().generic_publish_df_window(symbol, PrimaryDataEvent, True)
+        super().generic_publish_df_window(symbol, KlineWindowDataEvent, True)
         
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']

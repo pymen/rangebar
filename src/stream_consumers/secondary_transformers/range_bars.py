@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.helpers.dataclasses import SecondaryDataEvent
+from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarFrameIOCommandEvent
 from src.helpers.decorators import consumer_source
 from src.helpers.util import check_df_has_datetime_index
 from src.rx.pool_scheduler import observe_on_pool_scheduler
@@ -31,16 +31,16 @@ class RangeBar(SecondaryStreamConsumer):
         self.primary = primary
         self.secondary = secondary
         self.primary.pipe(
-                op.filter(lambda o: isinstance(o, SecondaryDataEvent)), # type: ignore
+                op.filter(lambda o: isinstance(o, KlineWindowDataEvent)), # type: ignore
                 op.map(self.process),
                 # observe_on_pool_scheduler(),
              ).subscribe()
         
-    def process(self, e: SecondaryDataEvent) -> None:
+    def process(self, e: KlineWindowDataEvent) -> None:
         self.logger.info(f'process: {e}')
         range_bar_df = self.create_range_bar_df(e.df)
         self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
-        self.secondary.on_next(SecondaryDataEvent(e.symbol, range_bar_df))
+        self.secondary.on_next(RangeBarFrameIOCommandEvent(e.symbol, range_bar_df))
 
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:
