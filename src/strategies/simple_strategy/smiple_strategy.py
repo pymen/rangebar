@@ -24,10 +24,10 @@ class SimpleStrategy:
         self.init_subscriptions()
 
     def init_subscriptions(self) -> None:
-        self.primary.pipe(  # type: ignore
+        self.secondary.pipe(  # type: ignore
             op.filter(lambda o: isinstance(o, StrategyTickEvent)),
             op.map(self.next),
-            observe_on_pool_scheduler()
+            # observe_on_pool_scheduler()
         ).subscribe()
 
     def next(self, e: StrategyTickEvent) -> None:

@@ -37,7 +37,7 @@ class RangeBarDataFrameIO(DataFrameIO):
         super().generic_publish_df_window(symbol, SecondaryDataEvent, False)
  
     def append_post_processing(self, symbol: str) -> None:
-        self.append_symbol_df_data(symbol)
+        self.append_symbol_df_data_to_csv(symbol)
         self.publish_df_window(symbol)
 
     def generate_range_bars(self) -> None:

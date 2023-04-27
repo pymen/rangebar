@@ -24,7 +24,7 @@ class HistoricalKline:
              ).subscribe()
 
     def fetch_historical(self, e: HistoricalKlineEvent):
-        print(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
+        self.logger.debug(f'fetch_historical: e.type: {type(e)}, e: {str(e)}')
         if not self.processing:
             self.processing = True
             """
@@ -37,7 +37,7 @@ class HistoricalKline:
             pairs: list[tuple[Any, Any]] = self.get_1000_minute_intervals(e.last_timestamp) # type: ignore
             resp_data = self.fetch_all_intervals(e, pairs) 
             df = self.build_df(resp_data, e.symbol)
-            self.primary.on_next(DataFrameIOCommandEvent(method='append_rows', kwargs={'symbol': e.symbol, 'df_name': 'kline', 'df_section': df})) # type: ignore
+            self.primary.on_next(DataFrameIOCommandEvent(method='append_rows', df_name='kline', kwargs={'symbol': e.symbol, 'df_section': df})) # type: ignore
             self.processing = False     
 
 
@@ -127,5 +127,6 @@ class HistoricalKline:
         # Set timestamp as the index
         # convert timestamp column to datetime and set it as index
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df.set_index('timestamp', inplace=True)
         return df
                      

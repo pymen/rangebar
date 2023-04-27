@@ -44,13 +44,19 @@ class DataFrameIO(ABC):
     def generic_publish_df_window(self, symbol: str, event_object: object, primary: bool = True) -> None:
         df = self.symbol_df_dict[symbol]
         rolling_window = df.rolling(window=self.get_period_duration())
-        if rolling_window.has_valid_values(): # type: ignore
-            window_start = rolling_window.start_time[0] # type: ignore
-            window_df = df[window_start:]
+        window_start = rolling_window.start_time[0] # type: ignore
+        self.logger.debug(f"window_start: {window_start}")
+        window_df = df[window_start:]
+        self.logger.debug(f"window_df: len: {len(window_df)}")
+        has_correct_data = self.check_df_contains_window_period(window_df)
+        if has_correct_data:
             if primary:
                 self.primary.on_next(event_object(symbol, window_df)) # type: ignore
             else:    
                 self.secondary.on_next(event_object(symbol, window_df)) # type: ignore
+        else:
+            self.logger.warning(f"Dataframe for {symbol} does not contain correct data")
+                
 
     # def load_symbol_df_window(self, symbol: str) -> pd.DataFrame | None:
     #     path = self.get_symbol_window_csv_path(symbol, self.df_name)
@@ -91,7 +97,7 @@ class DataFrameIO(ABC):
             df.to_csv(self.get_symbol_window_csv_path(
                         symbol, self.df_name))
             
-    def append_symbol_df_data(self, symbol: str) -> None:
+    def append_symbol_df_data_to_csv(self, symbol: str) -> None:
         df = self.symbol_df_dict[symbol]
         if not df.empty:
             df.to_csv(self.get_symbol_window_csv_path(
@@ -133,7 +139,6 @@ class DataFrameIO(ABC):
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], df_section])
         self.symbol_df_dict[symbol].sort_values('timestamp', inplace=True)  # type: ignore
-        self.symbol_df_dict[symbol].set_index('timestamp', inplace=True)  # type: ignore
         self.append_post_processing(symbol)
             
         
