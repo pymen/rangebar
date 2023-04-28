@@ -1,12 +1,10 @@
 import pandas as pd
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 import rx.operators as op
 import asyncio
 import pytest
 from src.helpers.dataclasses import HistoricalKlineEvent, OrderStatusEvent
-from src.util import get_logger
 
-logging = get_logger('tests')
 
 def op_map_append_str(e):
     return ','.join([str(e), 'appended'])

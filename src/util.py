@@ -82,12 +82,11 @@ def to_snake_case(text: str) -> str:
     words = re.findall('[a-z]+|[A-Z][a-z]*', text)
     return '_'.join(word.lower() for word in words)
 
-def get_logger(name: str | object) -> logging.Logger:
+def get_logger(cls: object) -> logging.Logger:
     """
     return a logger that writes records into a file.
     """
-    if isinstance(name, object):
-        name = name.__class__.__name__
+    name = cls.__class__.__name__
     filename = str(get_file_path(f'logs/{to_snake_case(name)}.log').absolute())
     log_formatter = logging.Formatter('[%(asctime)s][%(threadName)s](%(levelname)s) %(name)s: %(message)s')
     logger = logging.getLogger(name)

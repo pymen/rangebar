@@ -2,7 +2,10 @@
 from pathlib import Path
 from src.util import get_logger
 
-logging = get_logger('tests')
+class TestLogger:
+    pass
+
+test_logger = get_logger(TestLogger)
 
 def write_to_tests_out_file(content, filename):
     cwd = Path.cwd()

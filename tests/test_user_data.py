@@ -1,15 +1,13 @@
 
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
-from rx.subject import Subject
+from rx.subject import Subject # type: ignore
 from src.helpers.dataclasses import OrderStatusEvent
 from src.stream_consumers.exchange.user_data import UserData
-from src.util import get_logger
 from tests.utils import read_from_tests_out_json_to_dict, write_to_tests_out_file
 import asyncio
 import pytest
 import time
 
-logging = get_logger('tests')
 
 def new_instance():
     main = Subject()

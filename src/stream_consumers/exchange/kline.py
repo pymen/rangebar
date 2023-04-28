@@ -31,7 +31,7 @@ class Kline(ExchangeStreamConsumer):
     def __init__(self, primary: Subject):
         super().__init__(primary, self.col_mapping)
         super().subscribe({'interval': '1m'})
-        self.logger = get_logger('Kline')
+        self.logger = get_logger(self)
         
        
     def transform_message_dict(self, input_dict: Any) -> dict[str, str | int] | None:

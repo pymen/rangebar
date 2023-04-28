@@ -1,7 +1,7 @@
 from src.helpers.fiat_convert import CryptoToFiatConverter
-from src.helpers.util import get_unix_epoch_time_ms
 from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
+from tests.utils import test_logger
 
 
 def test_crypto_to_fiat():

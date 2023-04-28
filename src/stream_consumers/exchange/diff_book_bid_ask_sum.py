@@ -26,7 +26,7 @@ class DiffBookBidAskSum(ExchangeStreamConsumer):
     def __init__(self, primary: Subject):
         super().__init__(primary, self.col_mapping)
         super().subscribe({'speed': '500'})
-        self.logger = get_logger('DiffBookBidAskSum')
+        self.logger = get_logger(self)
 
     def transform_message_dict(self, input_dict: Any) -> dict[str, str | int] | None:
         input_dict["b"] = sum(float(x[1]) for x in input_dict["b"])

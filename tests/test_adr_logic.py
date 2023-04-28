@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
-from src.util import get_logger
 from tests.utils import get_test_out_absolute_path
-
-logger = get_logger('tests')
+from tests.utils import test_logger
 
 def setup():
     csv_path = get_test_out_absolute_path('sample-with-date.csv')
@@ -23,10 +21,10 @@ def test_add_adr_logic():
         low_min = pd.to_numeric(low_min, errors='coerce')
         logger.debug(f"adr: high_max: {high_max.to_list()} ({type(high_max)}),  low_min: {low_min.to_list()} ({type(low_min)})")  # type: ignore
         adr = high_max - low_min # type: ignore
-        logger.debug(f"adr: vector subtraction: dr: {adr}")
+        test_logger.debug(f"adr: vector subtraction: dr: {adr}")
         daily_high_low['adr'] = adr
         average_adr = np.mean(daily_high_low['adr'])  # type: ignore
         logger.info(f"result: adr: average_adr: {str(average_adr)}")  # type: ignore
     except Exception as e:
-        logger.error(f"adr: {str(e)}")
+        test_logger.error(f"adr: {str(e)}")
         
