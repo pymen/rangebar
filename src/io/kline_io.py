@@ -54,7 +54,11 @@ class KlineIO(AbstractIO):
             return None
 
     def get_pre_publish_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
-        return [self.relative_adr_range_size, self.apv]
+        return [self.relative_adr_range_size, self.apv, self.mark]
+    
+    def mark(self, df: pd.DataFrame):
+        df['mark'] = -1
+        return df
 
     def adr(self, df: pd.DataFrame) -> float | None:
         df['date'] = df.copy().index.date  # type: ignore
@@ -99,21 +103,32 @@ class KlineIO(AbstractIO):
         df['apv'] = result
         return df
 
-    def check_df_contains_window_period(self, df: pd.DataFrame, window_period: pd.Timedelta) -> bool:
+    def check_df_contains_processors_window(self, df: pd.DataFrame, window: pd.Timedelta | int) -> bool:
         date_range = df.index.max() - df.index.min()
         self.logger.debug(
-            f"date_range_days: {str(date_range)}, window: {str(window_period)}")
-        if date_range >= window_period:
+            f"date_range_days: {str(date_range)}, window: {str(window)}")
+        if date_range >= window:
             return True
         else:
             self.logger.info(
-                f"check_df_contains_window_period: DataFrame does not contain window period of data, yet. diff: {str(window_period - date_range)}")
+                f"check_df_contains_window_period: DataFrame does not contain window period of data, yet. diff: {str(window - date_range)}")
             return False
 
-    def append_post_processing(self, symbol: str) -> None:
+    def find_delta_for_last_mark(self, symbol: str) -> pd.Timedelta:
+        kline_df = self.symbol_df_dict[symbol]
+        last_index = (kline_df['mark'] == 1).idxmax()
+        self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
+        delta = pd.Timestamp.now() - last_index # type: ignore
+        return delta
+
+    def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
+        processors_window = pd.Timedelta(self.get_period_duration())
+        emit_window = self.find_delta_for_last_mark(symbol)
         event = self.fill_historical(symbol)
         if event is not None:
             self.primary.on_next(event)
-        else:
-            super().generic_publish_df_window(symbol, KlineWindowDataEvent)
+        elif batch:
+            super().publish_batch_df_window(symbol, KlineWindowDataEvent, processors_window)
+        else:    
+            super().publish_df_window(symbol, KlineWindowDataEvent, processors_window, emit_window)
                 

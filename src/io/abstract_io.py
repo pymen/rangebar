@@ -26,15 +26,10 @@ class AbstractIO(ABC):
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
         self.init_subscriptions()
 
-    def get_period_duration(self) -> str:
-        return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"
-
-    def generic_publish_df_window(self, symbol: str, event_object: object, period_duration: pd.Timedelta | None = None) -> None:
-        if period_duration is None:
-            period_duration = pd.Timedelta(self.get_period_duration())
+    def publish_batch_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int) -> None:
         df = self.symbol_df_dict[symbol]
         check_df_has_datetime_index(df)
-        has_enough_data = self.check_df_contains_window_period(df, period_duration)
+        has_enough_data = self.check_df_contains_processors_window(df, processors_window)
         if has_enough_data:
             pp_processors = self.get_pre_publish_processors()
             if len(pp_processors) > 0:
@@ -48,16 +43,57 @@ class AbstractIO(ABC):
                 self.logger.error(
                     f'append_post_processing: save_symbol_df_data: {str(e)}')        
             self.logger.debug(
-                f"symbol df len: {len(df)}, period_duration: {period_duration}, start: {str(df.index.min())}, end: {str(df.index.max())}")
-            window_df: pd.DataFrame = df.loc[df.index >=
-                                             df.index.max() - period_duration]
-            self.logger.debug(
-                f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
-            self.primary.on_next(event_object(
-                window_df, symbol))  # type: ignore
+                f"symbol df len: {len(df)}, period_duration: {processors_window}, start: {str(df.index.min())}, end: {str(df.index.max())}")
+            window_df: pd.DataFrame | None = None
+            if isinstance(processors_window, pd.Timedelta):
+                    window_df = df.loc[df.index >= df.index.max() - processors_window]
+            else:
+                window_df = df.iloc[-processors_window:]       
+            if window_df is not None:     
+                self.logger.debug(
+                    f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
+                self.primary.on_next(event_object(
+                    window_df, symbol))  # type: ignore
         else:
             self.logger.warning(
-                f"Window Dataframe for {symbol}, with period required {str(period_duration)}, does not contain enough data")
+                f"Window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
+
+    def publish_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> None:
+        df = self.symbol_df_dict[symbol]
+        check_df_has_datetime_index(df)
+        has_enough_data = self.check_df_contains_processors_window(df, processors_window)
+        if has_enough_data:
+            pp_processors = self.get_pre_publish_processors()
+            if len(pp_processors) > 0:
+                self.logger.info(f"applying pre-publish processors: len: {len(pp_processors)}")
+                for pp_processor in pp_processors:
+                    df = pp_processor(df)
+            self.symbol_df_dict[symbol] = df
+            try:
+                self.save_symbol_df_data(symbol)
+            except Exception as e:
+                self.logger.error(
+                    f'append_post_processing: save_symbol_df_data: {str(e)}')        
+            self.logger.debug(
+                f"symbol df len: {len(df)}, period_duration: {processors_window}, start: {str(df.index.min())}, end: {str(df.index.max())}")
+            window_df: pd.DataFrame | None = None
+            shortest_window = min(processors_window, emit_window)
+            if isinstance(emit_window, pd.Timedelta):
+                window_df = df.loc[df.index >= df.index.max() - shortest_window]
+            else:
+                window_df = df.iloc[-shortest_window:]        
+            if window_df is not None:     
+                self.logger.debug(
+                    f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
+                self.primary.on_next(event_object(
+                    window_df, symbol))  # type: ignore
+        else:
+            self.logger.warning(
+                f"Window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
+            
+
+    def get_period_duration(self) -> str:
+        return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"
 
     def prune_symbol_df_window(self, symbol: str, df: pd.DataFrame) -> None:  # type: ignore
         """
@@ -108,7 +144,7 @@ class AbstractIO(ABC):
         row_as_frame = coerce_numeric(row_as_frame)
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], row_as_frame])
-        self.append_post_processing(symbol)
+        self.post_append_trigger(symbol)
 
     def append_rows(self, symbol: str, df_section: pd.DataFrame) -> None:
         df_section = coerce_numeric(df_section)
@@ -117,7 +153,7 @@ class AbstractIO(ABC):
             [self.symbol_df_dict[symbol], df_section])
         self.symbol_df_dict[symbol].sort_values(
             'timestamp', inplace=True)  # type: ignore
-        self.append_post_processing(symbol)
+        self.post_append_trigger(symbol, True)
 
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']
@@ -135,18 +171,18 @@ class AbstractIO(ABC):
         """
         pass
 
-    def append_post_processing(self, symbol: str) -> None:
+    def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
         """
         Optional override method to be implemented by child classes
         """
         pass
 
     @abstractmethod
-    def check_df_contains_window_period(self, df: pd.DataFrame, window_period: pd.Timedelta) -> bool:
+    def check_df_contains_processors_window(self, df: pd.DataFrame, processors_window: pd.Timedelta | int) -> bool:
         """
         Check if a DataFrame with datetime index contains at least window_period of data.
 
-        :window_period: pd.Timedelta (eg: kline 7 days, range_bars 27 minutes)
+        :window_period: pd.Timedelta (eg: kline 7 days, range_bars 27 rows)
         :param df: Pandas DataFrame to check.
         :return: True if DataFrame contains at least 7 days of data, False otherwise.
         """
