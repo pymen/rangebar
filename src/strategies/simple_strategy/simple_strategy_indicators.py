@@ -3,8 +3,9 @@ import pandas as pd
 import ta
 from rx.subject import Subject # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import RangeBarWindowDataEvent, StrategyNextEvent
+from src.helpers.dataclasses import RangeBarWindowDataEvent, StrategyNextDataEvent
 from src.rx.scheduler import observe_on_scheduler
+from src.rx import sanitize_numeric_columns_df
 
 
 class SimpleStrategyIndicators:
@@ -27,6 +28,7 @@ class SimpleStrategyIndicators:
     def init_subscriptions(self):
         self.primary.pipe(
             op.filter(lambda o: isinstance(o, RangeBarWindowDataEvent)),
+            sanitize_numeric_columns_df(),# type: ignore
             op.map(self.apply),
             observe_on_scheduler(),
         ).subscribe()
@@ -53,4 +55,4 @@ class SimpleStrategyIndicators:
         self.macd()
         self.bb()
         self.rsi()
-        self.primary.on_next(StrategyNextEvent(event.symbol, self.df))
+        self.primary.on_next(StrategyNextDataEvent(self.df, event.symbol))

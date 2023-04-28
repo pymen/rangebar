@@ -44,7 +44,6 @@ class RangeBar(RigStreamConsumer):
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:
         check_df_has_datetime_index(df)
-        df.to_csv('create_range_bar_kline_payload.csv')
         """
         the window is from the last range bar timestamp to now, a mechanism to pull historical kline 
         data to fill in a gap that may occur if the application is stopped is also provided via 
@@ -112,6 +111,9 @@ class RangeBar(RigStreamConsumer):
         self.logger.debug(f"create_range_bar_df: filler_bars: {filler_bars}")
         self.logger.debug(
             f"create_range_bar_df: range_bars: length: {len(range_bars)}")
-        return pd.DataFrame(range_bars)
+        rb_df = pd.DataFrame(range_bars)
+        rb_df['timestamp'] = pd.to_datetime(rb_df['timestamp'])
+        rb_df.set_index('timestamp', inplace=True)
+        return rb_df
 
     

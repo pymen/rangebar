@@ -1,12 +1,12 @@
 import pandas as pd
 from rx.subject import Subject  # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import StrategyNextEvent
+from src.helpers.dataclasses import StrategyNextDataEvent
 from scipy.stats import linregress
 from src.rx.scheduler import observe_on_scheduler
+from src.rx import sanitize_numeric_columns_df
 from src.strategies.order_client import OrderClient
 from src.util import get_logger
-
 
 class SimpleStrategy:
     per_trade_risk_perc_equity = 0.02
@@ -17,20 +17,20 @@ class SimpleStrategy:
     anti_squeeze_distance = 0.05
 
     def __init__(self, primary: Subject):
-        self.logger = get_logger('SimpleStrategy')
+        self.logger = get_logger(self)
         self.client = OrderClient()
         self.primary = primary
-        
         self.init_subscriptions()
 
     def init_subscriptions(self) -> None:
         self.primary.pipe(  # type: ignore
-            op.filter(lambda o: isinstance(o, StrategyNextEvent)),
+            op.filter(lambda o: isinstance(o, StrategyNextDataEvent)),
+            sanitize_numeric_columns_df(),  # type: ignore
             op.map(self.next),
             observe_on_scheduler()
         ).subscribe()
 
-    def next(self, e: StrategyNextEvent) -> None:
+    def next(self, e: StrategyNextDataEvent) -> None:
         df = e.df
         row = df.tail(1)
         current_close = row['close']

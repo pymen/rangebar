@@ -2,20 +2,22 @@ from dataclasses import dataclass
 import pandas as pd
 
 @dataclass
-class KlineWindowDataEvent:
-    symbol: str
-    df: pd.DataFrame
+class DataEvent:
+   df: pd.DataFrame
 
 @dataclass
-class RangeBarWindowDataEvent:
+class KlineWindowDataEvent(DataEvent):
     symbol: str
-    df: pd.DataFrame    
+    
+
+@dataclass
+class RangeBarWindowDataEvent(DataEvent):
+    symbol: str
 
 
 @dataclass
-class StrategyNextEvent:
-    symbol: str
-    df: pd.DataFrame      
+class StrategyNextDataEvent(DataEvent):
+    symbol: str   
 
 @dataclass
 class HistoricalKlineEvent:
@@ -30,16 +32,18 @@ class OrderStatusEvent:
     payload: dict[str, str | int]
 
 @dataclass
-class KlineIOCmdEvent:
-    method: str
-    df_name: str
-    kwargs: dict[str, str | int | pd.DataFrame]
+class CmdEvent:
+    kwargs: dict[str, str | int | pd.DataFrame] 
 
 @dataclass
-class RangeBarIOCmdEvent():
+class KlineIOCmdEvent(CmdEvent):
     method: str
     df_name: str
-    kwargs: dict[str, str | int | pd.DataFrame]
+    
+@dataclass
+class RangeBarIOCmdEvent(CmdEvent):
+    method: str
+    df_name: str
 
         
         

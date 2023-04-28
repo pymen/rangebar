@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from src.helpers.util import get_strategy_parameters_max
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import clear_logs, clear_symbol_windows, get_file_path
@@ -20,4 +21,30 @@ def test_clear_symbol_windows():
 def test_get_strategy_parameters_max():
    max_win = get_strategy_parameters_max(SimpleStrategyIndicators)
    print(f'max_win: {max_win}')    
+
+@dataclass
+class Test1:
+    name: str
+
+@dataclass
+class Test2(Test1):
+    name: str  
+
+@dataclass
+class Test3(Test1):
+    name: str  
+
+
+def test_instance_of_inheritance():
+    t1 = Test1('test1')
+    t2 = Test2('test2')
+    t3 = Test3('test3')
+    if isinstance(t2, Test1):
+        print('t2 is Test1')
+    if isinstance(t3, Test1):
+        print('t3 is Test1') 
+    if isinstance(t1, Test2):
+        print('t1 is Test2')
+    else:
+        print('t1 is not Test2')              
 
