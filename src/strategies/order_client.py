@@ -17,7 +17,7 @@ class OrderClient:
     """
     trades = []
     def __init__(self) -> None:
-        self.logger = get_logger('OrderClient')
+        self.logger = get_logger(self)
         self.settings = get_settings('bi')
         self.client = Client(
             key=self.settings['key'], secret=self.settings['secret'])

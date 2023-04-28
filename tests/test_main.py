@@ -8,7 +8,7 @@ from src.util import clear_logs, clear_symbol_windows
 from rx.subject import Subject # type: ignore
 
 def test_run() -> None:
-    # clear_logs()
+    clear_logs()
     clear_symbol_windows()
     primary = Subject()
     KlineIO(primary)

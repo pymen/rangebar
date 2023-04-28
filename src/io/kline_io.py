@@ -100,17 +100,14 @@ class KlineIO(AbstractIO):
         return df
 
     def check_df_contains_window_period(self, df: pd.DataFrame, window_period: pd.Timedelta) -> bool:
-        # Get the range of dates covered by the DataFrame
         date_range = df.index.max() - df.index.min()
-        date_range_days = date_range.days
-        # Check if the DataFrame covers at least 7 days
         self.logger.debug(
-            f"date_range_days: {date_range_days}, window: {str(window_period)}")
-        if date_range_days >= window_period:
+            f"date_range_days: {str(date_range)}, window: {str(window_period)}")
+        if date_range >= window_period:
             return True
         else:
             self.logger.info(
-                f"append_rows: DataFrame does not contain window period of data, yet")
+                f"check_df_contains_window_period: DataFrame does not contain window period of data, yet. diff: {str(window_period - date_range)}")
             return False
 
     def append_post_processing(self, symbol: str) -> None:

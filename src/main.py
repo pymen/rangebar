@@ -11,7 +11,6 @@ from rx.subject import Subject # type: ignore
 
 # The REST baseurl for testnet is "https://testnet.binancefuture.com"
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
-logger = get_logger('main')
 
 def setup() -> tuple[Kline, UserData, RangeBar]:
     """
