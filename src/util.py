@@ -2,13 +2,13 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Self
+from typing import Dict
 import os
 import glob
 from logging import DEBUG
 from typing import Dict, Any
 
-from .util import load_json
+sys.path.append(str(Path.cwd()))
 
 SETTINGS: Dict[str, Any] = {
     "font.family": "Arial",
@@ -19,13 +19,6 @@ SETTINGS: Dict[str, Any] = {
     "log.file": True
 }
 
-# Load global setting from json file.
-SETTING_FILENAME: str = "settings.json"
-SETTINGS.update(load_json(SETTING_FILENAME))
-
-def get_settings(prefix: str = "") -> Dict[str, Any]:
-    prefix_length = len(prefix)
-    return {k[prefix_length:].split('.')[1]: v for k, v in SETTINGS.items() if k.startswith(prefix)}
 
 def get_root_data_dir() -> Path:
     """
@@ -34,8 +27,6 @@ def get_root_data_dir() -> Path:
     cwd = Path.cwd()
     return cwd.joinpath('resources')
 
-sys.path.append(str(Path.cwd()))
-
 
 def get_file_path(filename: str) -> Path:
     """
@@ -43,7 +34,6 @@ def get_file_path(filename: str) -> Path:
     """
     file_path = get_root_data_dir().joinpath(filename).resolve()
     return file_path
-
 
 
 def load_json(filename: str) -> dict[str, str | int]:
@@ -61,6 +51,16 @@ def load_json(filename: str) -> dict[str, str | int]:
         return {}
 
 
+# Load global setting from json file.
+SETTING_FILENAME: str = "settings.json"
+SETTINGS.update(load_json(SETTING_FILENAME))
+
+
+def get_settings(prefix: str = "") -> Dict[str, Any]:
+    prefix_length = len(prefix)
+    return {k[prefix_length:].split('.')[1]: v for k, v in SETTINGS.items() if k.startswith(prefix)}
+
+
 def save_json(filename: str, data: dict[str, str | int]) -> None:
     """
     Save data into json file path.
@@ -74,9 +74,11 @@ def save_json(filename: str, data: dict[str, str | int]) -> None:
             ensure_ascii=False
         )
 
+
 file_handlers: Dict[str, logging.FileHandler] = {}
 logging.basicConfig(level=logging.DEBUG, force=True)
 settings = get_settings('app')
+
 
 def clear_logs():
     directory = str(get_file_path('logs').absolute())
@@ -84,12 +86,12 @@ def clear_logs():
     for log_file in log_files:
         os.remove(log_file)
 
+
 def clear_symbol_windows():
     directory = str(get_file_path('symbol_windows').absolute())
     csv_files = glob.glob(directory + f'/*.{settings["storage_ext"]}')
     for csv_file in csv_files:
-        os.remove(csv_file)        
-
+        os.remove(csv_file)
 
 
 def _get_file_logger_handler(filename: str) -> logging.FileHandler:
@@ -99,10 +101,12 @@ def _get_file_logger_handler(filename: str) -> logging.FileHandler:
         file_handlers[filename] = handler  # Am i need a lock?
     return handler
 
+
 def to_snake_case(text: str) -> str:
     import re
     words = re.findall('[a-z]+|[A-Z][a-z]*', text)
     return '_'.join(word.lower() for word in words)
+
 
 def get_logger(cls: object) -> logging.Logger:
     """
@@ -110,7 +114,8 @@ def get_logger(cls: object) -> logging.Logger:
     """
     name = cls.__class__.__name__
     filename = str(get_file_path(f'logs/{to_snake_case(name)}.log').absolute())
-    log_formatter = logging.Formatter('[%(asctime)s][%(threadName)s](%(levelname)s) %(name)s: %(message)s')
+    log_formatter = logging.Formatter(
+        '[%(asctime)s][%(threadName)s](%(levelname)s) %(name)s: %(message)s')
     logger = logging.getLogger(name)
     handler = _get_file_logger_handler(filename)  # get singleton handler.
     handler.setFormatter(log_formatter)

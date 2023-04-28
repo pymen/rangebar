@@ -121,6 +121,9 @@ class KlineIO(AbstractIO):
             df_with_basic_indicators = self.add_basic_indicators(symbol)
             if df_with_basic_indicators is not None:
                 self.symbol_df_dict[symbol] = df_with_basic_indicators
-                self.save_symbol_df_data(symbol)
+                try:
+                    self.save_symbol_df_data(symbol)
+                except Exception as e:
+                    self.logger.error(f"append_post_processing: save_symbol_df_data: {str(e)}")
                 self.publish_df_window(symbol)
         

@@ -40,7 +40,11 @@ class RangeBarIO(AbstractIO):
             ).subscribe()
         
     def save_range_bars_with_indicators(self, e: StrategyNextEvent):
-        self.save_symbol_df_data(e.symbol, 'range_bars_with_indicators', e.df) 
+        try:
+            self.save_symbol_df_data(e.symbol, 'range_bars_with_indicators', e.df)
+        except Exception as e:
+            self.logger.error(f'save_range_bars_with_indicators: {str(e)}')
+         
         
     def get_window_period_duration(self, symbol: str) -> pd.Timedelta | None:
         # Calculate the safe window period duration
@@ -62,7 +66,10 @@ class RangeBarIO(AbstractIO):
 
     def append_post_processing(self, symbol: str) -> None:
         try:
-            self.save_symbol_df_data(symbol)
+            try:
+                self.save_symbol_df_data(symbol)
+            except Exception as e:
+                self.logger.error(f'append_post_processing: save_symbol_df_data: {str(e)}')
             period_duration = self.get_window_period_duration(symbol)
             if period_duration is not None:
                 super().generic_publish_df_window(symbol, RangeBarWindowDataEvent, period_duration)

@@ -64,12 +64,17 @@ class AbstractIO(ABC):
         if df is None:
             df = self.symbol_df_dict[symbol]
         if not df.empty:
-            df.to_feather(path)
+            df_cp = df.copy()
+            df_cp.reset_index()
+            df_cp.to_feather(path)
             
     def restore_symbol_df_data(self, symbol: str) -> None:
         path = self.get_symbol_window_store_path(symbol, self.df_name)
         if os.path.exists(path):
-            self.symbol_df_dict[symbol] = pd.read_feather(path)     
+            restored_df = pd.read_feather(path)
+            restored_df['timestamp'] = pd.to_datetime(restored_df['timestamp'])
+            restored_df.set_index('timestamp', inplace=True)
+            self.symbol_df_dict[symbol] = restored_df     
                
     def get_symbol_window_store_path(self, symbol: str, df_name: str) -> str:
         return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.{self.settings["storage_ext"]}'))

@@ -5,7 +5,7 @@ from src.util import get_logger
 class TestLogger:
     pass
 
-test_logger = get_logger(TestLogger)
+test_logger = get_logger(TestLogger())
 
 def write_to_tests_out_file(content, filename):
     cwd = Path.cwd()
