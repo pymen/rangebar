@@ -3,8 +3,7 @@ from rx.subject import Subject  # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import StrategyNextEvent
 from scipy.stats import linregress
-from src.rx.pool_scheduler import observe_on_pool_scheduler
-
+from src.rx.scheduler import observe_on_scheduler
 from src.strategies.order_client import OrderClient
 from src.util import get_logger
 
@@ -28,7 +27,7 @@ class SimpleStrategy:
         self.primary.pipe(  # type: ignore
             op.filter(lambda o: isinstance(o, StrategyNextEvent)),
             op.map(self.next),
-            # observe_on_pool_scheduler()
+            observe_on_scheduler()
         ).subscribe()
 
     def next(self, e: StrategyNextEvent) -> None:

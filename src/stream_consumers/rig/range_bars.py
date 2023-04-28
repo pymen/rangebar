@@ -1,13 +1,12 @@
 import pandas as pd
-import numpy as np
 from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarIOCmdEvent
 from src.helpers.decorators import consumer_source
 from src.helpers.util import check_df_has_datetime_index
-from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.rx.scheduler import observe_on_scheduler
 from src.stream_consumers.rig_stream_consumer import RigStreamConsumer
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
-from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.rx.scheduler import observe_on_scheduler
 from src.util import get_logger
 import rx.operators as op
 import pandas as pd
@@ -33,7 +32,7 @@ class RangeBar(RigStreamConsumer):
         self.primary.pipe(
                 op.filter(lambda o: isinstance(o, KlineWindowDataEvent)), # type: ignore
                 op.map(self.process),
-                # observe_on_pool_scheduler(),
+                observe_on_scheduler(),
              ).subscribe()
         
     def process(self, e: KlineWindowDataEvent) -> None:

@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 from src.io.abstract_io import AbstractIO
 from src.helpers.util import get_strategy_parameters_max
-from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.rx.scheduler import observe_on_scheduler
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
@@ -31,12 +31,12 @@ class RangeBarIO(AbstractIO):
         self.primary.pipe( # type: ignore
                 op.filter(lambda o: isinstance(o, RangeBarIOCmdEvent)), # type: ignore
                 op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
-                # observe_on_pool_scheduler()
+                observe_on_scheduler()
             ).subscribe()
         self.primary.pipe( # type: ignore
                 op.filter(lambda o: isinstance(o, StrategyNextEvent)), # type: ignore
                 op.map(self.save_range_bars_with_indicators), # type: ignore
-                # observe_on_pool_scheduler()
+                observe_on_scheduler()
             ).subscribe()
         
     def save_range_bars_with_indicators(self, e: StrategyNextEvent):

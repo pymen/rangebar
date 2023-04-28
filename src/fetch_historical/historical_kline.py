@@ -1,7 +1,7 @@
 from typing import Any
 from src.helpers.dataclasses import HistoricalKlineEvent, KlineIOCmdEvent
 from src.helpers.util import get_unix_epoch_time_ms
-from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.rx.scheduler import observe_on_scheduler
 from src.util import get_logger
 import rx.operators as op
 from binance.um_futures import UMFutures
@@ -19,8 +19,8 @@ class HistoricalKline:
          self.primary.pipe(
                 op.filter(lambda o: isinstance(o, HistoricalKlineEvent)),
                 op.skip_while(lambda _: self.processing),
-                op.map(self.fetch_historical)
-                # observe_on_pool_scheduler(),
+                op.map(self.fetch_historical),
+                observe_on_scheduler(),
              ).subscribe()
 
     def fetch_historical(self, e: HistoricalKlineEvent):

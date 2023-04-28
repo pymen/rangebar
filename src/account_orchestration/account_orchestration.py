@@ -2,7 +2,7 @@ from rx.subject import Subject # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import OrderStatusEvent
 from src.helpers.util import flatten_dict
-from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.rx.scheduler import observe_on_scheduler
 from src.strategies.order_client import OrderClient
 from enum import Enum
 from src.util import get_logger
@@ -48,7 +48,7 @@ class AccountOrchestration:
 
     # def get_user_data_stream(self):
     #     return self.main.pipe(
-    #         observe_on_pool_scheduler(),
+    #         observe_on_scheduler(),
     #         op.filter(lambda o: isinstance(o, OrderStatusEvent)),
     #         op.map(self.map_raw_payload)
     #         )

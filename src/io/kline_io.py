@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from src.io.abstract_io import AbstractIO
 from src.helpers.util import check_df_has_datetime_index
+from src.rx.scheduler import observe_on_scheduler
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
@@ -22,7 +23,7 @@ class KlineIO(AbstractIO):
         self.primary.pipe( # type: ignore
             op.filter(lambda o: isinstance(o, KlineIOCmdEvent)), # type: ignore
             op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
-            # observe_on_pool_scheduler()
+            observe_on_scheduler()
         ).subscribe()    
 
     def publish_df_window(self, symbol: str) -> None:

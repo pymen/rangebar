@@ -4,7 +4,7 @@ import ta
 from rx.subject import Subject # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import RangeBarWindowDataEvent, StrategyNextEvent
-from src.rx.pool_scheduler import observe_on_pool_scheduler
+from src.rx.scheduler import observe_on_scheduler
 
 
 class SimpleStrategyIndicators:
@@ -27,8 +27,8 @@ class SimpleStrategyIndicators:
     def init_subscriptions(self):
         self.primary.pipe(
             op.filter(lambda o: isinstance(o, RangeBarWindowDataEvent)),
-            op.map(self.apply)
-            #  observe_on_pool_scheduler(),
+            op.map(self.apply),
+            observe_on_scheduler(),
         ).subscribe()
 
     def macd(self) -> None:
