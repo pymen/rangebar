@@ -1,8 +1,8 @@
 from src.io.kline_io import KlineIO
 from src.io.range_bar_io import RangeBarIO
 from src.fetch_historical.historical_kline import HistoricalKline
-from src.stream_consumers.primary_transformers.kline import Kline
-from src.stream_consumers.secondary_transformers.range_bars import RangeBar
+from src.stream_consumers.exchange.kline import Kline
+from src.stream_consumers.rig.range_bars import RangeBar
 from src.util import clear_logs, clear_symbol_windows, get_logger
 from rx.subject import Subject # type: ignore
 

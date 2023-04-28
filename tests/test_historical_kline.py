@@ -1,7 +1,7 @@
 from src.io.kline_io import KlineIO
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import HistoricalKlineEvent
-from src.stream_consumers.primary_transformers.kline import Kline
+from src.stream_consumers.exchange.kline import Kline
 from src.util import get_logger
 from src.io.abstract_io import AbstractIO
 from rx.subject import Subject # type: ignore

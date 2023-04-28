@@ -4,7 +4,7 @@ from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarIOCmdEvent
 from src.helpers.decorators import consumer_source
 from src.helpers.util import check_df_has_datetime_index
 from src.rx.pool_scheduler import observe_on_pool_scheduler
-from src.stream_consumers.secondary_stream_consumer import SecondaryStreamConsumer
+from src.stream_consumers.rig_stream_consumer import RigStreamConsumer
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 from src.rx.pool_scheduler import observe_on_pool_scheduler
@@ -15,7 +15,7 @@ import pandas as pd
 
 
 @consumer_source(name='range_bars')
-class RangeBar(SecondaryStreamConsumer):
+class RangeBar(RigStreamConsumer):
     """
     Needs to handle the following:
     - create range bars from a kline df

@@ -6,7 +6,7 @@ from rx.subject import Subject # type: ignore
 import rx.operators as op
 
 
-class SecondaryStreamConsumer(ABC):
+class RigStreamConsumer(ABC):
     """
     Abstract class for level 2 stream consumers.
     Transforms events originating from the window class

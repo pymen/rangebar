@@ -8,7 +8,7 @@ from rx.subject import Subject # type: ignore
 import pandas as pd
 from typing import Any
 
-class PrimaryStreamConsumer(ABC):
+class ExchangeStreamConsumer(ABC):
     """
     Abstract class for level 1 stream consumers.
     Transforms events originating from external sources
@@ -21,7 +21,7 @@ class PrimaryStreamConsumer(ABC):
         self.source_name = self.source_name
         self.ws_client = UMFuturesWebsocketClient(
             stream_url=settings['stream_url'])
-        self.logger = get_logger('PrimaryStreamConsumer')
+        self.logger = get_logger(self)
         self.primary = primary
         self.settings = get_settings('app')
         self.col_mapping = col_mapping

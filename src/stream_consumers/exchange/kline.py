@@ -1,11 +1,11 @@
 from typing import Any
 from src.helpers.decorators import consumer_source
-from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
+from src.stream_consumers.exchange_stream_consumer import ExchangeStreamConsumer
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 
 @consumer_source(source_name='kline')
-class Kline(PrimaryStreamConsumer):
+class Kline(ExchangeStreamConsumer):
     """
     Need a reference to the window to access the data frames
     """

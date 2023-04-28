@@ -1,12 +1,12 @@
 from typing import Any
 from src.helpers.decorators import consumer_source
-from src.stream_consumers.primary_stream_consumer import PrimaryStreamConsumer
+from src.stream_consumers.exchange_stream_consumer import ExchangeStreamConsumer
 from src.util import get_logger
 import pandas as pd
 from rx.subject import Subject # type: ignore
 
 @consumer_source(stream_name='diff_book_depth')
-class DiffBookBidAskSum(PrimaryStreamConsumer):
+class DiffBookBidAskSum(ExchangeStreamConsumer):
     """
      Need a reference to the window to access the data frames
      https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams

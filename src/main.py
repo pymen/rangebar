@@ -1,11 +1,11 @@
 from src.io.kline_io import KlineIO
 from src.io.range_bar_io import RangeBarIO
-from src.stream_consumers.primary_transformers.kline import Kline
-from src.stream_consumers.primary_transformers.user_data import UserData
+from src.stream_consumers.exchange.kline import Kline
+from src.stream_consumers.exchange.user_data import UserData
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.strategies.simple_strategy.smiple_strategy import SimpleStrategy
-from src.stream_consumers.secondary_transformers.range_bars import RangeBar
+from src.stream_consumers.rig.range_bars import RangeBar
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 
