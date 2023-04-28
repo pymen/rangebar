@@ -41,7 +41,7 @@ class HistoricalKline:
             self.processing = False     
 
 
-    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp) -> list[list[Any]]:
+    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp) -> list[tuple[datetime.datetime, datetime.datetime]]:
         """
         Returns a list of pairs of start and end times
         """
@@ -57,11 +57,11 @@ class HistoricalKline:
             bound = to_time_now - datetime.timedelta(minutes=1000*i)
             stamps.append(bound)
         stamps = stamps[::-1]
-        pairs = [[stamps[i], stamps[i+1]] for i in range(0, len(stamps) - 1)]
+        pairs = [tuple([stamps[i], stamps[i+1]]) for i in range(0, len(stamps) - 1)]
         self.logger.info(f'pair.len: {len(pairs)}')
         for pair in pairs:
             self.logger.info(f'{pair[0]} - {pair[1]}')
-        return pairs      
+        return pairs   
 
 
     def fetch_all_intervals(self, e: HistoricalKlineEvent, pairs: list[tuple[Any, Any]]):

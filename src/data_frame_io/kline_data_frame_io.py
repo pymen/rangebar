@@ -53,7 +53,17 @@ class KlineDataFrameIO(AbstractDataFrameIO):
     def add_basic_indicators(self, symbol: str) -> pd.DataFrame | None:
         try:
             df = self.symbol_df_dict[symbol]
-            df = self.adv(self.relative_adr_range_size(df))
+            # ensure numeric columns are numeric
+            cols_to_convert = [
+                    'open', 'close', 'high', 'low', 'volume', 
+                    'number_of_trades', 'quote_asset_volume', 
+                    'taker_buy_asset_volume',
+                    'taker_buy_quote_asset_volume', 
+                    'average_adr',
+                    'apv'
+            ]
+            df[cols_to_convert] = df[cols_to_convert].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+            df = self.apv(self.relative_adr_range_size(df))
             return df
         except Exception as e:
             self.logger.error(f"create_range_bar_df: {str(e)}")
@@ -92,10 +102,10 @@ class KlineDataFrameIO(AbstractDataFrameIO):
                 df_out = pd.concat([df_out, week_day_seg]) # type: ignore
         return df_out
     
-    def adv(self, df: pd.DataFrame, window: int=14) -> pd.DataFrame:
+    def apv(self, df: pd.DataFrame, window: int=14) -> pd.DataFrame:
         result = df['volume'].rolling(window=window).mean() # type: ignore
         result.fillna(0, inplace=True)   # type: ignore
-        df['adv'] = result
+        df['apv'] = result
         return df
     
     def append_post_processing(self, symbol: str) -> None:
@@ -103,7 +113,9 @@ class KlineDataFrameIO(AbstractDataFrameIO):
         if event is not None:
             self.primary.on_next(event)
         elif self.check_df_contains_window_period(self.symbol_df_dict[symbol]):
-            self.add_basic_indicators(symbol)
-            self.append_symbol_df_data_to_csv(symbol)
-            self.publish_df_window(symbol)
+            df_with_basic_indicators = self.add_basic_indicators(symbol)
+            if df_with_basic_indicators is not None:
+                self.symbol_df_dict[symbol] = df_with_basic_indicators
+                self.append_symbol_df_data_to_csv(symbol)
+                self.publish_df_window(symbol)
         

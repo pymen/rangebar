@@ -45,6 +45,7 @@ class RangeBar(SecondaryStreamConsumer):
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:
         check_df_has_datetime_index(df)
+        df.to_csv('create_range_bar_kline_payload.csv')
         """
         the window is from the last range bar timestamp to now, a mechanism to pull historical kline 
         data to fill in a gap that may occur if the application is stopped is also provided via 
@@ -55,7 +56,7 @@ class RangeBar(SecondaryStreamConsumer):
         """
         
         range_bars = []
-        current_bar = {'adv': df.iloc[0]['adv'], 'volume': df.iloc[0]['volume'], 'average_adr': df.iloc[0]['average_adr'], 'timestamp': df.index.to_series(
+        current_bar = {'apv': df.iloc[0]['apv'], 'volume': df.iloc[0]['volume'], 'average_adr': df.iloc[0]['average_adr'], 'timestamp': df.index.to_series(
         )[0], 'open': df.iloc[0]['open'], 'high': df.iloc[0]['high'], 'low': df.iloc[0]['low'], 'close': df.iloc[0]['close']}
         current_high = current_bar['high']
         current_low = current_bar['low']
@@ -72,13 +73,13 @@ class RangeBar(SecondaryStreamConsumer):
 
                 num_bars = int((high - current_low - range_size) // range_size)
                 for i in range(num_bars):
-                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'adv': row['adv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_low + range_size * ( # type: ignore
+                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'apv': row['apv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_low + range_size * ( # type: ignore
                         i), 'high': current_low + range_size * (i + 1), 'low': current_low + range_size * (i), 'close': current_low + range_size * (i + 1)}
                     # print(f'adjusted timestamp: {current_bar["timestamp"]}')
                     filler_bars += 1
                     range_bars.append(current_bar)
 
-                current_bar = {'volume': row['volume'] * num_bars, 'average_adr': row['average_adr'], 'adv': row['adv'], 'timestamp': index,
+                current_bar = {'volume': row['volume'] * num_bars, 'average_adr': row['average_adr'], 'apv': row['apv'], 'timestamp': index,
                                'open': current_low + range_size * num_bars, 'high': high, 'low': current_low + range_size * num_bars, 'close': row['close']}
                 current_high = high
                 current_low = current_bar['low']
@@ -89,13 +90,13 @@ class RangeBar(SecondaryStreamConsumer):
 
                 num_bars = int((current_high - low - range_size) // range_size)
                 for i in range(num_bars):
-                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'adv': row['adv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_high - range_size * ( # type: ignore
+                    current_bar = {'timestamp': pd.Timestamp(index) + pd.Timedelta(seconds=(i + 1)), 'apv': row['apv'], 'volume': row['volume'], 'average_adr': row['average_adr'], 'open': current_high - range_size * ( # type: ignore
                         i + 1), 'high': current_high - range_size * (i), 'low': current_high - range_size * (i + 1), 'close': current_high - range_size * (i + 1)}
                     # print(f'adjusted timestamp: {current_bar["timestamp"]}')
                     filler_bars += 1
                     range_bars.append(current_bar)
 
-                current_bar = {'volume': row['volume'] * (num_bars + 1), 'average_adr': row['average_adr'], 'adv': row['adv'], 'timestamp': index,
+                current_bar = {'volume': row['volume'] * (num_bars + 1), 'average_adr': row['average_adr'], 'apv': row['apv'], 'timestamp': index,
                                'open': current_high - range_size * (num_bars + 1), 'high': current_high - range_size * num_bars, 'low': low, 'close': row['close']}
                 current_high = current_bar['high']
                 current_low = low
@@ -108,7 +109,7 @@ class RangeBar(SecondaryStreamConsumer):
                 current_bar['close'] = row['close']
                 current_bar['average_adr'] = row['average_adr']
                 current_bar['volume'] = row['volume']
-                current_bar['adv'] = row['adv']
+                current_bar['apv'] = row['apv']
         self.logger.debug(f"create_range_bar_df: filler_bars: {filler_bars}")
         self.logger.debug(
             f"create_range_bar_df: range_bars: length: {len(range_bars)}")
