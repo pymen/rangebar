@@ -37,6 +37,24 @@ number_of_trades                           59
 * taker_buy_asset_volume: The total amount of the asset that was bought by takers (i.e., buyers who take liquidity from the order book) over the same period of time.
 * taker_buy_quote_asset_volume: The total value of the asset that was bought by takers, expressed in terms of the quote asset (i.e., the asset being used to quote prices), over the same period of time.  
 
+### https://dev.binance.vision/t/taker-buy-base-asset-volume/6026
+
+Q: n the klines public data given by binance what does the trems takerbuybase asset volume and ignore means??
+also is there any way i can find taker_sell_volume, maker_buy_volume, maker_sell_volume?
+
+A: Taker buy base asset volume represents how many of the total base asset volume are contributed by the taker buy orders. Once taker_buy_base_asset_volume and the total volume (Volume) is known, the value of the following cases ( taker_sell_volume, maker_buy_volume, maker_sell_volume ) are clear.
+
+Every trade has a buyer and a seller. A buyer can be a maker or a taker. But when a buyer is a maker, the seller must be a taker, and vice versa. That is,
+
+taker_buy_base_asset_volume = maker_sell_base_asset_volume
+
+taker_sell_base_asset_volume = maker_buy_base_asset_volume
+
+total_volume = taker_buy_base_asset_volume + taker_sell_base_asset_volume
+= maker_buy_base_asset_volume + maker_sell_base_asset_volume
+
+Please do not take the field “Ignore” seriously. This field is deprecated.
+
 ## Diff Book Depth Stream
 
 Q: are you familar with https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams. How is this useful in determining if a strategy trade should be executed or not. Provide a concret example 
