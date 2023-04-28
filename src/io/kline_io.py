@@ -20,7 +20,7 @@ class KlineIO(AbstractIO):
   
     def init_subscriptions(self) -> None:
         self.primary.pipe( # type: ignore
-            op.filter(lambda o: isinstance(o, KlineIOCmdEvent) and o.df_name == self.df_name), # type: ignore
+            op.filter(lambda o: isinstance(o, KlineIOCmdEvent)), # type: ignore
             op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
             # observe_on_pool_scheduler()
         ).subscribe()    
@@ -59,12 +59,16 @@ class KlineIO(AbstractIO):
                     'open', 'close', 'high', 'low', 'volume', 
                     'number_of_trades', 'quote_asset_volume', 
                     'taker_buy_asset_volume',
-                    'taker_buy_quote_asset_volume', 
+                    'taker_buy_quote_asset_volume'
+            ]
+            df[cols_to_convert] = df[cols_to_convert].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+            df = self.apv(self.relative_adr_range_size(df))
+             # ensure numeric columns are numeric
+            cols_to_convert = [
                     'average_adr',
                     'apv'
             ]
             df[cols_to_convert] = df[cols_to_convert].apply(lambda x: pd.to_numeric(x, errors='coerce'))
-            df = self.apv(self.relative_adr_range_size(df))
             return df
         except Exception as e:
             self.logger.error(f"create_range_bar_df: {str(e)}")

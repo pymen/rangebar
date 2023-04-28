@@ -28,7 +28,6 @@ class RangeBarIO(AbstractIO):
         self.logger = get_logger(self)
         
     def init_subscriptions(self) -> None:
-        super().init_subscriptions()
         self.primary.pipe( # type: ignore
                 op.filter(lambda o: isinstance(o, RangeBarIOCmdEvent)), # type: ignore
                 op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore

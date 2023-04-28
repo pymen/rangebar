@@ -1,8 +1,19 @@
 
-from src.main import start, stop
-import time
+from src.io.kline_io import KlineIO
+from src.io.range_bar_io import RangeBarIO
+from src.fetch_historical.historical_kline import HistoricalKline
+from src.stream_consumers.exchange.kline import Kline
+from src.stream_consumers.rig.range_bars import RangeBar
+from src.util import clear_logs, clear_symbol_windows
+from rx.subject import Subject # type: ignore
 
 def test_run() -> None:
-    start()
-    time.sleep(1800)
-    stop()
+    clear_logs()
+    clear_symbol_windows()
+    primary = Subject()
+    KlineIO(primary)
+    HistoricalKline(primary)
+    kline = Kline(primary)
+    RangeBar(primary)
+    RangeBarIO(primary)
+    kline.start()

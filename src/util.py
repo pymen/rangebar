@@ -5,6 +5,27 @@ from pathlib import Path
 from typing import Dict, Self
 import os
 import glob
+from logging import DEBUG
+from typing import Dict, Any
+
+from .util import load_json
+
+SETTINGS: Dict[str, Any] = {
+    "font.family": "Arial",
+    "font.size": 12,
+    "log.active": True,
+    "log.level": DEBUG,
+    "log.console": True,
+    "log.file": True
+}
+
+# Load global setting from json file.
+SETTING_FILENAME: str = "settings.json"
+SETTINGS.update(load_json(SETTING_FILENAME))
+
+def get_settings(prefix: str = "") -> Dict[str, Any]:
+    prefix_length = len(prefix)
+    return {k[prefix_length:].split('.')[1]: v for k, v in SETTINGS.items() if k.startswith(prefix)}
 
 def get_root_data_dir() -> Path:
     """
@@ -55,6 +76,7 @@ def save_json(filename: str, data: dict[str, str | int]) -> None:
 
 file_handlers: Dict[str, logging.FileHandler] = {}
 logging.basicConfig(level=logging.DEBUG, force=True)
+settings = get_settings('app')
 
 def clear_logs():
     directory = str(get_file_path('logs').absolute())
@@ -64,7 +86,7 @@ def clear_logs():
 
 def clear_symbol_windows():
     directory = str(get_file_path('symbol_windows').absolute())
-    csv_files = glob.glob(directory + '/*.parq')
+    csv_files = glob.glob(directory + f'/*.{settings["storage_ext"]}')
     for csv_file in csv_files:
         os.remove(csv_file)        
 

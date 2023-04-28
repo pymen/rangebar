@@ -3,8 +3,7 @@ from typing import Any
 from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
 from src.helpers.util import get_unix_epoch_time_ms
-from src.settings import get_settings
-from src.util import get_logger
+from src.util import get_logger, get_settings
 
 
 class OrderClient:

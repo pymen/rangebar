@@ -15,7 +15,7 @@ class HistoricalKline:
          self.primary = primary
          self.processing = False
          self.um_futures_client = UMFutures()
-         self.logger = get_logger('HistoricalKline')
+         self.logger = get_logger(self)
          self.primary.pipe(
                 op.filter(lambda o: isinstance(o, HistoricalKlineEvent)),
                 op.skip_while(lambda _: self.processing),

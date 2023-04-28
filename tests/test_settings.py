@@ -1,4 +1,7 @@
-from src.settings import get_settings
+
+
+from src.util import get_settings
+
 
 def test_get_settings():
     settings = get_settings('app')

@@ -1,8 +1,7 @@
 from abc import ABC
 import random
 from src.helpers.dataclasses import KlineIOCmdEvent
-from src.settings import get_settings
-from src.util import get_logger
+from src.util import get_logger, get_settings
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from rx.subject import Subject # type: ignore
 import pandas as pd

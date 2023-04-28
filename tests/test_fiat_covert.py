@@ -1,6 +1,6 @@
 from src.helpers.fiat_convert import CryptoToFiatConverter
-from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
+from src.util import get_settings
 from tests.utils import test_logger
 
 

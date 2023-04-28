@@ -3,12 +3,11 @@
 from typing import Any
 from src.helpers.dataclasses import OrderStatusEvent
 from src.helpers.util import flatten_dict, get_unix_epoch_time_ms
-from src.settings import get_settings
 from binance.um_futures import UMFutures as Client
 from rx.subject import Subject # type: ignore
 import asyncio
 from binance.websocket.cm_futures.websocket_client import CMFuturesWebsocketClient
-from src.util import get_logger
+from src.util import get_logger, get_settings
 
 
 class UserData:

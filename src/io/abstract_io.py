@@ -4,8 +4,7 @@ import datetime as dt
 import os
 from src.helpers.util import check_df_has_datetime_index
 # from src.rx.pool_scheduler import observe_on_pool_scheduler
-from src.settings import get_settings
-from src.util import get_file_path, get_logger
+from src.util import get_file_path, get_logger, get_settings
 from rx.subject import Subject # type: ignore
 from abc import ABC, abstractmethod #, abstractmethod
 from src.io.enum_io import RigDataFrame
@@ -65,15 +64,15 @@ class AbstractIO(ABC):
         if df is None:
             df = self.symbol_df_dict[symbol]
         if not df.empty:
-            pq_write(path, df, compression='GZIP')
+            df.to_feather(path)
             
     def restore_symbol_df_data(self, symbol: str) -> None:
         path = self.get_symbol_window_store_path(symbol, self.df_name)
         if os.path.exists(path):
-            self.symbol_df_dict[symbol] = pq_read(path).to_pandas()     
+            self.symbol_df_dict[symbol] = pd.read_feather(path)     
                
     def get_symbol_window_store_path(self, symbol: str, df_name: str) -> str:
-        return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.parq'))
+        return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.{self.settings["storage_ext"]}'))
     
     def check_df_contains_window_period(self, df: pd.DataFrame) -> bool:
         check_df_has_datetime_index(df)
