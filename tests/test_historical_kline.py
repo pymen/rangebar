@@ -13,7 +13,7 @@ logging = get_logger('tests')
 def new_instance():
     primary = Subject()
     secondary = Subject()
-    kline = KlineDataFrameIO('kline', primary, secondary)
+    kline = KlineDataFrameIO('kline', primary)
     return HistoricalKline(primary), kline
 
 def test_get_1000_minute_intervals():

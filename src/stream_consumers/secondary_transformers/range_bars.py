@@ -25,11 +25,11 @@ class RangeBar(SecondaryStreamConsumer):
     And go back to the secondary data frame io, which will publish the df window to the indicators.
     """
 
-    def __init__(self, primary: Subject, secondary: Subject) -> None:
-        super().__init__(primary, secondary)
+    def __init__(self, primary: Subject) -> None:
+        super().__init__(primary)
         self.logger = get_logger('RangeBars')
         self.primary = primary
-        self.secondary = secondary
+        
         self.primary.pipe(
                 op.filter(lambda o: isinstance(o, KlineWindowDataEvent)), # type: ignore
                 op.map(self.process),
@@ -40,7 +40,7 @@ class RangeBar(SecondaryStreamConsumer):
         self.logger.info(f'process: {e}')
         range_bar_df = self.create_range_bar_df(e.df)
         self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
-        self.secondary.on_next(RangeBarFrameIOCommandEvent(e.symbol, range_bar_df))
+        self.primary.on_next(RangeBarFrameIOCommandEvent(e.symbol, range_bar_df))
 
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:

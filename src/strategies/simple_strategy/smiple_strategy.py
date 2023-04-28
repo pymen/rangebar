@@ -17,10 +17,10 @@ class SimpleStrategy:
     potential_profit_aadr_multiplier = 0.15
     anti_squeeze_distance = 0.05
 
-    def __init__(self, secondary: Subject):
+    def __init__(self):
         self.logger = get_logger('SimpleStrategy')
         self.client = OrderClient()
-        self.secondary = secondary
+        
         self.init_subscriptions()
 
     def init_subscriptions(self) -> None:

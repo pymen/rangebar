@@ -12,9 +12,9 @@ def test_kline_ingestion() -> None:
     clear_symbol_windows()
     primary = Subject()
     secondary = Subject()
-    KlineDataFrameIO('kline', primary, secondary)
+    KlineDataFrameIO('kline', primary)
     HistoricalKline(primary)
     kline = Kline(primary)
-    RangeBar(primary, secondary)
+    RangeBar(primary)
     kline.start()
 

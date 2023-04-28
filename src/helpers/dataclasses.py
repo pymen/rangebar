@@ -13,8 +13,9 @@ class RangeBarWindowDataEvent:
 
 @dataclass
 class RangeBarFrameIOCommandEvent:
-    symbol: str
-    df: pd.DataFrame
+    method: str
+    df_name: str
+    kwargs: dict[str, str | int]
 
 @dataclass
 class IndicatorTickEvent:

@@ -13,12 +13,12 @@ class AbstractDataFrameIO(ABC):
 
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
 
-    def __init__(self, df_name: str, primary: Subject, secondary: Subject) -> None:
+    def __init__(self, df_name: str, primary: Subject) -> None:
         super().__init__()
         self.logger = get_logger(f'DataFrameIO_{df_name}')
         self.df_name = df_name
         self.primary = primary
-        self.secondary = secondary
+        
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
             # df = self.load_symbol_df_window(symbols_config['symbol'])

@@ -30,13 +30,13 @@ def setup():
     """
     Secondary Consumers & Transformers
     """
-    range_bar = RangeBar(primary, secondary)
+    range_bar = RangeBar(primary)
     """
     Data Frame IO
     """
-    KlineDataFrameIO('kline', primary, secondary)
-    RangeBarDataFrameIO('range_bar', primary, secondary)
-    # DataFrameIO('user_data', primary, secondary)
+    KlineDataFrameIO('kline', primary)
+    RangeBarDataFrameIO('range_bar', primary)
+    # DataFrameIO('user_data', primary)
     """
     Historical
     """

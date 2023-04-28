@@ -12,8 +12,8 @@ import rx.operators as op
 
 class KlineDataFrameIO(AbstractDataFrameIO):
 
-    def __init__(self, df_name: str, primary: Subject, secondary: Subject) -> None:
-        super().__init__(df_name, primary, secondary)
+    def __init__(self, df_name: str, primary: Subject) -> None:
+        super().__init__(df_name, primary)
         self.logger = get_logger(f'PrimaryDataFrameIO_{df_name}')
         
   
