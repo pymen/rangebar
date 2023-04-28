@@ -205,3 +205,27 @@ The code follows the guidelines provided in the comment headers to manage the lo
 
 Note that this is just a basic example, and you may need to modify it depending on your specific use case and trading strategy.
 
+### Mediating Slippage 
+
+https://academy.binance.com/en/articles/bid-ask-spread-and-slippage-explained
+
+Yes, I am familiar with the article "Bid-Ask Spread and Slippage Explained" on Binance Academy. This article provides an introduction to bid-ask spreads and slippage in trading, and explains how these concepts are related to market liquidity and execution quality.
+
+The article defines the bid-ask spread as the difference between the highest bid price and the lowest ask price for a given asset on an exchange. The spread reflects the current supply and demand dynamics in the market, and it can be an indicator of the level of liquidity available for the asset. The narrower the spread, the more liquid the market is likely to be.
+
+Slippage, on the other hand, occurs when the execution of a trade results in a worse-than-expected price due to a lack of liquidity or unexpected market conditions. Slippage can occur when there is not enough liquidity at the desired price level to fill a large order, causing the price to move against the trader.
+
+The article also explains that slippage can be influenced by a number of factors, including the size of the order relative to the available liquidity, the speed of the market, the volatility of the asset, and the sophistication of the trading algorithm being used.
+
+Overall, the article provides a clear and concise explanation of bid-ask spreads and slippage, and highlights the importance of understanding these concepts for successful trading.
+
+Q: Would slippage only effect a Market order or can it also affect a limit order?
+A: Slippage can affect both market orders and limit orders, but the way it affects each type of order is different.
+
+Market orders are executed at the current market price and are subject to slippage if there is not enough liquidity at the desired price level. For example, if a trader places a buy market order for a large amount of an asset and there are not enough sell orders at the current market price to fill the order, the price may move up as the order is filled, resulting in slippage.
+
+Limit orders, on the other hand, are executed at a specified price or better and are not subject to slippage if the price does not move against the trader. However, if the available liquidity at the specified price level is not sufficient to fill the order, the order may not be executed at all, resulting in unfilled or partially filled orders.
+
+In this case, the trader may need to adjust the limit price to improve the chances of execution, which could result in a change in the slippage risk. If the limit order is filled partially, then the remaining portion of the order would still be subject to slippage if it is executed at a different price level than the original limit price.
+
+Overall, while market orders are more likely to experience slippage due to their reliance on the current market price, limit orders can also be subject to execution risks if there is not enough liquidity at the desired price level.
