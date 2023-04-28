@@ -28,7 +28,7 @@ class SimpleStrategyIndicators:
     def init_subscriptions(self):
         self.primary.pipe(
             op.filter(lambda o: isinstance(o, RangeBarWindowDataEvent)),
-            sanitize_numeric_columns_df(),# type: ignore
+            # sanitize_numeric_columns_df(),# type: ignore
             op.map(self.apply),
             observe_on_scheduler(),
         ).subscribe()

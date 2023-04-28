@@ -35,7 +35,7 @@ class RangeBarIO(AbstractIO):
         self.primary.pipe(  # type: ignore
             op.filter(lambda o: isinstance(
                 o, RangeBarIOCmdEvent)),  # type: ignore
-            sanitize_numeric_columns_df(),  # type: ignore
+            # sanitize_numeric_columns_df(),  # type: ignore
             op.map(lambda e: getattr(self, e.method)
                    (**e.kwargs)),  # type: ignore
             observe_on_scheduler()
@@ -43,7 +43,7 @@ class RangeBarIO(AbstractIO):
         self.primary.pipe(  # type: ignore
             op.filter(lambda o: isinstance(
                 o, StrategyNextDataEvent)),  # type: ignore
-            sanitize_numeric_columns_df(),  # type: ignore
+            # sanitize_numeric_columns_df(),  # type: ignore
             op.map(self.save_range_bars_with_indicators),  # type: ignore
             observe_on_scheduler()
         ).subscribe()

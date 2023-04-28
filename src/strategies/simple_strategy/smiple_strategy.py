@@ -25,7 +25,7 @@ class SimpleStrategy:
     def init_subscriptions(self) -> None:
         self.primary.pipe(  # type: ignore
             op.filter(lambda o: isinstance(o, StrategyNextDataEvent)),
-            sanitize_numeric_columns_df(),  # type: ignore
+            # sanitize_numeric_columns_df(),  # type: ignore
             op.map(self.next),
             observe_on_scheduler()
         ).subscribe()

@@ -2,7 +2,7 @@ from typing import Any, Dict, Callable
 import pandas as pd
 import datetime as dt
 import os
-from src.helpers.util import check_df_has_datetime_index
+from src.helpers.util import check_df_has_datetime_index, coerce_numeric
 from src.util import get_file_path, get_logger, get_settings
 from rx.subject import Subject  # type: ignore
 from abc import ABC, abstractmethod  # , abstractmethod
@@ -105,11 +105,13 @@ class AbstractIO(ABC):
             row['timestamp'], unit='ms')  # type: ignore
         row_as_frame = row.to_frame().T
         row_as_frame.set_index('timestamp', inplace=True)  # type: ignore
+        row_as_frame = coerce_numeric(row_as_frame)
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], row_as_frame])
         self.append_post_processing(symbol)
 
     def append_rows(self, symbol: str, df_section: pd.DataFrame) -> None:
+        df_section = coerce_numeric(df_section)
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], df_section])

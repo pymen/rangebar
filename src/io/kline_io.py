@@ -24,7 +24,7 @@ class KlineIO(AbstractIO):
         self.primary.pipe(  # type: ignore
             op.filter(lambda o: isinstance(
                 o, KlineIOCmdEvent)),  # type: ignore
-            sanitize_numeric_columns_df(),  # type: ignore
+            # sanitize_numeric_columns_df(),  # type: ignore
             op.map(lambda e: getattr(self, e.method)
                    (**e.kwargs)),  # type: ignore
             observe_on_scheduler()

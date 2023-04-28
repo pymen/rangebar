@@ -49,3 +49,17 @@ def check_df_has_datetime_index(df: pd.DataFrame) -> bool:
         raise ValueError('Dataframe index is not a DatetimeIndex')
     else:
         return True
+    
+
+def coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
+        cols_to_convert = [
+                'open', 'close', 'high', 'low', 'volume',
+                'number_of_trades', 'quote_asset_volume',
+                'taker_buy_asset_volume', 'taker_buy_quote_asset_volume', 
+                'average_adr', 'apv'
+        ]
+        # Filter columns that are both present in the DataFrame and need to be converted.
+        filtered_list = [s for s in cols_to_convert if isinstance(s, str) and s in df.columns]
+        # Create a new DataFrame with only selected columns converted to numeric type, and return it.
+        return pd.concat([df.drop(filtered_list, axis=1), df[filtered_list].apply(pd.to_numeric, errors='coerce')], axis=1)    
+
