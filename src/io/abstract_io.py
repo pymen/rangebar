@@ -6,7 +6,8 @@ from src.helpers.util import check_df_has_datetime_index, coerce_numeric
 from src.util import get_file_path, get_logger, get_settings
 from rx.subject import Subject  # type: ignore
 from abc import ABC, abstractmethod  # , abstractmethod
-from src.io.enum_io import RigDataFrame
+from src.io.enum_io import RigDataFrame            
+from functools import reduce
 
 class AbstractIO(ABC):
 
@@ -26,72 +27,62 @@ class AbstractIO(ABC):
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
         self.init_subscriptions()
 
+    def check_df_has_datetime_index(self, df):
+        if not isinstance(df.index, pd.DatetimeIndex):
+            raise ValueError(
+                "DataFrame index must be a DatetimeIndex")
+
+    def apply_pre_publish_processors(self, df):
+        pp_processors = self.get_pre_publish_processors()
+        if len(pp_processors) > 0:
+            self.logger.info(f"applying pre-publish processors: len: {len(pp_processors)}")
+            pp_result = reduce(lambda df, processor: processor(df), pp_processors, df)
+            return pp_result
+        else:
+            return df
+    
+    def get_window_df(self, symbol: str, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> pd.DataFrame:
+        df = self.symbol_df_dict[symbol]
+        shortest_window = min(processors_window, emit_window)
+        if isinstance(shortest_window, pd.Timedelta):
+            window_start = max(df.index.min(), pd.Timestamp.now() - shortest_window)
+            window_df = df.loc[df.index >= window_start]
+        else:
+            window_df = df.iloc[-shortest_window:]
+         # Set the 'mark' column to 1 where the window_df ends.
+        if not window_df.empty:
+            df['mark'].iloc[-1] = 1
+            self.symbol_df_dict[symbol] = df    
+        return window_df.copy()
+    
+    def publish_windowed_data(self, symbol: str, event_object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int):
+        df = self.symbol_df_dict[symbol]
+        self.check_df_has_datetime_index(df)
+        if not self.check_df_contains_processors_window(df, processors_window):
+            self.logger.warning(
+                f"Window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
+            return
+        pp_result = self.apply_pre_publish_processors(df)
+        self.symbol_df_dict[symbol] = pp_result
+        try:
+            self.save_symbol_df_data(symbol)
+        except Exception as e:
+            self.logger.error(
+                f'append_post_processing: save_symbol_df_data: {str(e)}')        
+        self.logger.debug(
+            f"symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
+        window_df = self.get_window_df(symbol, processors_window, emit_window)
+        if len(window_df) > 0:
+            self.logger.debug(
+                f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
+            self.primary.on_next(event_object(window_df, symbol))
+    
     def publish_batch_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int) -> None:
-        df = self.symbol_df_dict[symbol]
-        check_df_has_datetime_index(df)
-        has_enough_data = self.check_df_contains_processors_window(df, processors_window)
-        if has_enough_data:
-            pp_processors = self.get_pre_publish_processors()
-            if len(pp_processors) > 0:
-                self.logger.info(f"applying pre-publish processors: len: {len(pp_processors)}")
-                for pp_processor in pp_processors:
-                    df = pp_processor(df)
-            self.symbol_df_dict[symbol] = df
-            try:
-                self.save_symbol_df_data(symbol)
-            except Exception as e:
-                self.logger.error(
-                    f'append_post_processing: save_symbol_df_data: {str(e)}')        
-            self.logger.debug(
-                f"symbol df len: {len(df)}, period_duration: {processors_window}, start: {str(df.index.min())}, end: {str(df.index.max())}")
-            window_df: pd.DataFrame | None = None
-            if isinstance(processors_window, pd.Timedelta):
-                    window_df = df.loc[df.index >= df.index.max() - processors_window]
-            else:
-                window_df = df.iloc[-processors_window:]       
-            if window_df is not None:     
-                self.logger.debug(
-                    f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
-                self.primary.on_next(event_object(
-                    window_df, symbol))  # type: ignore
-        else:
-            self.logger.warning(
-                f"Window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
-
+        self.publish_windowed_data(symbol, event_object, processors_window, processors_window)
+    
     def publish_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> None:
-        df = self.symbol_df_dict[symbol]
-        check_df_has_datetime_index(df)
-        has_enough_data = self.check_df_contains_processors_window(df, processors_window)
-        if has_enough_data:
-            pp_processors = self.get_pre_publish_processors()
-            if len(pp_processors) > 0:
-                self.logger.info(f"applying pre-publish processors: len: {len(pp_processors)}")
-                for pp_processor in pp_processors:
-                    df = pp_processor(df)
-            self.symbol_df_dict[symbol] = df
-            try:
-                self.save_symbol_df_data(symbol)
-            except Exception as e:
-                self.logger.error(
-                    f'append_post_processing: save_symbol_df_data: {str(e)}')        
-            self.logger.debug(
-                f"symbol df len: {len(df)}, period_duration: {processors_window}, start: {str(df.index.min())}, end: {str(df.index.max())}")
-            window_df: pd.DataFrame | None = None
-            shortest_window = min(processors_window, emit_window)
-            if isinstance(emit_window, pd.Timedelta):
-                window_df = df.loc[df.index >= df.index.max() - shortest_window]
-            else:
-                window_df = df.iloc[-shortest_window:]        
-            if window_df is not None:     
-                self.logger.debug(
-                    f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
-                self.primary.on_next(event_object(
-                    window_df, symbol))  # type: ignore
-        else:
-            self.logger.warning(
-                f"Window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
+        self.publish_windowed_data(symbol, event_object, processors_window, emit_window)
             
-
     def get_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"
 
@@ -158,6 +149,13 @@ class AbstractIO(ABC):
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
+    
+    def find_delta_for_last_mark(self, symbol: str) -> pd.Timedelta:
+        df = self.symbol_df_dict[symbol]
+        last_index = (df['mark'] == 1).idxmax()
+        self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
+        delta = pd.Timestamp.now() - last_index # type: ignore
+        return delta
 
     def get_pre_publish_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
         """
