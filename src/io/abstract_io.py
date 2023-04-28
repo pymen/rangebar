@@ -8,15 +8,17 @@ from src.settings import get_settings
 from src.util import get_file_path, get_logger
 from rx.subject import Subject # type: ignore
 from abc import ABC, abstractmethod #, abstractmethod
+from src.io.enum_io import RigDataFrame
+from fastparquet import ParquetFile as pq_read, write as pq_write
 
-class AbstractDataFrameIO(ABC):
+class AbstractIO(ABC):
 
     symbol_df_dict: Dict[str, pd.DataFrame] = {}
 
-    def __init__(self, df_name: str, primary: Subject) -> None:
+    def __init__(self, rig_data_frame: RigDataFrame, primary: Subject) -> None:
         super().__init__()
-        self.logger = get_logger(f'DataFrameIO_{df_name}')
-        self.df_name = df_name
+        self.logger = get_logger(self)
+        self.df_name = rig_data_frame.value
         self.primary = primary
         
         self.settings = get_settings('app')
@@ -36,7 +38,7 @@ class AbstractDataFrameIO(ABC):
         if period_duration is None:
             period_duration = pd.Timedelta(self.get_period_duration()) 
         df = self.symbol_df_dict[symbol]
-        window_df = df.loc[df.index >= df.index.max() - period_duration]
+        window_df: pd.DataFrame = df.loc[df.index >= df.index.max() - period_duration]
         self.logger.debug(f"window_df: len: {len(window_df)}")
         has_correct_data = self.check_df_contains_window_period(window_df)
         if has_correct_data:
@@ -44,28 +46,6 @@ class AbstractDataFrameIO(ABC):
         else:
             self.logger.warning(f"Dataframe for {symbol} does not contain correct data")
                 
-
-    # def load_symbol_df_window(self, symbol: str) -> pd.DataFrame | None:
-    #     path = self.get_symbol_window_csv_path(symbol, self.df_name)
-    #     if os.path.exists(path):
-    #         df = pd.read_csv(path, index_col="timestamp", parse_dates=True) # type: ignore
-    #         df.sort_index(inplace=True) # type: ignore
-           
-    #         last_window_end: dt.datetime = df.index[-1] # type: ignore
-          
-    #         first_window_start: dt.datetime = df.index[0] # type: ignore
-    #         self.logger.info(
-    #             f"last_window_end: {type(last_window_end)}, first_window_start: {type(first_window_start)}")
-    #         # Convert integer to timedelta object
-    #         window_timedelta: dt.timedelta = dt.timedelta(days=int(self.settings['window']))
-    #         # Subtract timedelta from datetime object
-    #         window_start: dt.datetime = last_window_end - window_timedelta
-    #         if window_start > first_window_start:
-    #             df = df.loc[window_start:]
-    #         return df
-
-  
-
     def prune_symbol_df_window(self, symbol: str, df: pd.DataFrame) -> None: # type: ignore
         """
         Reduce size of in memory df, since we are only interested in 7 days
@@ -78,20 +58,22 @@ class AbstractDataFrameIO(ABC):
             df = df[window_start:] # type: ignore
             self.symbol_df_dict[symbol] = pd.DataFrame(rolling_window)
 
-    def save_symbol_df_data(self, symbol: str) -> None:
-        df = self.symbol_df_dict[symbol]
+    def save_symbol_df_data(self, symbol: str, name: str | None = None, df: pd.DataFrame | None = None) -> None:
+        if name is None:
+            name = self.df_name
+        path = self.get_symbol_window_store_path(symbol, name) # type: ignore
+        if df is None:
+            df = self.symbol_df_dict[symbol]
         if not df.empty:
-            df.to_csv(self.get_symbol_window_csv_path(
-                        symbol, self.df_name))
+            pq_write(path, df, compression='GZIP')
             
-    def append_symbol_df_data_to_csv(self, symbol: str) -> None:
-        df = self.symbol_df_dict[symbol]
-        if not df.empty:
-            df.to_csv(self.get_symbol_window_csv_path(
-                        symbol, self.df_name), mode='a', header=False)        
+    def restore_symbol_df_data(self, symbol: str) -> None:
+        path = self.get_symbol_window_store_path(symbol, self.df_name)
+        if os.path.exists(path):
+            self.symbol_df_dict[symbol] = pq_read(path).to_pandas()     
                
-    def get_symbol_window_csv_path(self, symbol: str, df_name: str) -> str:
-        return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.csv'))
+    def get_symbol_window_store_path(self, symbol: str, df_name: str) -> str:
+        return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.parq'))
     
     def check_df_contains_window_period(self, df: pd.DataFrame) -> bool:
         check_df_has_datetime_index(df)

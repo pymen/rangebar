@@ -43,15 +43,15 @@ class AccountOrchestration:
         self.logger = get_logger('AccountOrchestration')
         # self.init_subscriptions()
 
-    def init_subscriptions(self):
-        self.get_user_data_stream().subscribe()  
+    # def init_subscriptions(self):
+    #     self.get_user_data_stream().subscribe()  
 
-    def get_user_data_stream(self):
-        return self.main.pipe(
-            observe_on_pool_scheduler(),
-            op.filter(lambda o: isinstance(o, OrderStatusEvent)),
-            op.map(self.map_raw_payload)
-            )
+    # def get_user_data_stream(self):
+    #     return self.main.pipe(
+    #         observe_on_pool_scheduler(),
+    #         op.filter(lambda o: isinstance(o, OrderStatusEvent)),
+    #         op.map(self.map_raw_payload)
+    #         )
 
     def map_raw_payload(self, e):
         event_type = e['e']

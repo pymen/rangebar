@@ -64,7 +64,7 @@ def clear_logs():
 
 def clear_symbol_windows():
     directory = str(get_file_path('symbol_windows').absolute())
-    csv_files = glob.glob(directory + '/*.csv')
+    csv_files = glob.glob(directory + '/*.parq')
     for csv_file in csv_files:
         os.remove(csv_file)        
 

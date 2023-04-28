@@ -1,15 +1,16 @@
 import datetime
 import pandas as pd
-from src.data_frame_io.abstract_data_frame_io import AbstractDataFrameIO
+from src.io.abstract_io import AbstractIO
 from src.helpers.util import get_strategy_parameters_max
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarFrameIOCommandEvent, RangeBarWindowDataEvent
+from src.helpers.dataclasses import RangeBarFrameIOCommandEvent, RangeBarWindowDataEvent, StrategyNextEvent
+from src.io.enum_io import RigDataFrame
 
-class RangeBarDataFrameIO(AbstractDataFrameIO):
+class RangeBarIO(AbstractIO):
     """
     In order for the indicators to be applied we need to have enough range bars to handle their look back periods.
     We can't fetch historical, but we can generate range bars from the kline data.
@@ -23,10 +24,9 @@ class RangeBarDataFrameIO(AbstractDataFrameIO):
     min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators)
 
     def __init__(self, primary: Subject) -> None:
-        super().__init__('range_bar', primary)
-        self.logger = get_logger(f'RangeBarDataFrameIO')
+        super().__init__(RigDataFrame.RANGE_BAR, primary)
+        self.logger = get_logger(self)
         
-
     def init_subscriptions(self) -> None:
         super().init_subscriptions()
         self.primary.pipe( # type: ignore
@@ -36,9 +36,12 @@ class RangeBarDataFrameIO(AbstractDataFrameIO):
             ).subscribe()
         self.primary.pipe( # type: ignore
                 op.filter(lambda o: isinstance(o, StrategyNextEvent)), # type: ignore
-                op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
+                op.map(self.save_range_bars_with_indicators), # type: ignore
                 # observe_on_pool_scheduler()
             ).subscribe()
+        
+    def save_range_bars_with_indicators(self, e: StrategyNextEvent):
+        self.save_symbol_df_data(e.symbol, 'range_bars_with_indicators', e.df) 
         
     def get_window_period_duration(self, symbol: str) -> pd.Timedelta | None:
         # Calculate the safe window period duration
@@ -60,7 +63,7 @@ class RangeBarDataFrameIO(AbstractDataFrameIO):
 
     def append_post_processing(self, symbol: str) -> None:
         try:
-            self.append_symbol_df_data_to_csv(symbol)
+            self.save_symbol_df_data(symbol)
             period_duration = self.get_window_period_duration(symbol)
             if period_duration is not None:
                 super().generic_publish_df_window(symbol, RangeBarWindowDataEvent, period_duration)

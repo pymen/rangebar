@@ -1,5 +1,5 @@
-from src.data_frame_io.kline_data_frame_io import KlineDataFrameIO
-from src.data_frame_io.range_bar_data_frame_io import RangeBarDataFrameIO
+from src.io.kline_io import KlineIO
+from src.io.range_bar_io import RangeBarIO
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.stream_consumers.primary_transformers.user_data import UserData
 from src.fetch_historical.historical_kline import HistoricalKline
@@ -34,8 +34,8 @@ def setup() -> tuple[Kline, UserData, RangeBar]:
     """
     Data Frame IO
     """
-    KlineDataFrameIO(primary)
-    RangeBarDataFrameIO(primary)
+    KlineIO(primary)
+    RangeBarIO(primary)
     # DataFrameIO('user_data', primary)
     """
     Historical

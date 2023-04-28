@@ -1,28 +1,27 @@
-from src.data_frame_io.kline_data_frame_io import KlineDataFrameIO
+from src.io.kline_io import KlineIO
 from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import HistoricalKlineEvent
 from src.stream_consumers.primary_transformers.kline import Kline
 from src.util import get_logger
-from src.data_frame_io.abstract_data_frame_io import AbstractDataFrameIO
+from src.io.abstract_io import AbstractIO
 from rx.subject import Subject # type: ignore
 import pandas as pd
 import datetime
 
 logging = get_logger('tests')
 
-def new_instance():
+def new_instance() -> tuple[HistoricalKline, KlineIO]:
     primary = Subject()
-    secondary = Subject()
-    kline = KlineDataFrameIO('kline', primary)
+    kline = KlineIO(primary)
     return HistoricalKline(primary), kline
 
-def test_get_1000_minute_intervals():
+def test_get_1000_minute_intervals() -> None:
     target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs = target.get_1000_minute_intervals(last_timestamp)
     assert len(pairs) == 11
 
-def test_fetch_all_intervals():
+def test_fetch_all_intervals() -> None:
     target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
     pairs: list[tuple[datetime.datetime, datetime.datetime]] = target.get_1000_minute_intervals(last_timestamp)

@@ -1,7 +1,7 @@
 from typing import Any
 import numpy as np
 import pandas as pd
-from src.data_frame_io.abstract_data_frame_io import AbstractDataFrameIO
+from src.io.abstract_io import AbstractIO
 from src.helpers.util import check_df_has_datetime_index
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
@@ -9,16 +9,17 @@ from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
 import datetime as dt
 from src.helpers.dataclasses import KlineFrameIOCommandEvent
 import rx.operators as op
+from src.io.enum_io import RigDataFrame
 
-class KlineDataFrameIO(AbstractDataFrameIO):
+class KlineIO(AbstractIO):
 
     def __init__(self, primary: Subject) -> None:
-        super().__init__('kline', primary)
-        self.logger = get_logger(f'kline_df_io')
+        super().__init__(RigDataFrame.KLINE, primary)
+        self.logger = get_logger(self)
         
   
     def init_subscriptions(self) -> None:
-        self.primary.pipe(
+        self.primary.pipe( # type: ignore
             op.filter(lambda o: isinstance(o, KlineFrameIOCommandEvent) and o.df_name == self.df_name), # type: ignore
             op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
             # observe_on_pool_scheduler()
@@ -116,6 +117,6 @@ class KlineDataFrameIO(AbstractDataFrameIO):
             df_with_basic_indicators = self.add_basic_indicators(symbol)
             if df_with_basic_indicators is not None:
                 self.symbol_df_dict[symbol] = df_with_basic_indicators
-                self.append_symbol_df_data_to_csv(symbol)
+                self.save_symbol_df_data(symbol)
                 self.publish_df_window(symbol)
         
