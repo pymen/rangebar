@@ -7,3 +7,4 @@ rig.egg-info
 resources/symbol_windows/**
 notebooks/tmp-data/**
 resources/logs/**
+temp/**
