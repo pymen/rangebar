@@ -42,8 +42,8 @@ class RangeBarIO(AbstractIO):
     def save_range_bars_with_indicators(self, e: StrategyNextEvent):
         try:
             self.save_symbol_df_data(e.symbol, 'range_bars_with_indicators', e.df)
-        except Exception as e:
-            self.logger.error(f'save_range_bars_with_indicators: {str(e)}')
+        except Exception as ex:
+            self.logger.error(f'save_range_bars_with_indicators: {str(ex)}')
          
         
     def get_window_period_duration(self, symbol: str) -> pd.Timedelta | None:
