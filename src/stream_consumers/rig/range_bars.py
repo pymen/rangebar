@@ -26,7 +26,7 @@ class RangeBar(RigStreamConsumer):
 
     def __init__(self, primary: Subject) -> None:
         super().__init__(primary)
-        self.logger = get_logger('RangeBars')
+        self.logger = get_logger(self)
         self.primary = primary
         
         self.primary.pipe(
