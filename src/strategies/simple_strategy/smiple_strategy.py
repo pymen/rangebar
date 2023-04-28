@@ -1,7 +1,7 @@
 import pandas as pd
 from rx.subject import Subject  # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import StrategyTickEvent
+from src.helpers.dataclasses import StrategyNextEvent
 from scipy.stats import linregress
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 
@@ -17,20 +17,21 @@ class SimpleStrategy:
     potential_profit_aadr_multiplier = 0.15
     anti_squeeze_distance = 0.05
 
-    def __init__(self):
+    def __init__(self, primary: Subject):
         self.logger = get_logger('SimpleStrategy')
         self.client = OrderClient()
+        self.primary = primary
         
         self.init_subscriptions()
 
     def init_subscriptions(self) -> None:
-        self.secondary.pipe(  # type: ignore
-            op.filter(lambda o: isinstance(o, StrategyTickEvent)),
+        self.primary.pipe(  # type: ignore
+            op.filter(lambda o: isinstance(o, StrategyNextEvent)),
             op.map(self.next),
             # observe_on_pool_scheduler()
         ).subscribe()
 
-    def next(self, e: StrategyTickEvent) -> None:
+    def next(self, e: StrategyNextEvent) -> None:
         df = e.df
         row = df.tail(1)
         current_close = row['close']

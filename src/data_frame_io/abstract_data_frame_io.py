@@ -32,16 +32,15 @@ class AbstractDataFrameIO(ABC):
     def get_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"            
  
-    def generic_publish_df_window(self, symbol: str, event_object: object, primary: bool = True) -> None:
+    def generic_publish_df_window(self, symbol: str, event_object: object, period_duration: pd.Timedelta | None = None) -> None:
+        if period_duration is None:
+            period_duration = pd.Timedelta(self.get_period_duration()) 
         df = self.symbol_df_dict[symbol]
-        window_df = df.loc[df.index >= df.index.max() - pd.Timedelta(self.get_period_duration())]
+        window_df = df.loc[df.index >= df.index.max() - period_duration]
         self.logger.debug(f"window_df: len: {len(window_df)}")
         has_correct_data = self.check_df_contains_window_period(window_df)
         if has_correct_data:
-            if primary:
-                self.primary.on_next(event_object(symbol, window_df)) # type: ignore
-            else:    
-                self.secondary.on_next(event_object(symbol, window_df)) # type: ignore
+            self.primary.on_next(event_object(symbol, window_df)) # type: ignore
         else:
             self.logger.warning(f"Dataframe for {symbol} does not contain correct data")
                 

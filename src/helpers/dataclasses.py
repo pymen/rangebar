@@ -11,19 +11,9 @@ class RangeBarWindowDataEvent:
     symbol: str
     df: pd.DataFrame    
 
-@dataclass
-class RangeBarFrameIOCommandEvent:
-    method: str
-    df_name: str
-    kwargs: dict[str, str | int]
 
 @dataclass
-class IndicatorTickEvent:
-    symbol: str
-    df: pd.DataFrame  
-
-@dataclass
-class StrategyTickEvent:
+class StrategyNextEvent:
     symbol: str
     df: pd.DataFrame      
 
@@ -43,6 +33,13 @@ class OrderStatusEvent:
 class KlineFrameIOCommandEvent:
     method: str
     df_name: str
-    kwargs: dict[str, str | int]
+    kwargs: dict[str, str | int | pd.DataFrame]
+
+@dataclass
+class RangeBarFrameIOCommandEvent():
+    method: str
+    df_name: str
+    kwargs: dict[str, str | int | pd.DataFrame]
+
         
         

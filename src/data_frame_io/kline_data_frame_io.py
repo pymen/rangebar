@@ -12,9 +12,9 @@ import rx.operators as op
 
 class KlineDataFrameIO(AbstractDataFrameIO):
 
-    def __init__(self, df_name: str, primary: Subject) -> None:
-        super().__init__(df_name, primary)
-        self.logger = get_logger(f'PrimaryDataFrameIO_{df_name}')
+    def __init__(self, primary: Subject) -> None:
+        super().__init__('kline', primary)
+        self.logger = get_logger(f'kline_df_io')
         
   
     def init_subscriptions(self) -> None:
@@ -25,7 +25,7 @@ class KlineDataFrameIO(AbstractDataFrameIO):
         ).subscribe()    
 
     def publish_df_window(self, symbol: str) -> None:
-        super().generic_publish_df_window(symbol, KlineWindowDataEvent, True)
+        super().generic_publish_df_window(symbol, KlineWindowDataEvent)
         
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']

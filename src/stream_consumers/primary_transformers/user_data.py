@@ -24,7 +24,7 @@ class UserData:
     """
    
     def __init__(self, primary: Subject):
-        self.logger = get_logger('AccountData')
+        self.logger = get_logger(self)
         self.kill_polling = False
         self.kill_renew_listen_key = False
         self.listen_key = ''

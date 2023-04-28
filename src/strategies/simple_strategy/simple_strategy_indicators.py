@@ -3,7 +3,7 @@ import pandas as pd
 import ta
 from rx.subject import Subject # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import IndicatorTickEvent, StrategyTickEvent
+from src.helpers.dataclasses import RangeBarWindowDataEvent, StrategyNextEvent
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 
 
@@ -26,7 +26,7 @@ class SimpleStrategyIndicators:
 
     def init_subscriptions(self):
         self.primary.pipe(
-            op.filter(lambda o: isinstance(o, IndicatorTickEvent)),
+            op.filter(lambda o: isinstance(o, RangeBarWindowDataEvent)),
             op.map(self.apply)
             #  observe_on_pool_scheduler(),
         ).subscribe()
@@ -48,9 +48,9 @@ class SimpleStrategyIndicators:
         rsi = ta.momentum.RSIIndicator(self.df['close'], window=self.p_rsi_window) # type: ignore
         self.df['rsi'] = rsi.rsi()
 
-    def apply(self, event: IndicatorTickEvent) -> None:
+    def apply(self, event: RangeBarWindowDataEvent) -> None:
         self.df = event.df.copy()
         self.macd()
         self.bb()
         self.rsi()
-        self.primary.on_next(StrategyTickEvent(event.symbol, self.df))
+        self.primary.on_next(StrategyNextEvent(event.symbol, self.df))

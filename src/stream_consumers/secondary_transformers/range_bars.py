@@ -40,7 +40,7 @@ class RangeBar(SecondaryStreamConsumer):
         self.logger.info(f'process: {e}')
         range_bar_df = self.create_range_bar_df(e.df)
         self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
-        self.primary.on_next(RangeBarFrameIOCommandEvent(e.symbol, range_bar_df))
+        self.primary.on_next(RangeBarFrameIOCommandEvent(method='append_rows', df_name='range_bar', kwargs={'symbol': e.symbol, 'df_section': range_bar_df}))
 
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:

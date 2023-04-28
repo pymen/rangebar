@@ -13,12 +13,12 @@ from rx.subject import Subject # type: ignore
 # The Websocket baseurl for testnet is "wss://stream.binancefuture.com"
 logger = get_logger('main')
 
-def setup():
+def setup() -> tuple[Kline, UserData, RangeBar]:
     """
     Event Subjects
     """
     primary = Subject()
-    secondary = Subject()
+    # secondary = Subject() # will be used for secondary data such as local order book decision augmentation
     """
     Transformers
     """
@@ -34,8 +34,8 @@ def setup():
     """
     Data Frame IO
     """
-    KlineDataFrameIO('kline', primary)
-    RangeBarDataFrameIO('range_bar', primary)
+    KlineDataFrameIO(primary)
+    RangeBarDataFrameIO(primary)
     # DataFrameIO('user_data', primary)
     """
     Historical
@@ -44,20 +44,20 @@ def setup():
     """
     Indicators
     """
-    SimpleStrategyIndicators(secondary)
+    SimpleStrategyIndicators(primary)
     """
     Strategies
     """
-    SimpleStrategy(secondary)
+    SimpleStrategy(primary)
     return kline, user_date, range_bar
 
 consumers = setup()
-def start():
+def start() -> None:
     global consumers
     for consumer in consumers:
         consumer.start() # type: ignore
 
-def stop():
+def stop() -> None:
     global consumers
     for consumer in consumers:
         consumer.stop() # type: ignore
