@@ -1,5 +1,5 @@
 from typing import Any
-from src.helpers.dataclasses import HistoricalKlineEvent, KlineFrameIOCommandEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, KlineIOCmdEvent
 from src.helpers.util import get_unix_epoch_time_ms
 from src.rx.pool_scheduler import observe_on_pool_scheduler
 from src.util import get_logger
@@ -37,7 +37,7 @@ class HistoricalKline:
             pairs: list[tuple[Any, Any]] = self.get_1000_minute_intervals(e.last_timestamp) # type: ignore
             resp_data = self.fetch_all_intervals(e, pairs) 
             df = self.build_df(resp_data, e.symbol)
-            self.primary.on_next(KlineFrameIOCommandEvent(method='append_rows', df_name='kline', kwargs={'symbol': e.symbol, 'df_section': df})) # type: ignore
+            self.primary.on_next(KlineIOCmdEvent(method='append_rows', df_name='kline', kwargs={'symbol': e.symbol, 'df_section': df})) # type: ignore
             self.processing = False     
 
 

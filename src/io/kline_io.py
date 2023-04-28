@@ -7,7 +7,7 @@ from src.util import get_logger
 from rx.subject import Subject # type: ignore
 from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
 import datetime as dt
-from src.helpers.dataclasses import KlineFrameIOCommandEvent
+from src.helpers.dataclasses import KlineIOCmdEvent
 import rx.operators as op
 from src.io.enum_io import RigDataFrame
 
@@ -20,7 +20,7 @@ class KlineIO(AbstractIO):
   
     def init_subscriptions(self) -> None:
         self.primary.pipe( # type: ignore
-            op.filter(lambda o: isinstance(o, KlineFrameIOCommandEvent) and o.df_name == self.df_name), # type: ignore
+            op.filter(lambda o: isinstance(o, KlineIOCmdEvent) and o.df_name == self.df_name), # type: ignore
             op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
             # observe_on_pool_scheduler()
         ).subscribe()    

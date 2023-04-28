@@ -30,13 +30,13 @@ class OrderStatusEvent:
     payload: dict[str, str | int]
 
 @dataclass
-class KlineFrameIOCommandEvent:
+class KlineIOCmdEvent:
     method: str
     df_name: str
     kwargs: dict[str, str | int | pd.DataFrame]
 
 @dataclass
-class RangeBarFrameIOCommandEvent():
+class RangeBarIOCmdEvent():
     method: str
     df_name: str
     kwargs: dict[str, str | int | pd.DataFrame]

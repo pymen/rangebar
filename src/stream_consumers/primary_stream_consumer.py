@@ -1,6 +1,6 @@
 from abc import ABC
 import random
-from src.helpers.dataclasses import KlineFrameIOCommandEvent
+from src.helpers.dataclasses import KlineIOCmdEvent
 from src.settings import get_settings
 from src.util import get_logger
 from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
@@ -66,7 +66,7 @@ class PrimaryStreamConsumer(ABC):
                     # which is only associated with the Kline transformer class
                     # Need to find a way to make this more generic - without names the events are a bit confusing 
                     # to work with - this type could be parsed from the subclass
-                    event = KlineFrameIOCommandEvent(method='append_row', df_name=df_name, kwargs={
+                    event = KlineIOCmdEvent(method='append_row', df_name=df_name, kwargs={
                                          'symbol': symbol.lower(), 'row': series}) # type: ignore
                     self.logger.debug(f'event: {str(event)}')
                     self.primary.on_next(event)

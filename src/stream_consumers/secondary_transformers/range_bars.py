@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarFrameIOCommandEvent
+from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarIOCmdEvent
 from src.helpers.decorators import consumer_source
 from src.helpers.util import check_df_has_datetime_index
 from src.rx.pool_scheduler import observe_on_pool_scheduler
@@ -40,7 +40,7 @@ class RangeBar(SecondaryStreamConsumer):
         self.logger.info(f'process: {e}')
         range_bar_df = self.create_range_bar_df(e.df)
         self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
-        self.primary.on_next(RangeBarFrameIOCommandEvent(method='append_rows', df_name='range_bar', kwargs={'symbol': e.symbol, 'df_section': range_bar_df}))
+        self.primary.on_next(RangeBarIOCmdEvent(method='append_rows', df_name='range_bar', kwargs={'symbol': e.symbol, 'df_section': range_bar_df}))
 
 
     def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:

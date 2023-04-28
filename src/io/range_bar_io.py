@@ -7,7 +7,7 @@ from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStra
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import RangeBarFrameIOCommandEvent, RangeBarWindowDataEvent, StrategyNextEvent
+from src.helpers.dataclasses import RangeBarIOCmdEvent, RangeBarWindowDataEvent, StrategyNextEvent
 from src.io.enum_io import RigDataFrame
 
 class RangeBarIO(AbstractIO):
@@ -30,7 +30,7 @@ class RangeBarIO(AbstractIO):
     def init_subscriptions(self) -> None:
         super().init_subscriptions()
         self.primary.pipe( # type: ignore
-                op.filter(lambda o: isinstance(o, RangeBarFrameIOCommandEvent)), # type: ignore
+                op.filter(lambda o: isinstance(o, RangeBarIOCmdEvent)), # type: ignore
                 op.map(lambda e: getattr(self, e.method)(**e.kwargs)), # type: ignore
                 # observe_on_pool_scheduler()
             ).subscribe()
