@@ -24,6 +24,7 @@ class SimpleStrategyIndicators:
 
     def __init__(self, primary: Subject):
         self.primary = primary
+        self.init_subscriptions()
 
     def init_subscriptions(self):
         self.primary.pipe(
