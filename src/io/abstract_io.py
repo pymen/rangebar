@@ -46,7 +46,7 @@ class AbstractIO(ABC):
         pp_processors = self.get_pre_publish_processors()
         if len(pp_processors) > 0:
             self.logger.info(
-                f"applying pre-publish processors: len: {len(pp_processors)}")
+                f"apply_pre_publish_processors: len: {len(pp_processors)}")
             pp_result = reduce(
                 lambda df, processor: processor(df), pp_processors, df)
             return pp_result
@@ -73,7 +73,7 @@ class AbstractIO(ABC):
         self.check_df_has_datetime_index(df)
         if not self.check_df_contains_processors_window(df, processors_window):
             self.logger.warning(
-                f"Window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
+                f"publish_windowed_data: window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
             return
         pp_result = self.apply_pre_publish_processors(df)
         self.symbol_df_dict[symbol] = pp_result
@@ -83,11 +83,11 @@ class AbstractIO(ABC):
             self.logger.error(
                 f'append_post_processing: save_symbol_df_data: {str(e)}')
         self.logger.debug(
-            f"symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
+            f"publish_windowed_data: symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
         window_df = self.get_window_df(symbol, processors_window, emit_window)
         if len(window_df) > 0:
             self.logger.debug(
-                f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
+                f"publish_windowed_data: window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
             self.primary.on_next(event_object(window_df, symbol))
 
     def publish_batch_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int) -> None:
@@ -98,14 +98,14 @@ class AbstractIO(ABC):
         self.publish_windowed_data(
             symbol, event_object, processors_window, emit_window)
 
-    def get_period_duration(self) -> str:
+    def get_exchange_consumer_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"
 
     def prune_symbol_df_window(self, symbol: str, df: pd.DataFrame) -> None:  # type: ignore
         """
         Reduce size of in memory df, since we are only interested in 7 days
         """
-        period_duration = self.get_period_duration()
+        period_duration = self.get_exchange_consumer_period_duration()
         self.logger.debug(f"period_duration: {period_duration}")
         rolling_window = df.rolling(window=period_duration)  # type: ignore
         if rolling_window.has_valid_values():  # type: ignore

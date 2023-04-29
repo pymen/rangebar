@@ -122,7 +122,7 @@ class KlineIO(AbstractIO):
         return delta
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
-        processors_window = pd.Timedelta(self.get_period_duration())
+        processors_window = pd.Timedelta(self.get_exchange_consumer_period_duration())
         emit_window = self.find_delta_for_last_mark(symbol)
         event = self.fill_historical(symbol)
         if event is not None:

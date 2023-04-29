@@ -36,6 +36,12 @@ class Storage:
         if df is None:
             df = self.symbol_df_dict[symbol]
         if not df.empty:
-            df_cp = df.copy()
-            df_cp.reset_index(inplace=True)
-            df_cp.to_feather(path, compression='lz4')        
+            try:
+                df_cp = df.copy()
+                df_cp.reset_index(inplace=True)
+                df_cp.to_feather(path, compression='lz4')     
+            except Exception as e:
+                self.logger.error(f"Error saving df: {e}")
+                return None
+                
+               
