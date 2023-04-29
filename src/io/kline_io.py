@@ -104,29 +104,33 @@ class KlineIO(AbstractIO):
         return df
 
     def check_df_contains_processors_window(self, df: pd.DataFrame, window: pd.Timedelta | int) -> bool:
+        missing_date_range_limit = pd.Timedelta(minutes=1)
+        debug = self.settings['debug']
+        if debug:
+            # FIXME there is something wrong with the debug mode
+            missing_date_range_limit = pd.Timedelta(hours=3) 
+        missing_date_range = dt.datetime.now() - df.index.max()
         date_range = df.index.max() - df.index.min()
         self.logger.debug(
-            f"date_range_days: {str(date_range)}, window: {str(window)}")
-        if date_range >= window:
+            f"check_df_contains_processors_window: missing_date_range: {str(missing_date_range)}, date_range_days: {str(date_range)}, window: {str(window)}")
+        if missing_date_range <= missing_date_range_limit and date_range >= window:
             return True
         else:
             self.logger.info(
                 f"check_df_contains_window_period: DataFrame does not contain window period of data, yet. diff: {str(window - date_range)}")
             return False
 
-    def find_delta_for_last_mark(self, symbol: str) -> pd.Timedelta:
-        kline_df = self.symbol_df_dict[symbol]
-        last_index = (kline_df['mark'] == 1).idxmax()
-        self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
-        delta = pd.Timestamp.now() - last_index # type: ignore
-        return delta
+    
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
         processors_window = pd.Timedelta(self.get_exchange_consumer_period_duration())
-        emit_window = self.find_delta_for_last_mark(symbol)
-        event = self.fill_historical(symbol)
-        if event is not None:
-            self.primary.on_next(event)
+        if not batch and not self.check_df_contains_processors_window(self.symbol_df_dict[symbol], processors_window):
+            self.logger.debug(f"post_append_trigger: not enough data for {symbol}:kline, post_append_trigger will not be called")
+            event = self.fill_historical(symbol)
+            if event is not None:
+                self.primary.on_next(event)
+            return None
         else:
-            super().publish(symbol, KlineWindowDataEvent, processors_window, emit_window, batch)    
+            emit_window = self.find_delta_for_last_mark(symbol, pd.Timedelta(self.get_exchange_consumer_period_duration()))
+            super().publish(symbol, KlineWindowDataEvent, processors_window, emit_window)    
                 

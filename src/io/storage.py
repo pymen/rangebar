@@ -18,6 +18,7 @@ class Storage:
         
     def restore_symbol_df_data(self, symbol: str) -> pd.DataFrame | None:
         path = self.get_symbol_window_store_path(symbol, self.df_name)
+        self.logger.debug(f"restore_symbol_df_data: path: {path}")
         if os.path.exists(path):
             try:
                 # Calculate the date for 7 days ago
@@ -37,17 +38,20 @@ class Storage:
         if name is None:
             name = self.df_name
         path = self.get_symbol_window_store_path(symbol, name)  # type: ignore
+        self.logger.debug(f"save_symbol_df_data: path: {path}")
         if df is None:
             df = self.symbol_df_dict[symbol]
         if not df.empty:
             try:
                 df_cp = df.copy()
-                if os.path.exists(path):
-                    # Open the pickle file in append binary mode and append the new data
-                    with open(path, "ab") as f:
-                        df_cp.to_pickle(f)
-                else:        
-                    df_cp.to_pickle(path)     
+                df_cp.to_pickle(path)
+                # FIXME appending data will result in duplicated rows, would work if it was on shutdown only  
+                # if os.path.exists(path):
+                #     # Open the pickle file in append binary mode and append the new data
+                #     with open(path, "ab") as f:
+                #         df_cp.to_pickle(f)
+                # else:        
+                #     df_cp.to_pickle(path)     
             except Exception as e:
                 self.logger.error(f"Error saving df: {e}")
                 return None

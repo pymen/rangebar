@@ -56,13 +56,9 @@ class RangeBarIO(AbstractIO):
             self.logger.error(f'save_range_bars_with_indicators: {str(ex)}')
 
     def check_df_contains_processors_window(self, df: pd.DataFrame, window: pd.Timedelta | int) -> bool:
-        start = df.index[0]
-        end = df.index[-1]
-        timedelta_in_minutes = (end - start).total_seconds() / 60.0 # type: ignore
-        self.logger.info(f'check_df_contains_window_period: {timedelta_in_minutes} min >= {self.min_range_bar_window} min')    
-        return timedelta_in_minutes >= self.min_range_bar_window    
+        bars = len(df)
+        self.logger.info(f'check_df_contains_window_period: num of bar: {bars} >= {self.min_range_bar_window}')    
+        return bars >= self.min_range_bar_window    
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
-        processors_window = pd.Timedelta(minutes=self.min_range_bar_window + 1)
-        emit_window = self.find_delta_for_last_mark(symbol)
-        super().publish(symbol, RangeBarWindowDataEvent, processors_window, emit_window, batch)    
+        super().publish(symbol, RangeBarWindowDataEvent, self.min_range_bar_window, self.min_range_bar_window)    

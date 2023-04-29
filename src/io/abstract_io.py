@@ -30,12 +30,8 @@ class AbstractIO(ABC):
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
         self.init_subscriptions()
 
-    def publish(self, symbol: str, event_type: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta, batch: bool = False) -> None:
-        if batch:
-            self.publish_batch_df_window(symbol, event_type, processors_window)
-        else:
-            self.publish_df_window(
-                symbol, event_type, processors_window, emit_window)
+    def publish(self, symbol: str, event_type: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> None:
+         self.publish_windowed_data(symbol, event_type, processors_window, emit_window)
 
     def check_df_has_datetime_index(self, df):
         if not isinstance(df.index, pd.DatetimeIndex):
@@ -77,11 +73,7 @@ class AbstractIO(ABC):
             return
         pp_result = self.apply_pre_publish_processors(df)
         self.symbol_df_dict[symbol] = pp_result
-        try:
-            self.storage.save_symbol_df_data(symbol)
-        except Exception as e:
-            self.logger.error(
-                f'append_post_processing: save_symbol_df_data: {str(e)}')
+        self.storage.save_symbol_df_data(symbol)
         self.logger.debug(
             f"publish_windowed_data: symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
         window_df = self.get_window_df(symbol, processors_window, emit_window)
@@ -89,14 +81,6 @@ class AbstractIO(ABC):
             self.logger.debug(
                 f"publish_windowed_data: window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
             self.primary.on_next(event_object(window_df, symbol))
-
-    def publish_batch_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int) -> None:
-        self.publish_windowed_data(
-            symbol, event_object, processors_window, processors_window)
-
-    def publish_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> None:
-        self.publish_windowed_data(
-            symbol, event_object, processors_window, emit_window)
 
     def get_exchange_consumer_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"
@@ -123,6 +107,7 @@ class AbstractIO(ABC):
         row_as_frame = coerce_numeric(row_as_frame)
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], row_as_frame])
+        self.storage.save_symbol_df_data(symbol)
         self.post_append_trigger(symbol)
 
     def append_rows(self, symbol: str, df_section: pd.DataFrame) -> None:
@@ -132,18 +117,22 @@ class AbstractIO(ABC):
             [self.symbol_df_dict[symbol], df_section])
         self.symbol_df_dict[symbol].sort_values(
             'timestamp', inplace=True)  # type: ignore
+        self.storage.save_symbol_df_data(symbol)
         self.post_append_trigger(symbol, True)
 
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
 
-    def find_delta_for_last_mark(self, symbol: str) -> pd.Timedelta:
-        df = self.symbol_df_dict[symbol]
-        last_index = (df['mark'] == 1).idxmax()
-        self.logger.debug(
-            f"find_delta_for_last_mark: last_index: {last_index}")
-        delta = pd.Timestamp.now() - last_index  # type: ignore
+    def find_delta_for_last_mark(self, symbol: str, no_mark_default: pd.Timedelta | int) -> pd.Timedelta | int:
+        kline_df = self.symbol_df_dict[symbol]
+        try:
+            last_index = (kline_df['mark'] == 1).idxmax()
+            self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
+            delta = pd.Timestamp.now() - last_index # type: ignore
+        except Exception as e:
+            self.logger.warn(f"find_delta_for_last_mark: {str(e)}")
+            delta = no_mark_default 
         return delta
 
     def get_pre_publish_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
