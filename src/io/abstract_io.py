@@ -50,7 +50,7 @@ class AbstractIO(ABC):
     def get_timedelta_window_df(self, symbol: str, processors_window: pd.Timedelta, emit_window: pd.Timedelta) -> pd.DataFrame:
         df = self.symbol_df_dict[symbol]
         shortest_window = min(processors_window, emit_window)
-        window_start = max(df.index.min(), pd.Timestamp.now('UTC') - shortest_window)
+        window_start = max(df.index.min(), pd.Timestamp.now(tz='utc') - shortest_window)
         window_df = df.loc[df.index >= window_start]
         # Set the 'mark' column to 1 where the window_df ends.
         if not window_df.empty:
@@ -140,7 +140,7 @@ class AbstractIO(ABC):
         try:
             last_index = (kline_df['mark'] == 1).idxmax()
             self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
-            delta = pd.Timestamp.now('UTC') - last_index # type: ignore
+            delta = pd.Timestamp.now(tz='utc') - last_index # type: ignore
         except Exception as e:
             self.logger.warn(f"find_delta_for_last_mark: {str(e)}")
             delta = no_mark_default 

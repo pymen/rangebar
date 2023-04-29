@@ -67,7 +67,7 @@ class CryptoToFiatConverter:
                 self.logger.warning(
                     "Too many requests for CoinGecko API, backing off and trying again later.")
                 # Set backoff timestamp to 60 seconds in the future
-                self._backoff = pd.Timestamp.now('UTC').timestamp() + 60
+                self._backoff = pd.Timestamp.now(tz='utc').timestamp() + 60
                 return
             # If the request is not a 429 error we want to raise the normal error
             self.logger.error(
@@ -81,7 +81,7 @@ class CryptoToFiatConverter:
 
     def _get_gekko_id(self, crypto_symbol):
         if not self._coinlistings:
-            if self._backoff <= pd.Timestamp.now('UTC').timestamp():
+            if self._backoff <= pd.Timestamp.now(tz='utc').timestamp():
                 self._load_cryptomap()
                 # Still not loaded.
                 if not self._coinlistings:

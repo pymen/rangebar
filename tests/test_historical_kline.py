@@ -44,7 +44,7 @@ def test_fetch_historical():
     e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp)    
 
 def test_timedelta():
-    to_time_now = pd.Timestamp.now('UTC') 
+    to_time_now = pd.Timestamp.now(tz='utc') 
     last_timestamp = pd.to_datetime('2023-03-24 08:56:00')
     minutes = int((to_time_now - last_timestamp).total_seconds() / 60) 
     test_logger.debug(f'minutes: {minutes}')    
