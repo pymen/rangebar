@@ -21,10 +21,6 @@ def flatten_dict(d: dict[str, Any], parent_key: str = '', sep: str = '_') -> dic
             items.append((new_key, v))
     return dict(items) # type: ignore
 
-
-
-
-
 def check_df_has_datetime_index(df: pd.DataFrame) -> bool:
     """
     Checks if the index of a DataFrame is a DatetimeIndex.

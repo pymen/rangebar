@@ -119,6 +119,10 @@ class AbstractIO(ABC):
         row_as_frame = coerce_numeric(row_as_frame)
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], row_as_frame])
+        self.logger.info(f"append_row[single]: {symbol}, combined df len: {len(self.symbol_df_dict[symbol])}")
+        # Remove duplicate rows with the same datetime index and keep only the last occurrence
+        self.symbol_df_dict[symbol] = self.symbol_df_dict[symbol][~self.symbol_df_dict[symbol].index.duplicated(keep='last')]
+        self.logger.info(f"append_row[single]: {symbol}, combined df len (after remove duplicate datetime indexes): {len(self.symbol_df_dict[symbol])}")
         self.storage.save_symbol_df_data(symbol)
         self.post_append_trigger(symbol)
 
@@ -127,8 +131,10 @@ class AbstractIO(ABC):
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], df_section])
+        self.logger.info(f"append_rows: {symbol}, combined df len: {len(self.symbol_df_dict[symbol])}")
         # Remove duplicate rows with the same datetime index and keep only the last occurrence
         self.symbol_df_dict[symbol] = self.symbol_df_dict[symbol][~self.symbol_df_dict[symbol].index.duplicated(keep='last')]
+        self.logger.info(f"append_rows: {symbol}, combined df len (after remove duplicate datetime indexes): {len(self.symbol_df_dict[symbol])}")
         self.storage.save_symbol_df_data(symbol)
         self.post_append_trigger(symbol, True)
 

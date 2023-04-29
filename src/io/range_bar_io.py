@@ -26,20 +26,6 @@ class RangeBarIO(AbstractIO):
                    (**e.kwargs)),  # type: ignore
             observe_on_scheduler()
         ).subscribe()
-        self.primary.pipe(  # type: ignore
-            op.filter(lambda o: isinstance(
-                o, StrategyNextDataEvent)),  # type: ignore
-            # sanitize_numeric_columns_df(),  # type: ignore
-            op.map(self.save_range_bars_with_indicators),  # type: ignore
-            observe_on_scheduler()
-        ).subscribe()
-
-    def save_range_bars_with_indicators(self, e: StrategyNextDataEvent):
-        try:
-            self.storage.save_symbol_df_data(
-                e.symbol, 'range_bars_with_indicators', e.df, True)
-        except Exception as ex:
-            self.logger.error(f'save_range_bars_with_indicators: {str(ex)}')
 
     def check_df_contains_processors_window(self, df: pd.DataFrame, window: pd.Timedelta | int) -> bool:
         bars = len(df)
