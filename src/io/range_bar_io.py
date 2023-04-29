@@ -1,7 +1,6 @@
 
 import pandas as pd
 from src.io.abstract_io import AbstractIO
-from src.helpers.util import get_strategy_parameters_max
 from src.rx.scheduler import observe_on_scheduler
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
@@ -13,17 +12,6 @@ from datetime import datetime as dt, timedelta as td
 
 
 class RangeBarIO(AbstractIO):
-    """
-    In order for the indicators to be applied we need to have enough range bars to handle their look back periods.
-    We can't fetch historical, but we can generate range bars from the kline data.
-    That will happen on bot start up. But thereafter we are going to be creating a singe range bar at a time, 
-    based on the latest kline & then publishing a df window for the indicators to be applied. With that latest new 
-    range bar as the last row.
-    So it will be the latest created + eg: 26 from storage or the number to make up the difference in this case a total
-    of 27 
-    """
-    # this is the min window size of range bars that can be published to the indicators class eg: 26
-    min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators) * 3
 
     def __init__(self, primary: Subject) -> None:
         super().__init__(RigDataFrame.RANGE_BAR, primary)
@@ -55,8 +43,9 @@ class RangeBarIO(AbstractIO):
 
     def check_df_contains_processors_window(self, df: pd.DataFrame, window: pd.Timedelta | int) -> bool:
         bars = len(df)
-        self.logger.info(f'check_df_contains_window_period: num of bar: {bars} >= {self.min_range_bar_window}')    
-        return bars >= self.min_range_bar_window    
+        self.logger.info(f'check_df_contains_window_period: num of bar: {bars} >= {SimpleStrategyIndicators().get_indicators_min_window_size()}')    
+        return bars >= SimpleStrategyIndicators().get_indicators_min_window_size()    
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
-        super().publish(symbol, RangeBarWindowDataEvent, self.min_range_bar_window, self.min_range_bar_window)    
+        min_window = SimpleStrategyIndicators().get_indicators_min_window_size()
+        super().publish(symbol, StrategyNextDataEvent, min_window, min_window)    

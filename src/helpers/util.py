@@ -22,16 +22,7 @@ def flatten_dict(d: dict[str, Any], parent_key: str = '', sep: str = '_') -> dic
     return dict(items) # type: ignore
 
 
-def get_strategy_parameters_max(strategy: object) -> int:
-    """
-    Get static class values & return the max
-    """
-    parameters: list[int] = []
-    for attr in dir(strategy):
-        if attr.startswith('p_'):
-            p = getattr(strategy, attr)
-            parameters.append(p)
-    return max(parameters)
+
 
 
 def check_df_has_datetime_index(df: pd.DataFrame) -> bool:

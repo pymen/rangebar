@@ -127,8 +127,8 @@ class AbstractIO(ABC):
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
         self.symbol_df_dict[symbol] = pd.concat(  # type: ignore
             [self.symbol_df_dict[symbol], df_section])
-        self.symbol_df_dict[symbol].sort_values(
-            'timestamp', inplace=True)  # type: ignore
+        # Remove duplicate rows with the same datetime index and keep only the last occurrence
+        self.symbol_df_dict[symbol] = self.symbol_df_dict[symbol][~self.symbol_df_dict[symbol].index.duplicated(keep='last')]
         self.storage.save_symbol_df_data(symbol)
         self.post_append_trigger(symbol, True)
 

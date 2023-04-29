@@ -3,6 +3,7 @@ from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarIOCmdEvent
 from src.helpers.decorators import consumer_source
 from src.helpers.util import check_df_has_datetime_index
 from src.rx.scheduler import observe_on_scheduler
+from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.stream_consumers.rig_stream_consumer import RigStreamConsumer
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
@@ -10,6 +11,7 @@ from src.rx.scheduler import observe_on_scheduler
 from src.util import get_logger
 import rx.operators as op
 import pandas as pd
+from functools import reduce
 
 
 
@@ -18,16 +20,19 @@ class RangeBar(RigStreamConsumer):
     """
     Needs to handle the following:
     - create range bars from a kline df
-    - create the next range bar(s) from a the latest kline row
-
-    After transformation the range bar(s) will be published to the secondary stream.
-    And go back to the secondary data frame io, which will publish the df window to the indicators.
+    - create the next range bar(s) from a the buffer & the latest kline row
+    - publish the range bar(s) io, the duplicates will be filtered out by the storage
     """
 
     def __init__(self, primary: Subject) -> None:
         super().__init__(primary)
         self.logger = get_logger(self)
         self.primary = primary
+        self.symbol_buffer_kline_df_dict: dict[str, pd.DataFrame] = {}
+        self.ss_indicators = SimpleStrategyIndicators().get_processors()
+        self.ss_min_window_size = SimpleStrategyIndicators().get_indicators_min_window_size()
+        self.logger.info(f'RangeBar: ss_min_window_size: {self.ss_min_window_size}, ss_indicators: len: {len(self.ss_indicators)}')
+        
         
         self.primary.pipe(
                 op.filter(lambda o: isinstance(o, KlineWindowDataEvent)), # type: ignore
@@ -35,11 +40,23 @@ class RangeBar(RigStreamConsumer):
                 observe_on_scheduler(),
              ).subscribe()
         
+    def get_updated_buffer(self, e: KlineWindowDataEvent) -> pd.DataFrame:
+        df_new = e.df.copy()
+        if self.symbol_buffer_kline_df_dict[e.symbol] is not None:
+           self.symbol_buffer_kline_df_dict[e.symbol] = pd.concat([self.symbol_buffer_kline_df_dict[e.symbol], df_new])
+        else:
+            self.symbol_buffer_kline_df_dict[e.symbol] = df_new
+        # keep the buffer size to the max window size
+        self.symbol_buffer_kline_df_dict[e.symbol] = self.symbol_buffer_kline_df_dict[e.symbol].iloc[-self.ss_min_window_size:]
+        return self.symbol_buffer_kline_df_dict[e.symbol]       
+        
     def process(self, e: KlineWindowDataEvent) -> None:
         self.logger.info(f'process: {e}')
-        range_bar_df = self.create_range_bar_df(e.df)
+        buffer = self.get_updated_buffer(e)
+        range_bar_df = self.create_range_bar_df(buffer)
         if range_bar_df is not None:
-            self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
+            range_bar_df = reduce(lambda df, processor: processor(df), self.ss_indicators, range_bar_df)
+            self.logger.debug(f'range bars created, to be published {len(range_bar_df)}, setting unprocessed_kline to None')
             self.primary.on_next(RangeBarIOCmdEvent(method='append_rows', df_name='range_bar', kwargs={'symbol': e.symbol, 'df_section': range_bar_df}))
         else:
             self.logger.debug(f'range bars not created, nothing to publish')    
@@ -120,6 +137,7 @@ class RangeBar(RigStreamConsumer):
             rb_df.set_index('timestamp', inplace=True)
             return rb_df
         else:
+            self.logger.debug(f"no range bars created")
             return None
 
     
