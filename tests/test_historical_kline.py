@@ -3,6 +3,7 @@ from src.fetch_historical.historical_kline import HistoricalKline
 from src.helpers.dataclasses import HistoricalKlineEvent
 from rx.subject import Subject # type: ignore
 import pandas as pd
+from datetime import datetime as dt, timedelta as td
 from tests.utils import test_logger
 
 def new_instance() -> tuple[HistoricalKline, KlineIO]:
@@ -19,7 +20,7 @@ def test_get_1000_minute_intervals() -> None:
 def test_fetch_all_intervals() -> None:
     target, _ = new_instance()
     last_timestamp = pd.to_datetime('2023-04-07 00:00:00') 
-    pairs: list[tuple[pd.Timestamp, pd.Timestamp]] = target.get_1000_minute_intervals(last_timestamp)
+    pairs: list[tuple[dt, dt]] = target.get_1000_minute_intervals(last_timestamp)
     e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp) 
     resp_data = target.fetch_all_intervals(e, pairs)
     test_logger.debug(f'resp_data.len: {len(resp_data)}')
@@ -44,7 +45,7 @@ def test_fetch_historical():
     e = HistoricalKlineEvent(symbol='btcusdt', source='kline', last_timestamp=last_timestamp)    
 
 def test_timedelta():
-    to_time_now = pd.Timestamp.now(tz='utc') 
+    to_time_now = dt.utcnow() 
     last_timestamp = pd.to_datetime('2023-03-24 08:56:00')
     minutes = int((to_time_now - last_timestamp).total_seconds() / 60) 
     test_logger.debug(f'minutes: {minutes}')    
@@ -59,7 +60,7 @@ def test_timedelta():
     # Create a list of pairs of start and end times
     stamps = [to_time_now]
     for i in range(1, intervals):
-        bound = to_time_now - pd.Timedelta(minutes=1000*i)
+        bound = to_time_now - td(minutes=1000*i)
         stamps.append(bound)
     
     test_logger.debug(f'stamps.len: {len(stamps)}')
