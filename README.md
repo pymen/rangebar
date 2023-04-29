@@ -2,7 +2,7 @@ https://binance-docs.github.io/apidocs/futures/en/
 
 ## Architecture v2
 
-<img src="./docs/rig-architecture-v2.0.1.png"
+<img src="./docs/rig-architecture-v3.png"
      alt="rig architecture v2"
      style="height: 600px" />
 
