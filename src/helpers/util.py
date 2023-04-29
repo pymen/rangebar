@@ -2,9 +2,9 @@ from typing import Any
 import pandas as pd
 
 
-def get_unix_epoch_time_ms(dt: pd.Timestamp = pd.Timestamp.now('UCT')) -> int:
+def get_unix_epoch_time_ms(timestamp: pd.Timestamp = pd.Timestamp.now('UCT')) -> int:
     """Converts a datetime object to unix epoch time in milliseconds"""
-    unix_epoch_time_ms = int(dt.timestamp() * 1000)
+    unix_epoch_time_ms = int(timestamp.timestamp() * 1000)
     return unix_epoch_time_ms
 
 

@@ -8,7 +8,6 @@ from src.rx.scheduler import observe_on_scheduler
 from src.util import get_logger
 from rx.subject import Subject  # type: ignore
 from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
-import datetime as dt
 from src.helpers.dataclasses import KlineIOCmdEvent
 import rx.operators as op
 from src.io.enum_io import RigDataFrame
@@ -37,8 +36,8 @@ class KlineIO(AbstractIO):
     def fill_historical(self, symbol: str) -> HistoricalKlineEvent | None:
         kline_df = self.symbol_df_dict[symbol]
         check_df_has_datetime_index(kline_df)
-        kline_last_index: dt.datetime = kline_df.index[-1]  # type: ignore
-        kline_first_index: dt.datetime = kline_df.index[0]  # type: ignore
+        kline_last_index: pd.Timestamp = kline_df.index[-1]  # type: ignore
+        kline_first_index: pd.Timestamp = kline_df.index[0]  # type: ignore
         num_days = (kline_last_index - kline_first_index).days + 1
         self.logger.info(
             f"fill_historical: kline_last_index: {kline_last_index}, kline_first_index: {kline_first_index}, num_days: {num_days}")
@@ -109,7 +108,7 @@ class KlineIO(AbstractIO):
         if debug:
             # FIXME there is something wrong with the debug mode - looks like it was because the time code wasn't using UTC
             missing_date_range_limit = pd.Timedelta(minutes=5) 
-        missing_date_range = dt.datetime.utcnow() - df.index.max()
+        missing_date_range = pd.Timestamp('UCT') - df.index.max()
         date_range = df.index.max() - df.index.min()
         self.logger.debug(
             f"check_df_contains_processors_window: missing_date_range: {str(missing_date_range)}, date_range_days: {str(date_range)}, window: {str(window)}")

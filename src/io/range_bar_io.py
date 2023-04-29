@@ -1,10 +1,8 @@
-import datetime as dt
+
 import pandas as pd
-from typing import Any, Callable
 from src.io.abstract_io import AbstractIO
 from src.helpers.util import get_strategy_parameters_max
 from src.rx.scheduler import observe_on_scheduler
-from src.rx import sanitize_numeric_columns_df
 from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
 from src.util import get_logger
 from rx.subject import Subject  # type: ignore

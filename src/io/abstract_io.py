@@ -1,6 +1,5 @@
 from typing import Any, Dict, Callable
 import pandas as pd
-import datetime as dt
 from src.helpers.util import coerce_numeric
 from src.io.storage import Storage
 from src.util import get_logger, get_settings
@@ -106,7 +105,7 @@ class AbstractIO(ABC):
         rolling_window = df.rolling(window=period_duration)  # type: ignore
         if rolling_window.has_valid_values():  # type: ignore
             # type: ignore
-            window_start: dt.datetime = rolling_window.start_time[0]
+            window_start: pd.Timestamp = rolling_window.start_time[0]
             df = df[window_start:]  # type: ignore
             self.symbol_df_dict[symbol] = pd.DataFrame(rolling_window)
 
