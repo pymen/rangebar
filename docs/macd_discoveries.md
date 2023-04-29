@@ -1,0 +1,7 @@
+The number of historical rows you should provide to the MACD indicator depends on the specific asset or security being analyzed and the time frame you are using for your analysis. In general, providing more historical data to the MACD indicator can provide a more accurate representation of the underlying trend and help to filter out noise and false signals.
+
+However, there is no fixed number of historical rows that will guarantee a useful set of values for the MACD indicator. The stability and accuracy of the MACD indicator depend on a variety of factors, including the volatility and trend of the underlying asset, the time frame being used, and the specific settings of the MACD indicator.
+
+As a general rule of thumb, you may want to consider providing at least 2-3 times the length of the slow moving average window, which in this case is 26 periods. So, if you are using a daily chart, you may want to provide at least 52-78 days of historical data to the MACD indicator to ensure a useful set of values.
+
+However, it is important to note that the optimal number of historical rows may vary depending on the specific market conditions and the trading strategy being used. Traders should always test and refine their strategies using historical data and use the MACD indicator in conjunction with other technical analysis tools to make informed trading decisions.

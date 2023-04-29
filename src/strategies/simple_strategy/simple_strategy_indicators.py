@@ -1,14 +1,10 @@
-from typing import Tuple
+from typing import Callable, Tuple
 import pandas as pd
 import ta
-from rx.subject import Subject # type: ignore
-import rx.operators as op
-from src.helpers.dataclasses import RangeBarWindowDataEvent, StrategyNextDataEvent
-from src.rx.scheduler import observe_on_scheduler
-from src.rx import sanitize_numeric_columns_df
+from src.strategies.abstract_strategy_indicators import AbstractStrategyIndicators
 
 
-class SimpleStrategyIndicators:
+class SimpleStrategyIndicators(AbstractStrategyIndicators):
     """
     The indicators are calculated every time a range bar is created & it's decision time based on the indicator set.
     The only reason we add them to the in-memory df is for record purposes. Since the df is written to disk when rows
@@ -22,38 +18,28 @@ class SimpleStrategyIndicators:
     p_bb_window_dev=2
     p_rsi_window=14
 
-    def __init__(self, primary: Subject):
-        self.primary = primary
-        self.init_subscriptions()
-
-    def init_subscriptions(self):
-        self.primary.pipe(
-            op.filter(lambda o: isinstance(o, RangeBarWindowDataEvent)),
-            # sanitize_numeric_columns_df(),# type: ignore
-            op.map(self.apply),
-            observe_on_scheduler(),
-        ).subscribe()
-
-    def macd(self) -> None:
+    
+    def macd(self, df: pd.DataFrame) -> pd.DataFrame:
         macd = ta.trend.MACD( # type: ignore
-            self.df['close'], window_slow=self.p_macd_window_slow, window_fast=self.p_macd_window_fast, window_sign=self.p_macd_window_sign, fillna=True)
-        self.df['macd'] = macd.macd()
-        self.df['macd_signal'] = macd.macd_signal()
-        self.df['macd_histogram'] = macd.macd_diff()
+            df['close'], window_slow=self.p_macd_window_slow, window_fast=self.p_macd_window_fast, window_sign=self.p_macd_window_sign, fillna=True)
+        df['macd'] = macd.macd()
+        df['macd_signal'] = macd.macd_signal()
+        df['macd_histogram'] = macd.macd_diff()
+        return df
 
-    def bb(self) -> None:
+    def bb(self, df: pd.DataFrame) -> pd.DataFrame:
         bb = ta.volatility.BollingerBands( # type: ignore
-            self.df['close'], window=self.p_bb_window, window_dev=self.p_bb_window_dev)
-        self.df['bb_upper'] = bb.bollinger_hband()
-        self.df['bb_lower'] = bb.bollinger_lband()
+            df['close'], window=self.p_bb_window, window_dev=self.p_bb_window_dev)
+        df['bb_upper'] = bb.bollinger_hband()
+        df['bb_lower'] = bb.bollinger_lband()
+        return df
 
-    def rsi(self) -> None:
-        rsi = ta.momentum.RSIIndicator(self.df['close'], window=self.p_rsi_window) # type: ignore
-        self.df['rsi'] = rsi.rsi()
+    def rsi(self, df: pd.DataFrame) -> pd.DataFrame:
+        rsi = ta.momentum.RSIIndicator(df['close'], window=self.p_rsi_window) # type: ignore
+        df['rsi'] = rsi.rsi()
+        return df
+    
+    def get_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
+        return [self.macd, self.bb, self.rsi]
 
-    def apply(self, event: RangeBarWindowDataEvent) -> None:
-        self.df = event.df.copy()
-        self.macd()
-        self.bb()
-        self.rsi()
-        self.primary.on_next(StrategyNextDataEvent(self.df, event.symbol))
+    

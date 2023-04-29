@@ -23,7 +23,7 @@ class RangeBarIO(AbstractIO):
     of 27 
     """
     # this is the min window size of range bars that can be published to the indicators class eg: 26
-    min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators) + 1
+    min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators) * 3
 
     def __init__(self, primary: Subject) -> None:
         super().__init__(RigDataFrame.RANGE_BAR, primary)
