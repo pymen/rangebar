@@ -107,8 +107,8 @@ class KlineIO(AbstractIO):
         missing_date_range_limit = pd.Timedelta(minutes=1)
         debug = self.settings['debug']
         if debug:
-            # FIXME there is something wrong with the debug mode
-            missing_date_range_limit = pd.Timedelta(hours=3) 
+            # FIXME there is something wrong with the debug mode - looks like it was because the time code wasn't using UTC
+            missing_date_range_limit = pd.Timedelta(minutes=5) 
         missing_date_range = dt.datetime.utcnow() - df.index.max()
         date_range = df.index.max() - df.index.min()
         self.logger.debug(
