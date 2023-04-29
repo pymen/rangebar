@@ -127,8 +127,6 @@ class KlineIO(AbstractIO):
         event = self.fill_historical(symbol)
         if event is not None:
             self.primary.on_next(event)
-        elif batch:
-            super().publish_batch_df_window(symbol, KlineWindowDataEvent, processors_window)
-        else:    
-            super().publish_df_window(symbol, KlineWindowDataEvent, processors_window, emit_window)
+        else:
+            super().publish(symbol, KlineWindowDataEvent, processors_window, emit_window, batch)    
                 

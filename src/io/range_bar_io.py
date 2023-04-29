@@ -50,7 +50,7 @@ class RangeBarIO(AbstractIO):
 
     def save_range_bars_with_indicators(self, e: StrategyNextDataEvent):
         try:
-            self.save_symbol_df_data(
+            self.storage.save_symbol_df_data(
                 e.symbol, 'range_bars_with_indicators', e.df)
         except Exception as ex:
             self.logger.error(f'save_range_bars_with_indicators: {str(ex)}')
@@ -65,7 +65,4 @@ class RangeBarIO(AbstractIO):
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
         processors_window = pd.Timedelta(minutes=self.min_range_bar_window + 1)
         emit_window = self.find_delta_for_last_mark(symbol)
-        if batch:
-            super().publish_batch_df_window(symbol, RangeBarWindowDataEvent, processors_window)
-        else:    
-            super().publish_df_window(symbol, RangeBarWindowDataEvent, processors_window, emit_window)
+        super().publish(symbol, RangeBarWindowDataEvent, processors_window, emit_window, batch)    

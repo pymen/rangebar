@@ -3,11 +3,13 @@ import pandas as pd
 import datetime as dt
 import os
 from src.helpers.util import check_df_has_datetime_index, coerce_numeric
+from src.io.storage import Storage
 from src.util import get_file_path, get_logger, get_settings
 from rx.subject import Subject  # type: ignore
 from abc import ABC, abstractmethod  # , abstractmethod
-from src.io.enum_io import RigDataFrame            
+from src.io.enum_io import RigDataFrame
 from functools import reduce
+
 
 class AbstractIO(ABC):
 
@@ -17,15 +19,23 @@ class AbstractIO(ABC):
         self.df_name = rig_data_frame.value
         self.primary = primary
         self.symbol_df_dict: Dict[str, pd.DataFrame] = {}
+        self.storage = Storage(rig_data_frame, self.symbol_df_dict)
 
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
-            df = self.restore_symbol_df_data(symbols_config['symbol'])
+            df = self.storage.restore_symbol_df_data(symbols_config['symbol'])
             if df is not None:
                 self.symbol_df_dict[symbols_config['symbol']] = df
             else:
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
         self.init_subscriptions()
+
+    def publish(self, symbol: str, event_type: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta, batch: bool = False) -> None:
+        if batch:
+            self.publish_batch_df_window(symbol, event_type, processors_window)
+        else:
+            self.publish_df_window(
+                symbol, event_type, processors_window, emit_window)
 
     def check_df_has_datetime_index(self, df):
         if not isinstance(df.index, pd.DatetimeIndex):
@@ -35,26 +45,29 @@ class AbstractIO(ABC):
     def apply_pre_publish_processors(self, df):
         pp_processors = self.get_pre_publish_processors()
         if len(pp_processors) > 0:
-            self.logger.info(f"applying pre-publish processors: len: {len(pp_processors)}")
-            pp_result = reduce(lambda df, processor: processor(df), pp_processors, df)
+            self.logger.info(
+                f"applying pre-publish processors: len: {len(pp_processors)}")
+            pp_result = reduce(
+                lambda df, processor: processor(df), pp_processors, df)
             return pp_result
         else:
             return df
-    
+
     def get_window_df(self, symbol: str, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> pd.DataFrame:
         df = self.symbol_df_dict[symbol]
         shortest_window = min(processors_window, emit_window)
         if isinstance(shortest_window, pd.Timedelta):
-            window_start = max(df.index.min(), pd.Timestamp.now() - shortest_window)
+            window_start = max(
+                df.index.min(), pd.Timestamp.now() - shortest_window)
             window_df = df.loc[df.index >= window_start]
         else:
             window_df = df.iloc[-shortest_window:]
          # Set the 'mark' column to 1 where the window_df ends.
         if not window_df.empty:
             df['mark'].iloc[-1] = 1
-            self.symbol_df_dict[symbol] = df    
+            self.symbol_df_dict[symbol] = df
         return window_df.copy()
-    
+
     def publish_windowed_data(self, symbol: str, event_object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int):
         df = self.symbol_df_dict[symbol]
         self.check_df_has_datetime_index(df)
@@ -65,10 +78,10 @@ class AbstractIO(ABC):
         pp_result = self.apply_pre_publish_processors(df)
         self.symbol_df_dict[symbol] = pp_result
         try:
-            self.save_symbol_df_data(symbol)
+            self.storage.save_symbol_df_data(symbol)
         except Exception as e:
             self.logger.error(
-                f'append_post_processing: save_symbol_df_data: {str(e)}')        
+                f'append_post_processing: save_symbol_df_data: {str(e)}')
         self.logger.debug(
             f"symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
         window_df = self.get_window_df(symbol, processors_window, emit_window)
@@ -76,13 +89,15 @@ class AbstractIO(ABC):
             self.logger.debug(
                 f"window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
             self.primary.on_next(event_object(window_df, symbol))
-    
+
     def publish_batch_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int) -> None:
-        self.publish_windowed_data(symbol, event_object, processors_window, processors_window)
-    
+        self.publish_windowed_data(
+            symbol, event_object, processors_window, processors_window)
+
     def publish_df_window(self, symbol: str, event_object: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> None:
-        self.publish_windowed_data(symbol, event_object, processors_window, emit_window)
-            
+        self.publish_windowed_data(
+            symbol, event_object, processors_window, emit_window)
+
     def get_period_duration(self) -> str:
         return f"{self.settings['window']['value']}{self.settings['window']['period_type']}"
 
@@ -98,33 +113,6 @@ class AbstractIO(ABC):
             window_start: dt.datetime = rolling_window.start_time[0]
             df = df[window_start:]  # type: ignore
             self.symbol_df_dict[symbol] = pd.DataFrame(rolling_window)
-
-    def save_symbol_df_data(self, symbol: str, name: str | None = None, df: pd.DataFrame | None = None) -> None:
-        if name is None:
-            name = self.df_name
-        path = self.get_symbol_window_store_path(symbol, name)  # type: ignore
-        if df is None:
-            df = self.symbol_df_dict[symbol]
-        if not df.empty:
-            df_cp = df.copy()
-            df_cp.reset_index(inplace=True)
-            df_cp.to_feather(path, compression='lz4')
-
-    def restore_symbol_df_data(self, symbol: str) -> pd.DataFrame | None:
-        path = self.get_symbol_window_store_path(symbol, self.df_name)
-        if os.path.exists(path):
-            try:
-                restored_df = pd.read_feather(path)
-                restored_df['timestamp'] = pd.to_datetime(
-                    restored_df['timestamp'])
-                restored_df.set_index('timestamp', inplace=True)
-                return restored_df
-            except Exception as e:
-                self.logger.error(f"Error restoring df: {e}")
-                return None
-
-    def get_symbol_window_store_path(self, symbol: str, df_name: str) -> str:
-        return str(get_file_path(f'symbol_windows/{symbol}-{df_name}.{self.settings["storage_ext"]}'))
 
     def append_row(self, symbol: str, row: Any) -> None:
         self.symbol_df_dict.setdefault(symbol, pd.DataFrame())
@@ -149,12 +137,13 @@ class AbstractIO(ABC):
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
-    
+
     def find_delta_for_last_mark(self, symbol: str) -> pd.Timedelta:
         df = self.symbol_df_dict[symbol]
         last_index = (df['mark'] == 1).idxmax()
-        self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
-        delta = pd.Timestamp.now() - last_index # type: ignore
+        self.logger.debug(
+            f"find_delta_for_last_mark: last_index: {last_index}")
+        delta = pd.Timestamp.now() - last_index  # type: ignore
         return delta
 
     def get_pre_publish_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
