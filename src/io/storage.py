@@ -1,9 +1,9 @@
 
+import datetime
 import os
 import pandas as pd
 from src.io.enum_io import RigDataFrame
 from src.util import get_file_path, get_logger, get_settings
-
 
 class Storage:
 
@@ -20,10 +20,14 @@ class Storage:
         path = self.get_symbol_window_store_path(symbol, self.df_name)
         if os.path.exists(path):
             try:
-                restored_df = pd.read_feather(path)
-                restored_df['timestamp'] = pd.to_datetime(
-                    restored_df['timestamp'])
-                restored_df.set_index('timestamp', inplace=True)
+                # Calculate the date for 7 days ago
+                last_7_days = datetime.datetime.now() - datetime.timedelta(days=7)
+                # Load the entire dataframe from the pickle file
+                restored_df = pd.read_pickle(path)
+                # Remove duplicate rows with the same datetime index and keep only the last occurrence
+                restored_df = restored_df[~restored_df.index.duplicated(keep='last')]
+                # Slice the dataframe to keep only rows from the last 7 days
+                restored_df = restored_df[last_7_days:]
                 return restored_df
             except Exception as e:
                 self.logger.error(f"Error restoring df: {e}")
@@ -38,8 +42,12 @@ class Storage:
         if not df.empty:
             try:
                 df_cp = df.copy()
-                df_cp.reset_index(inplace=True)
-                df_cp.to_feather(path, compression='lz4')     
+                if os.path.exists(path):
+                    # Open the pickle file in append binary mode and append the new data
+                    with open(path, "ab") as f:
+                        df_cp.to_pickle(f)
+                else:        
+                    df_cp.to_pickle(path)     
             except Exception as e:
                 self.logger.error(f"Error saving df: {e}")
                 return None
