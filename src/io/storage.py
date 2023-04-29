@@ -6,10 +6,10 @@ from src.util import get_file_path, get_logger, get_settings
 
 class Storage:
 
-    def __init__(self, rig_data_frame: RigDataFrame, symbol_df_dict: dict[str, pd.DataFrame]) -> None:
+    def __init__(self, df_name: str, symbol_df_dict: dict[str, pd.DataFrame]) -> None:
         self.logger = get_logger(self)
         self.settings = get_settings('app')
-        self.df_name = rig_data_frame.value
+        self.df_name = df_name
         self.symbol_df_dict = symbol_df_dict
 
     def get_symbol_window_store_path(self, symbol: str, df_name: str) -> str:

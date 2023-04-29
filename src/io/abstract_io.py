@@ -17,7 +17,7 @@ class AbstractIO(ABC):
         self.df_name = rig_data_frame.value
         self.primary = primary
         self.symbol_df_dict: Dict[str, pd.DataFrame] = {}
-        self.storage = Storage(rig_data_frame, self.symbol_df_dict)
+        self.storage = Storage(self.df_name, self.symbol_df_dict)
 
         self.settings = get_settings('app')
         for symbols_config in self.settings['symbols_config']:
