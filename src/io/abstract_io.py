@@ -29,8 +29,8 @@ class AbstractIO(ABC):
                 self.symbol_df_dict[symbols_config['symbol']] = pd.DataFrame()
         self.init_subscriptions()
 
-    def publish(self, symbol: str, event_type: object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> None:
-         self.publish_windowed_data(symbol, event_type, processors_window, emit_window)
+    def publish(self, symbol: str, event_type: object, emit_window: pd.Timedelta | int) -> None:
+         self.publish_windowed_data(symbol, event_type, emit_window)
 
     def check_df_has_datetime_index(self, df):
         if not isinstance(df.index, pd.DatetimeIndex):
@@ -48,10 +48,9 @@ class AbstractIO(ABC):
         else:
             return df
 
-    def get_timedelta_window_df(self, symbol: str, processors_window: pd.Timedelta, emit_window: pd.Timedelta) -> pd.DataFrame:
+    def get_timedelta_window_df(self, symbol: str, emit_window: pd.Timedelta) -> pd.DataFrame:
         df = self.symbol_df_dict[symbol]
-        shortest_window = min(processors_window, emit_window)
-        window_start = max(df.index.min(), dt.utcnow() - shortest_window)
+        window_start = max(df.index.min(), dt.utcnow() - emit_window)
         window_df = df.loc[df.index >= window_start]
         # Set the 'mark' column to 1 where the window_df ends.
         if not window_df.empty:
@@ -63,32 +62,31 @@ class AbstractIO(ABC):
         self.logger.debug(f"get_timedelta_window_df: len: {len(window_df)}")        
         return window_df.copy()
     
-    def get_int_window_df(self, symbol: str, processors_window: int, emit_window: int) -> pd.DataFrame:
+    def get_int_window_df(self, symbol: str, emit_window: int) -> pd.DataFrame:
         df = self.symbol_df_dict[symbol]
-        shortest_window = min(processors_window, emit_window)
-        window_df = df.iloc[-shortest_window:]
+        window_df = df.iloc[-emit_window:]
         self.logger.debug(f"get_int_window_df: len: {len(window_df)}")
         return window_df.copy()
 
-    def publish_windowed_data(self, symbol: str, event_object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int):
+    def publish_windowed_data(self, symbol: str, event_object, emit_window: pd.Timedelta | int):
         df = self.symbol_df_dict[symbol]
         self.check_df_has_datetime_index(df)
-        if not self.check_df_contains_processors_window(df, processors_window):
+        if not self.check_df_contains_processors_window(df, emit_window):
             self.logger.warning(
-                f"publish_windowed_data: window Dataframe for {symbol}, with period required {str(processors_window)}, does not contain enough data")
+                f"publish_windowed_data: window Dataframe for {symbol}, with period required {str(emit_window)}, does not contain enough data")
             return
         pp_result = self.apply_pre_publish_processors(df)
         self.symbol_df_dict[symbol] = pp_result
         self.storage.save_symbol_df_data(symbol)
         self.logger.debug(
-            f"publish_windowed_data: symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
+            f"publish_windowed_data: symbol df len: {len(pp_result)}, period_duration: {emit_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
         window_df = pd.DataFrame()
-        if isinstance(processors_window, pd.Timedelta) and isinstance(emit_window, pd.Timedelta):
+        if isinstance(emit_window, pd.Timedelta):
             window_df = self.get_timedelta_window_df(
-                symbol, processors_window, emit_window)
-        elif isinstance(processors_window, int) and isinstance(emit_window, int):
+                symbol, emit_window)
+        elif isinstance(emit_window, int):
             window_df = self.get_int_window_df(
-                symbol, processors_window, emit_window)
+                symbol, emit_window)
         if len(window_df) > 0:
             self.logger.debug(
                 f"publish_windowed_data: window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")

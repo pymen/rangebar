@@ -34,4 +34,4 @@ class RangeBarIO(AbstractIO):
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
         min_window = SimpleStrategyIndicators().get_indicators_min_window_size()
-        super().publish(symbol, StrategyNextDataEvent, min_window, min_window)    
+        super().publish(symbol, StrategyNextDataEvent, min_window)    

@@ -22,7 +22,7 @@ class AbstractStrategyIndicators(ABC):
             if attr.startswith('p_'):
                 p = getattr(self, attr)
                 parameters.append(p)
-        return max(parameters) * 3
+        return max(parameters) * 10
 
     @abstractmethod
     def get_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:

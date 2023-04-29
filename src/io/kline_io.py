@@ -123,14 +123,13 @@ class KlineIO(AbstractIO):
     
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
-        processors_window = pd.Timedelta(self.get_exchange_consumer_period_duration())
-        if not batch and not self.check_df_contains_processors_window(self.symbol_df_dict[symbol], processors_window):
+        emit_window = pd.Timedelta(self.get_exchange_consumer_period_duration())
+        if not batch and not self.check_df_contains_processors_window(self.symbol_df_dict[symbol], emit_window):
             self.logger.debug(f"post_append_trigger: not enough data for {symbol}:kline, post_append_trigger will not be called")
             event = self.fill_historical(symbol)
             if event is not None:
                 self.primary.on_next(event)
             return None
         else:
-            emit_window = self.find_delta_for_last_mark(symbol, pd.Timedelta(self.get_exchange_consumer_period_duration()))
-            super().publish(symbol, KlineWindowDataEvent, processors_window, emit_window)    
+            super().publish(symbol, KlineWindowDataEvent, emit_window)    
                 
