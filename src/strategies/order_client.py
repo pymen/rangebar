@@ -1,9 +1,10 @@
-from datetime import datetime as dt
+
 from typing import Any
 from binance.um_futures import UMFutures as Client
 from binance.error import ClientError
 from src.helpers.util import get_unix_epoch_time_ms
 from src.util import get_logger, get_settings
+import pandas as pd
 
 
 class OrderClient:
@@ -43,7 +44,7 @@ class OrderClient:
         This would be equivalent, with BTC to a so called pip in forex trading
         but likely different for other coins
         """
-        sl_tp_order_id_prefix = get_unix_epoch_time_ms(dt.utcnow())
+        sl_tp_order_id_prefix = get_unix_epoch_time_ms(pd.Timestamp.now('UCT'))
         sl_id = f'{sl_tp_order_id_prefix}_b_sl'
         tp_id = f'{sl_tp_order_id_prefix}_b_tp'
         bo_id = f'{sl_tp_order_id_prefix}_b_bo'
@@ -131,7 +132,7 @@ class OrderClient:
         This would be equivalent, with BTC to a so called pip in forex trading
         but likely different for other coins
         """
-        sl_tp_order_id_prefix = get_unix_epoch_time_ms(dt.utcnow())
+        sl_tp_order_id_prefix = get_unix_epoch_time_ms(pd.Timestamp.now('UCT'))
         sl_id = f'{sl_tp_order_id_prefix}_s_sl'
         tp_id = f'{sl_tp_order_id_prefix}_s_tp'
         bo_id = f'{sl_tp_order_id_prefix}_s_bo'

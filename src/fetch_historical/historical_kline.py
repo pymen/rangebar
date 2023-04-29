@@ -6,7 +6,6 @@ from src.util import get_logger
 import rx.operators as op
 from binance.um_futures import UMFutures
 import pandas as pd
-from datetime import datetime as dt, timedelta as td
 from rx.subject import Subject # type: ignore
 
 
@@ -41,11 +40,11 @@ class HistoricalKline:
             self.processing = False     
 
 
-    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp) -> list[tuple[dt, dt]]:
+    def get_1000_minute_intervals(self, last_timestamp: pd.Timestamp) -> list[tuple[pd.Timestamp,  pd.Timestamp]]:
         """
         Returns a list of pairs of start and end times
         """
-        to_time_now = dt.utcnow() 
+        to_time_now = pd.Timestamp.now('UCT') 
         minutes = int((to_time_now - last_timestamp).total_seconds() / 60)
         self.logger.info(f'minutes: {minutes}')
         intervals = int(minutes / 1000)
@@ -54,7 +53,7 @@ class HistoricalKline:
             intervals = intervals + (1 if intervals % 2 == 1 else 2)
         stamps = [to_time_now]
         for i in range(1, intervals):
-            bound = to_time_now - td(minutes=1000*i)
+            bound = to_time_now - pd.Timedelta(minutes=1000*i)
             stamps.append(bound)
         stamps = stamps[::-1]
         pairs = [tuple([stamps[i], stamps[i+1]]) for i in range(0, len(stamps) - 1)]

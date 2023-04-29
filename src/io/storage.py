@@ -1,5 +1,4 @@
 
-from datetime import datetime as dt, timedelta as td
 import os
 import pandas as pd
 from src.io.enum_io import RigDataFrame
@@ -22,7 +21,7 @@ class Storage:
         if os.path.exists(path):
             try:
                 # Calculate the date for 7 days ago
-                last_7_days = dt.utcnow() - td(days=7)
+                last_7_days = pd.Timestamp.now('UCT') - pd.Timedelta(days=7)
                 # Load the entire dataframe from the pickle file
                 restored_df = pd.read_pickle(path)
                 # Remove duplicate rows with the same datetime index and keep only the last occurrence
