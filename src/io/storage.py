@@ -33,7 +33,7 @@ class Storage:
                 self.logger.error(f"Error restoring df: {e}")
                 return None
             
-    def save_symbol_df_data(self, symbol: str, name: str | None = None, df: pd.DataFrame | None = None) -> None:
+    def save_symbol_df_data(self, symbol: str, name: str | None = None, df: pd.DataFrame | None = None, append = False) -> None:
         if name is None:
             name = self.df_name
         path = self.get_symbol_window_store_path(symbol, name)  # type: ignore
@@ -43,14 +43,16 @@ class Storage:
         if not df.empty:
             try:
                 df_cp = df.copy()
-                df_cp.to_pickle(path)
                 # FIXME appending data will result in duplicated rows, would work if it was on shutdown only  
-                # if os.path.exists(path):
-                #     # Open the pickle file in append binary mode and append the new data
-                #     with open(path, "ab") as f:
-                #         df_cp.to_pickle(f)
-                # else:        
-                #     df_cp.to_pickle(path)     
+                if append:
+                    if os.path.exists(path):
+                        # Open the pickle file in append binary mode and append the new data
+                        with open(path, "ab") as f:
+                            df_cp.to_pickle(f)
+                    else:        
+                        df_cp.to_pickle(path)    
+                else:
+                    df_cp.to_pickle(path)
             except Exception as e:
                 self.logger.error(f"Error saving df: {e}")
                 return None

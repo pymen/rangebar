@@ -23,8 +23,7 @@ class RangeBarIO(AbstractIO):
     of 27 
     """
     # this is the min window size of range bars that can be published to the indicators class eg: 26
-    min_range_bar_window = get_strategy_parameters_max(
-        SimpleStrategyIndicators)
+    min_range_bar_window = get_strategy_parameters_max(SimpleStrategyIndicators) + 1
 
     def __init__(self, primary: Subject) -> None:
         super().__init__(RigDataFrame.RANGE_BAR, primary)
@@ -50,7 +49,7 @@ class RangeBarIO(AbstractIO):
     def save_range_bars_with_indicators(self, e: StrategyNextDataEvent):
         try:
             self.storage.save_symbol_df_data(
-                e.symbol, 'range_bars_with_indicators', e.df)
+                e.symbol, 'range_bars_with_indicators', e.df, True)
         except Exception as ex:
             self.logger.error(f'save_range_bars_with_indicators: {str(ex)}')
 

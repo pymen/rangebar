@@ -36,7 +36,7 @@ class SimpleStrategyIndicators:
 
     def macd(self) -> None:
         macd = ta.trend.MACD( # type: ignore
-            self.df['close'], window_slow=self.p_macd_window_slow, window_fast=self.p_macd_window_fast, window_sign=self.p_macd_window_sign)
+            self.df['close'], window_slow=self.p_macd_window_slow, window_fast=self.p_macd_window_fast, window_sign=self.p_macd_window_sign, fillna=True)
         self.df['macd'] = macd.macd()
         self.df['macd_signal'] = macd.macd_signal()
         self.df['macd_histogram'] = macd.macd_diff()
