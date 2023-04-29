@@ -22,7 +22,7 @@ def test_rx_subject_filter_on_event_instance():
     sub1.pipe(op.filter(lambda o: isinstance(o, OrderStatusEvent)), op.map(test_event_map)).subscribe(lambda x: print(f'received (expect: OrderStatusEvent): {type(x)}'))
     for i in range(50):
         if i % 2 == 0:
-            e = HistoricalKlineEvent('class', 'type', pd.Timestamp.now('UCT'))
+            e = HistoricalKlineEvent('class', 'type', pd.Timestamp.now('UTC'))
             sub1.on_next(e)
         else:
             e = OrderStatusEvent('class', 'type', {'a': 1})
@@ -43,7 +43,7 @@ async def test_map_object():
     sub1.pipe(op.map(test_fetch_historical)).subscribe()
     for _ in range(5):
         await asyncio.sleep(3)
-        e =  HistoricalKlineEvent('class', 'type', pd.Timestamp.now('UCT'))
+        e =  HistoricalKlineEvent('class', 'type', pd.Timestamp.now('UTC'))
         sub1.on_next(e)
 
 

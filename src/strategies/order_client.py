@@ -44,7 +44,7 @@ class OrderClient:
         This would be equivalent, with BTC to a so called pip in forex trading
         but likely different for other coins
         """
-        sl_tp_order_id_prefix = get_unix_epoch_time_ms(pd.Timestamp.now('UCT'))
+        sl_tp_order_id_prefix = get_unix_epoch_time_ms(pd.Timestamp.now('UTC'))
         sl_id = f'{sl_tp_order_id_prefix}_b_sl'
         tp_id = f'{sl_tp_order_id_prefix}_b_tp'
         bo_id = f'{sl_tp_order_id_prefix}_b_bo'
@@ -132,7 +132,7 @@ class OrderClient:
         This would be equivalent, with BTC to a so called pip in forex trading
         but likely different for other coins
         """
-        sl_tp_order_id_prefix = get_unix_epoch_time_ms(pd.Timestamp.now('UCT'))
+        sl_tp_order_id_prefix = get_unix_epoch_time_ms(pd.Timestamp.now('UTC'))
         sl_id = f'{sl_tp_order_id_prefix}_s_sl'
         tp_id = f'{sl_tp_order_id_prefix}_s_tp'
         bo_id = f'{sl_tp_order_id_prefix}_s_bo'

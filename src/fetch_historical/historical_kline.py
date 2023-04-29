@@ -44,7 +44,7 @@ class HistoricalKline:
         """
         Returns a list of pairs of start and end times
         """
-        to_time_now = pd.Timestamp.now('UCT') 
+        to_time_now = pd.Timestamp.now('UTC') 
         minutes = int((to_time_now - last_timestamp).total_seconds() / 60)
         self.logger.info(f'minutes: {minutes}')
         intervals = int(minutes / 1000)

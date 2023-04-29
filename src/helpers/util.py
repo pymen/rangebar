@@ -2,7 +2,7 @@ from typing import Any
 import pandas as pd
 
 
-def get_unix_epoch_time_ms(timestamp: pd.Timestamp = pd.Timestamp.now('UCT')) -> int:
+def get_unix_epoch_time_ms(timestamp: pd.Timestamp = pd.Timestamp.now('UTC')) -> int:
     """Converts a datetime object to unix epoch time in milliseconds"""
     unix_epoch_time_ms = int(timestamp.timestamp() * 1000)
     return unix_epoch_time_ms
@@ -17,7 +17,7 @@ def flatten_dict(d: dict[str, Any], parent_key: str = '', sep: str = '_') -> dic
             items.extend(flatten_dict(v_dict, new_key, sep=sep).items())
         else:
             items.append((new_key, v))
-    return dict(items)
+    return dict(items) # type: ignore
 
 
 def get_strategy_parameters_max(strategy: object) -> int:

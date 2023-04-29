@@ -108,7 +108,7 @@ class KlineIO(AbstractIO):
         if debug:
             # FIXME there is something wrong with the debug mode - looks like it was because the time code wasn't using UTC
             missing_date_range_limit = pd.Timedelta(minutes=5) 
-        missing_date_range = pd.Timestamp('UCT') - df.index.max()
+        missing_date_range = pd.Timestamp('UTC') - df.index.max()
         date_range = df.index.max() - df.index.min()
         self.logger.debug(
             f"check_df_contains_processors_window: missing_date_range: {str(missing_date_range)}, date_range_days: {str(date_range)}, window: {str(window)}")
