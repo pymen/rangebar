@@ -4,7 +4,7 @@ e.g BTC to USD - adapted from https://github.com/freqtrade/freqtrade
 """
 
 
-from datetime import datetime
+from datetime import datetime as dt
 from typing import Dict, List
 from cachetools import TTLCache
 from pycoingecko import CoinGeckoAPI # type: ignore
@@ -69,7 +69,7 @@ class CryptoToFiatConverter:
                 self.logger.warning(
                     "Too many requests for CoinGecko API, backing off and trying again later.")
                 # Set backoff timestamp to 60 seconds in the future
-                self._backoff = datetime.now().timestamp() + 60
+                self._backoff = dt.utcnow().timestamp() + 60
                 return
             # If the request is not a 429 error we want to raise the normal error
             self.logger.error(
@@ -83,7 +83,7 @@ class CryptoToFiatConverter:
 
     def _get_gekko_id(self, crypto_symbol):
         if not self._coinlistings:
-            if self._backoff <= datetime.now().timestamp():
+            if self._backoff <= dt.utcnow().timestamp():
                 self._load_cryptomap()
                 # Still not loaded.
                 if not self._coinlistings:

@@ -38,11 +38,14 @@ class RangeBar(RigStreamConsumer):
     def process(self, e: KlineWindowDataEvent) -> None:
         self.logger.info(f'process: {e}')
         range_bar_df = self.create_range_bar_df(e.df)
-        self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
-        self.primary.on_next(RangeBarIOCmdEvent(method='append_rows', df_name='range_bar', kwargs={'symbol': e.symbol, 'df_section': range_bar_df}))
+        if range_bar_df is not None:
+            self.logger.debug(f'range bars created, to be published {len(range_bar_df)}')
+            self.primary.on_next(RangeBarIOCmdEvent(method='append_rows', df_name='range_bar', kwargs={'symbol': e.symbol, 'df_section': range_bar_df}))
+        else:
+            self.logger.debug(f'range bars not created, nothing to publish')    
 
 
-    def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame:
+    def create_range_bar_df(self, df: pd.DataFrame) -> pd.DataFrame | None:
         check_df_has_datetime_index(df)
         """
         the window is from the last range bar timestamp to now, a mechanism to pull historical kline 
@@ -111,9 +114,12 @@ class RangeBar(RigStreamConsumer):
         self.logger.debug(f"create_range_bar_df: filler_bars: {filler_bars}")
         self.logger.debug(
             f"create_range_bar_df: range_bars: length: {len(range_bars)}")
-        rb_df = pd.DataFrame(range_bars)
-        rb_df['timestamp'] = pd.to_datetime(rb_df['timestamp'])
-        rb_df.set_index('timestamp', inplace=True)
-        return rb_df
+        if len(range_bars) > 0:
+            rb_df = pd.DataFrame(range_bars)
+            rb_df['timestamp'] = pd.to_datetime(rb_df['timestamp'])
+            rb_df.set_index('timestamp', inplace=True)
+            return rb_df
+        else:
+            return None
 
     

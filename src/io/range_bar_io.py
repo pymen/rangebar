@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import pandas as pd
 from typing import Any, Callable
 from src.io.abstract_io import AbstractIO

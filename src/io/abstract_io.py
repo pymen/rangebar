@@ -1,10 +1,9 @@
 from typing import Any, Dict, Callable
 import pandas as pd
 import datetime as dt
-import os
-from src.helpers.util import check_df_has_datetime_index, coerce_numeric
+from src.helpers.util import coerce_numeric
 from src.io.storage import Storage
-from src.util import get_file_path, get_logger, get_settings
+from src.util import get_logger, get_settings
 from rx.subject import Subject  # type: ignore
 from abc import ABC, abstractmethod  # , abstractmethod
 from src.io.enum_io import RigDataFrame
@@ -49,19 +48,26 @@ class AbstractIO(ABC):
         else:
             return df
 
-    def get_window_df(self, symbol: str, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int) -> pd.DataFrame:
+    def get_timedelta_window_df(self, symbol: str, processors_window: pd.Timedelta, emit_window: pd.Timedelta) -> pd.DataFrame:
         df = self.symbol_df_dict[symbol]
         shortest_window = min(processors_window, emit_window)
-        if isinstance(shortest_window, pd.Timedelta):
-            window_start = max(
-                df.index.min(), pd.Timestamp.now() - shortest_window)
-            window_df = df.loc[df.index >= window_start]
-        else:
-            window_df = df.iloc[-shortest_window:]
+        window_start = max(df.index.min(), pd.Timestamp.now() - shortest_window)
+        window_df = df.loc[df.index >= window_start]
          # Set the 'mark' column to 1 where the window_df ends.
         if not window_df.empty:
-            df['mark'].iloc[-1] = 1
-            self.symbol_df_dict[symbol] = df
+            try:
+                df['mark'].iloc[-1] = 1
+                self.symbol_df_dict[symbol] = df
+            except Exception as e:
+                self.logger.error(f"get_timedelta_window_df: {e}")
+        self.logger.debug(f"get_timedelta_window_df: len: {len(window_df)}")        
+        return window_df.copy()
+    
+    def get_int_window_df(self, symbol: str, processors_window: int, emit_window: int) -> pd.DataFrame:
+        df = self.symbol_df_dict[symbol]
+        shortest_window = min(processors_window, emit_window)
+        window_df = df.iloc[-shortest_window:]
+        self.logger.debug(f"get_int_window_df: len: {len(window_df)}")
         return window_df.copy()
 
     def publish_windowed_data(self, symbol: str, event_object, processors_window: pd.Timedelta | int, emit_window: pd.Timedelta | int):
@@ -76,7 +82,13 @@ class AbstractIO(ABC):
         self.storage.save_symbol_df_data(symbol)
         self.logger.debug(
             f"publish_windowed_data: symbol df len: {len(pp_result)}, period_duration: {processors_window}, start: {str(pp_result.index.min())}, end: {str(pp_result.index.max())}")
-        window_df = self.get_window_df(symbol, processors_window, emit_window)
+        window_df = pd.DataFrame()
+        if isinstance(processors_window, pd.Timedelta) and isinstance(emit_window, pd.Timedelta):
+            window_df = self.get_timedelta_window_df(
+                symbol, processors_window, emit_window)
+        elif isinstance(processors_window, int) and isinstance(emit_window, int):
+            window_df = self.get_int_window_df(
+                symbol, processors_window, emit_window)
         if len(window_df) > 0:
             self.logger.debug(
                 f"publish_windowed_data: window df len: {len(window_df)}, start: {str(window_df.index.min())}, end: {str(window_df.index.max())}")
