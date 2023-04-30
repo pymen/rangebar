@@ -54,12 +54,8 @@ class KlineIO(AbstractIO):
             return None
 
     def get_pre_publish_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
-        return [self.relative_adr_range_size, self.apv, self.mark]
+        return [self.relative_adr_range_size, self.apv]
     
-    def mark(self, df: pd.DataFrame):
-        df['mark'] = -1
-        return df
-
     def adr(self, df: pd.DataFrame) -> float | None:
         df['date'] = df.copy().index.date  # type: ignore
         df[['high', 'low']] = df[['high', 'low']].fillna(0)   # type: ignore

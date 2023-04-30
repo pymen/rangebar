@@ -52,13 +52,6 @@ class AbstractIO(ABC):
         df = self.symbol_df_dict[symbol]
         window_start = max(df.index.min(), dt.utcnow() - emit_window)
         window_df = df.loc[df.index >= window_start]
-        # Set the 'mark' column to 1 where the window_df ends.
-        if not window_df.empty:
-            try:
-                df['mark'].iloc[-1] = 1
-                self.symbol_df_dict[symbol] = df
-            except Exception as e:
-                self.logger.error(f"get_timedelta_window_df: {e}")
         self.logger.debug(f"get_timedelta_window_df: len: {len(window_df)}")        
         return window_df.copy()
     
@@ -139,17 +132,6 @@ class AbstractIO(ABC):
     def get_symbol_config(self, symbol: str) -> list[Any]:
         symbols_config = self.settings['symbols_config']
         return [d for d in symbols_config if d['symbol'] == symbol]
-
-    def find_delta_for_last_mark(self, symbol: str, no_mark_default: pd.Timedelta | int) -> pd.Timedelta | int:
-        kline_df = self.symbol_df_dict[symbol]
-        try:
-            last_index = (kline_df['mark'] == 1).idxmax()
-            self.logger.debug(f"find_delta_for_last_mark: last_index: {last_index}")
-            delta = dt.utcnow() - last_index # type: ignore
-        except Exception as e:
-            self.logger.warn(f"find_delta_for_last_mark: {str(e)}")
-            delta = no_mark_default 
-        return delta
 
     def get_pre_publish_processors(self) -> list[Callable[[pd.DataFrame], pd.DataFrame]]:
         """
