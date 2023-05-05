@@ -1,6 +1,6 @@
 import pandas as pd
 from rx import combine_latest
-from rx import Subject  # type: ignore
+from rx.subject import Subject  # type: ignore
 import rx.operators as op
 from src.helpers.dataclasses import StrategyNextDataEvent, StrategyNextNonStdDataEvent
 from scipy.stats import linregress

@@ -8,7 +8,8 @@ from tests.utils import test_logger
 
 def new_instance() -> tuple[HistoricalKline, KlineIO]:
     primary = Subject()
-    kline = KlineIO(primary)
+    direct = Subject()
+    kline = KlineIO(primary, direct)
     return HistoricalKline(primary), kline
 
 def test_get_1000_minute_intervals() -> None:
