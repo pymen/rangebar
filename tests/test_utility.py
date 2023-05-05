@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
+from src.strategies.rb_strategy.rb_strategy_indicators import RbStrategyIndicators
 from src.util import clear_logs, clear_symbol_windows, get_file_path
 from tests.utils import test_logger
 

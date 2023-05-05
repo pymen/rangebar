@@ -3,8 +3,8 @@ from src.io.range_bar_io import RangeBarIO
 from src.stream_consumers.exchange.kline import Kline
 from src.stream_consumers.exchange.user_data import UserData
 from src.fetch_historical.historical_kline import HistoricalKline
-from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
-from src.strategies.simple_strategy.smiple_strategy import SimpleStrategy
+from src.strategies.rb_strategy.rb_strategy_indicators import RbStrategyIndicators
+from src.strategies.rb_strategy.rb_strategy import RbStrategy
 from src.stream_consumers.rig.range_bars import RangeBar
 from src.util import get_logger
 from rx.subject import Subject # type: ignore
@@ -17,6 +17,7 @@ def setup() -> tuple[Kline, UserData, RangeBar]:
     Event Subjects
     """
     primary = Subject()
+    direct = Subject()
     # secondary = Subject() # will be used for secondary data such as local order book decision augmentation
     """
     Transformers
@@ -33,7 +34,7 @@ def setup() -> tuple[Kline, UserData, RangeBar]:
     """
     Data Frame IO
     """
-    KlineIO(primary)
+    KlineIO(primary, direct)
     RangeBarIO(primary)
     # DataFrameIO('user_data', primary)
     """
@@ -43,11 +44,11 @@ def setup() -> tuple[Kline, UserData, RangeBar]:
     """
     Indicators
     """
-    SimpleStrategyIndicators(primary)
+    RbStrategyIndicators()
     """
     Strategies
     """
-    SimpleStrategy(primary)
+    RbStrategy(primary, direct)
     return kline, user_date, range_bar
 
 consumers = setup()

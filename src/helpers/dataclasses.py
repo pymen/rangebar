@@ -16,8 +16,12 @@ class RangeBarWindowDataEvent(DataEvent):
 
 
 @dataclass
+class StrategyNextNonStdDataEvent(DataEvent):
+    symbol: str
+
+@dataclass
 class StrategyNextDataEvent(DataEvent):
-    symbol: str   
+    symbol: str          
 
 @dataclass
 class HistoricalKlineEvent:

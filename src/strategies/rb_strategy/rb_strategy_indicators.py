@@ -4,7 +4,7 @@ import ta
 from src.strategies.abstract_strategy_indicators import AbstractStrategyIndicators
 
 
-class SimpleStrategyIndicators(AbstractStrategyIndicators):
+class RbStrategyIndicators(AbstractStrategyIndicators):
     """
     The indicators are calculated every time a range bar is created & it's decision time based on the indicator set.
     The only reason we add them to the in-memory df is for record purposes. Since the df is written to disk when rows

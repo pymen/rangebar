@@ -1,14 +1,22 @@
 import pandas as pd
-from rx.subject import Subject  # type: ignore
+from rx import combine_latest
+from rx import Subject  # type: ignore
 import rx.operators as op
-from src.helpers.dataclasses import StrategyNextDataEvent
+from src.helpers.dataclasses import StrategyNextDataEvent, StrategyNextNonStdDataEvent
 from scipy.stats import linregress
 from src.rx.scheduler import observe_on_scheduler
 from src.rx import sanitize_numeric_columns_df
 from src.strategies.order_client import OrderClient
 from src.util import get_logger
 
-class SimpleStrategy:
+
+class RbStrategy:
+    """
+    The idea hear is to use the range bar data to determine the trend and 
+    then use the kline data to determine if to proceed with entry or not.
+    Along with where to enter and exit.
+    Possibly incorporate other data and RL to determine the best action.
+    """
     per_trade_risk_perc_equity = 0.02
     rsi_upper_limit = 70
     rsi_lower_limit = 30
@@ -16,21 +24,23 @@ class SimpleStrategy:
     potential_profit_aadr_multiplier = 0.15
     anti_squeeze_distance = 0.05
 
-    def __init__(self, primary: Subject):
+    def __init__(self, primary: Subject, direct: Subject):
         self.logger = get_logger(self)
         self.client = OrderClient()
         self.primary = primary
+        self.direct = direct
         self.init_subscriptions()
 
     def init_subscriptions(self) -> None:
-        self.primary.pipe(  # type: ignore
-            op.filter(lambda o: isinstance(o, StrategyNextDataEvent)),
-            # sanitize_numeric_columns_df(),  # type: ignore
+        combine_latest.pipe(
+            self.primary.pipe(
+                op.filter(lambda o: isinstance(o, StrategyNextNonStdDataEvent))),
+            self.direct,
             op.map(self.next),
             observe_on_scheduler()
         ).subscribe()
 
-    def next(self, e: StrategyNextDataEvent) -> None:
+    def next(self, e: StrategyNextNonStdDataEvent) -> None:
         df = e.df
         row = df.tail(1)
         current_close = row['close']
@@ -60,16 +70,16 @@ class SimpleStrategy:
         is_volume_above_adv_limit = row['volume'] > row['adv']
 
         if is_long_rsi and is_long_macd and is_bb_upper_near and is_bb_upper_pointing_up and is_bb_dist_above:
-            quantity = self.client.get_percentage_equity_quantity_usd( # type: ignore
-                self.per_trade_risk_perc_equity)  
+            quantity = self.client.get_percentage_equity_quantity_usd(  # type: ignore
+                self.per_trade_risk_perc_equity)
             self.logger.warn(
                 f'buy quantity: {quantity} at entry price: {current_close}')
             self.client.buy(symbol=e.symbol, quantity=quantity,
                             stop_loss=sl_buy, take_profit=tp_buy, entry_price=str(current_close))
             row['trade'] = 1
         elif is_short_rsi and is_short_macd and is_bb_lower_near and is_bb_lower_pointing_down and is_bb_dist_above and is_volume_above_adv_limit:
-            quantity = self.client.get_percentage_equity_quantity_usd( # type: ignore
-                self.per_trade_risk_perc_equity) 
+            quantity = self.client.get_percentage_equity_quantity_usd(  # type: ignore
+                self.per_trade_risk_perc_equity)
             self.logger.warn(
                 f'sell quantity: {quantity} at entry price: {current_close}')
             self.client.sell(symbol=e.symbol, quantity=quantity,

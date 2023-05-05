@@ -3,7 +3,7 @@ from src.helpers.dataclasses import KlineWindowDataEvent, RangeBarIOCmdEvent
 from src.helpers.decorators import consumer_source
 from src.helpers.util import check_df_has_datetime_index
 from src.rx.scheduler import observe_on_scheduler
-from src.strategies.simple_strategy.simple_strategy_indicators import SimpleStrategyIndicators
+from src.strategies.rb_strategy.rb_strategy_indicators import RbStrategyIndicators
 from src.stream_consumers.rig_stream_consumer import RigStreamConsumer
 from src.util import get_logger
 from rx.subject import Subject  # type: ignore
@@ -30,8 +30,8 @@ class RangeBar(RigStreamConsumer):
         self.primary = primary
         self.buffer_range_bar_df_dict: dict[str, pd.DataFrame] = {}
         self.range_bar_last_timestamp: dict[str, dt] = {}
-        self.ss_indicators = SimpleStrategyIndicators().get_processors()
-        self.ss_min_window_size = SimpleStrategyIndicators().get_indicators_min_window_size()
+        self.ss_indicators = RbStrategyIndicators().get_processors()
+        self.ss_min_window_size = RbStrategyIndicators().get_indicators_min_window_size()
         self.logger.info(
             f'RangeBar: ss_min_window_size: {self.ss_min_window_size}, ss_indicators: len: {len(self.ss_indicators)}')
 

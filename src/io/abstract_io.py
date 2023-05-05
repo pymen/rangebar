@@ -12,11 +12,12 @@ from datetime import datetime as dt, timedelta as td
 
 class AbstractIO(ABC):
 
-    def __init__(self, rig_data_frame: RigDataFrame, primary: Subject) -> None:
+    def __init__(self, rig_data_frame: RigDataFrame, primary: Subject, direct: Subject | None = None) -> None:
         super().__init__()
         self.logger = get_logger(self)
         self.df_name = rig_data_frame.value
         self.primary = primary
+        self.direct = direct
         self.symbol_df_dict: Dict[str, pd.DataFrame] = {}
         self.storage = Storage(self.df_name, self.symbol_df_dict)
 

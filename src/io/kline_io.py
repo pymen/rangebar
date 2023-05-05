@@ -8,7 +8,7 @@ from src.rx import sanitize_numeric_columns_df
 from src.rx.scheduler import observe_on_scheduler
 from src.util import get_logger
 from rx.subject import Subject  # type: ignore
-from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent
+from src.helpers.dataclasses import HistoricalKlineEvent, KlineWindowDataEvent, StrategyNextDataEvent
 from src.helpers.dataclasses import KlineIOCmdEvent
 import rx.operators as op
 from src.io.enum_io import RigDataFrame
@@ -16,8 +16,8 @@ from src.io.enum_io import RigDataFrame
 
 class KlineIO(AbstractIO):
 
-    def __init__(self, primary: Subject) -> None:
-        super().__init__(RigDataFrame.KLINE, primary)
+    def __init__(self, primary: Subject, direct: Subject) -> None:
+        super().__init__(RigDataFrame.KLINE, primary, direct)
         self.logger = get_logger(self)
 
     def init_subscriptions(self) -> None:
@@ -116,7 +116,14 @@ class KlineIO(AbstractIO):
                 f"check_df_contains_window_period: DataFrame does not contain window period of data, yet. diff: {str(window - date_range)}")
             return False
 
-    
+    def publish_std_data(self, symbol: str) -> None:
+            if self.direct is None:
+                raise ValueError("self.direct is None")
+            min_5 = pd.Timedelta(minutes=5)
+            now = dt.utcnow()
+            from_time = now - min_5
+            df_segment = self.symbol_df_dict[symbol].copy()[from_time:]
+            self.direct.on_next(StrategyNextDataEvent(symbol=symbol, df=df_segment))   
 
     def post_append_trigger(self, symbol: str, batch: bool = False) -> None:
         emit_window = pd.Timedelta(self.get_exchange_consumer_period_duration())
@@ -127,5 +134,8 @@ class KlineIO(AbstractIO):
                 self.primary.on_next(event)
             return None
         else:
-            super().publish(symbol, KlineWindowDataEvent, emit_window)    
+            super().publish(symbol, KlineWindowDataEvent, emit_window)
+            # direct std data to primary stream
+            self.publish_std_data(symbol)
+             
                 
